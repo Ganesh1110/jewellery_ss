@@ -1,0 +1,12 @@
+{
+  "name": "SSS",
+  "short_name": "SSS",
+  "description": "Curated jewelry for the modern collector.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FDFBF7",
+  "theme_color": "#0A0A0A",
+  "icons": [
+    { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml" }
+  ]
+}

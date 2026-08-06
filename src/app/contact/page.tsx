@@ -1,0 +1,118 @@
+import { Metadata } from 'next';
+import Link from 'next/link';
+import type { ElementType } from 'react';
+import { Mail, Phone, MapPin, Clock } from 'lucide-react';
+
+export const metadata: Metadata = {
+  title: 'Contact',
+  description: 'Get in touch with the Style Statement by Shakthi team. We are here to help with orders, sizing, care, and bespoke commissions.',
+};
+
+export default function ContactPage() {
+  return (
+    <div className="flex flex-col">
+      <header className="section-sm bg-white border-b border-neutral-200">
+        <div className="container">
+          <nav className="flex items-center gap-2 text-caption text-neutral-500 mb-6" aria-label="Breadcrumb">
+            <Link href="/" className="hover:text-neutral-950 transition-colors">Home</Link>
+            <span aria-hidden="true">/</span>
+            <span className="text-neutral-950 font-medium">Contact</span>
+          </nav>
+          <span className="overline text-gold-600 mb-3 block">We&apos;d Love to Hear From You</span>
+          <h1 className="font-heading text-display-lg tracking-tight text-neutral-950 mb-4">Contact Us</h1>
+          <p className="text-body-lg text-neutral-600 max-w-2xl">
+            Questions about a piece, sizing, shipping, or a bespoke commission? Our consultants reply within one business day.
+          </p>
+        </div>
+      </header>
+
+      <section className="section" aria-label="Contact details and form">
+        <div className="container">
+          <div className="grid lg:grid-cols-5 gap-12 lg:gap-16">
+            {/* Contact details */}
+            <div className="lg:col-span-2 space-y-8">
+              <div className="space-y-5">
+                <ContactRow icon={Mail} label="Email" value="hello@sss.com" href="mailto:hello@sss.com" />
+                <ContactRow icon={Phone} label="Phone" value="+91 22 4000 0000" href="tel:+912240000000" />
+                <ContactRow icon={MapPin} label="Atelier" value="95 Mullin-Bazaar Road, Colaba, Mumbai, Maharashtra 400005" />
+                <ContactRow icon={Clock} label="Hours" value="Mon–Fri, 10am–6pm IST" />
+              </div>
+              <div className="card p-6">
+                <h2 className="font-heading text-heading-md text-neutral-950 mb-2">Bespoke Commissions</h2>
+                <p className="text-body-sm text-neutral-600">
+                  Dreaming of something one-of-a-kind? Tell us about the piece you have in mind and our studio will craft it with you.
+                </p>
+              </div>
+            </div>
+
+            {/* Form */}
+            <div className="lg:col-span-3">
+              <form className="card p-6 sm:p-8 space-y-6" action="#">
+                <div className="grid sm:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <label htmlFor="contact-name" className="label">Full name</label>
+                    <input id="contact-name" name="name" type="text" required className="input" placeholder="Your name" />
+                  </div>
+                  <div className="space-y-2">
+                    <label htmlFor="contact-email" className="label">Email</label>
+                    <input id="contact-email" name="email" type="email" required className="input" placeholder="you@example.com" />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <label htmlFor="contact-topic" className="label">Topic</label>
+                  <select id="contact-topic" name="topic" className="input" defaultValue="Order Enquiry">
+                    <option>Order Enquiry</option>
+                    <option>Sizing</option>
+                    <option>Shipping &amp; Returns</option>
+                    <option>Jewelry Care</option>
+                    <option>Bespoke Commission</option>
+                    <option>Something Else</option>
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <label htmlFor="contact-message" className="label">Message</label>
+                  <textarea id="contact-message" name="message" required rows={6} className="input min-h-[140px] resize-y" placeholder="How can we help?" />
+                </div>
+                <button type="submit" className="btn-primary w-full sm:w-auto">
+                  Send Message
+                </button>
+                <p className="text-caption text-neutral-500">
+                  This is a demo form. Connect the action endpoint to your email or CRM in production.
+                </p>
+              </form>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function ContactRow({
+  icon: Icon,
+  label,
+  value,
+  href,
+}: {
+  icon: ElementType;
+  label: string;
+  value: string;
+  href?: string;
+}) {
+  const content = (
+    <>
+      <div className="flex-shrink-0 w-11 h-11 rounded-full bg-gold-100 text-gold-700 flex items-center justify-center">
+        <Icon className="h-5 w-5" aria-hidden="true" />
+      </div>
+      <div>
+        <p className="text-caption text-neutral-500 uppercase tracking-wider">{label}</p>
+        {href ? (
+          <a href={href} className="text-body text-neutral-950 hover:text-gold-600 transition-colors">{value}</a>
+        ) : (
+          <p className="text-body text-neutral-950">{value}</p>
+        )}
+      </div>
+    </>
+  );
+  return <div className="flex items-start gap-4">{content}</div>;
+}

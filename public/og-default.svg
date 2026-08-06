@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="720" viewBox="0 0 1440 720">
+  <rect width="1440" height="720" fill="#0A0A0A"/>
+  <rect x="0" y="0" width="1440" height="720" fill="url(#g)" opacity="0.35"/>
+  <circle cx="720" cy="360" r="150" fill="none" stroke="#B8956A" stroke-width="5"/>
+  <circle cx="720" cy="360" r="100" fill="none" stroke="#C9A876" stroke-width="2"/>
+  <text x="720" y="470" text-anchor="middle" font-family="Georgia, serif" font-size="56" letter-spacing="10" fill="#FDFBF7">SSS</text>
+  <text x="720" y="540" text-anchor="middle" font-family="Georgia, serif" font-size="24" letter-spacing="8" fill="#E0D6C2">CURATED JEWELRY</text>
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#8F6E4E"/>
+      <stop offset="1" stop-color="#0A0A0A"/>
+    </linearGradient>
+  </defs>
+</svg>

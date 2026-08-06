@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1200" viewBox="0 0 1600 1200">
+  <rect width="1600" height="1200" fill="#E0D6C2"/>
+  <circle cx="800" cy="520" r="240" fill="none" stroke="#B8956A" stroke-width="8"/>
+  <circle cx="800" cy="520" r="150" fill="none" stroke="#A6835E" stroke-width="3"/>
+  <path d="M800 380 l24 60 64 4 -50 38 16 62 -54 -34 -54 34 16 -62 -50 -38 64 -4 z" fill="#8F6E4E"/>
+  <text x="800" y="900" text-anchor="middle" font-family="Georgia, serif" font-size="88" letter-spacing="10" fill="#171717">SSS</text>
+  <text x="800" y="980" text-anchor="middle" font-family="Georgia, serif" font-size="34" letter-spacing="8" fill="#525252">CRAFTED WITH INTENTION</text>
+</svg>
