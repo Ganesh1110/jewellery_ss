@@ -1,6 +1,6 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
-import { ArrowRight, Calendar } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { OptimizedImage } from '@/components/ui/Image';
 import { fetchBlogs, fetchArticles } from '@/lib/shopify';
 
@@ -25,14 +25,14 @@ export default async function JournalPage() {
 
   return (
     <div className="flex flex-col">
-      <header className="section-sm bg-white border-b border-neutral-200">
+      <header className="section-sm bg-white border-b border-neutral-950/10">
         <div className="container">
           <nav className="flex items-center gap-2 text-caption text-neutral-500 mb-6" aria-label="Breadcrumb">
             <Link href="/" className="hover:text-neutral-950 transition-colors">Home</Link>
             <span aria-hidden="true">/</span>
             <span className="text-neutral-950 font-medium">Journal</span>
           </nav>
-          <span className="overline text-gold-600 mb-3 block">From the Atelier</span>
+          <span className="overline mb-3 block">From the Atelier</span>
           <h1 className="font-heading text-display-lg tracking-tight text-neutral-950 mb-4">
             The Style Statement by Shakthi Journal
           </h1>
@@ -49,17 +49,17 @@ export default async function JournalPage() {
               <p className="text-body text-neutral-500">No journal entries yet. Check back soon.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {articles.map((article, index) => (
-                <article key={article.id} className="card-interactive group overflow-hidden">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-12">
+              {articles.map((article) => (
+                <article key={article.id} className="group">
                   <Link href={`/journal/${article.handle}`} className="block" aria-label={article.title}>
-                    <div className="relative aspect-16-9 overflow-hidden bg-neutral-100">
+                    <div className="relative aspect-16-9 overflow-hidden bg-cream-100">
                       {article.image ? (
                         <OptimizedImage
                           src={article.image.url}
                           alt={article.image.altText || article.title}
                           fill
-                          className="transition-transform duration-700 ease-out-expo group-hover:scale-105"
+                          className="transition-transform duration-[1.2s] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.04]"
                         />
                       ) : (
                         <div className="absolute inset-0 flex items-center justify-center text-neutral-400">
@@ -67,19 +67,18 @@ export default async function JournalPage() {
                         </div>
                       )}
                     </div>
-                    <div className="p-6">
-                      <p className="flex items-center gap-2 text-caption text-neutral-500 mb-3">
-                        <Calendar className="h-3.5 w-3.5" aria-hidden="true" />
+                    <div className="pt-5">
+                      <p className="text-caption text-neutral-500 mb-3">
                         {formatDate(article.publishedAt)}
                         {article.author?.name ? ` · ${article.author.name}` : ''}
                       </p>
-                      <h2 className="font-heading text-heading-md tracking-tight text-neutral-950 group-hover:text-gold-600 transition-colors mb-2">
+                      <h2 className="font-heading text-heading-md tracking-tight text-neutral-950 mb-2">
                         {article.title}
                       </h2>
                       {article.excerpt && (
                         <p className="text-body-sm text-neutral-600 mb-4 line-clamp-3">{article.excerpt}</p>
                       )}
-                      <span className="inline-flex items-center gap-1.5 text-body-sm font-medium text-gold-600">
+                      <span className="inline-flex items-center gap-1.5 text-body-sm font-medium text-neutral-950">
                         Read More <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                       </span>
                     </div>

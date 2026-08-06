@@ -52,19 +52,19 @@ export function SortDropdown({ currentSort }: { currentSort?: string }) {
     <div className="relative inline-block text-left" ref={dropdownRef}>
       <button
         onClick={() => setIsOpen((prev) => !prev)}
-        className="btn-secondary flex items-center gap-2 border border-neutral-300 bg-white px-4 py-2 text-body-sm font-medium text-neutral-800 hover:text-neutral-950 hover:border-neutral-400 transition-colors"
+        className="btn-secondary flex items-center gap-2 px-4 py-2 text-body-sm font-medium text-neutral-800 hover:text-neutral-950 transition-colors"
         aria-haspopup="listbox"
         aria-expanded={isOpen}
         aria-label={`Sort products, currently sorted by ${activeLabel}`}
       >
-        <Filter className="h-4 w-4 text-gold-600" aria-hidden="true" />
-        <span>Sort: <strong className="font-semibold text-neutral-950">{activeLabel}</strong></span>
+        <Filter className="h-4 w-4" aria-hidden="true" />
+        <span>Sort: <strong className="font-medium text-neutral-950">{activeLabel}</strong></span>
         <ChevronDown className={cn('h-4 w-4 transition-transform duration-200', isOpen && 'rotate-180')} aria-hidden="true" />
       </button>
 
       {isOpen && (
         <div
-          className="absolute right-0 mt-2 w-56 rounded-md bg-white shadow-strong border border-neutral-200 z-30 py-1.5 animate-fade-in"
+          className="absolute right-0 mt-2 w-56 rounded-sm bg-cream-50 border border-neutral-950/10 z-30 py-1.5 animate-fade-in"
           role="listbox"
           aria-label="Sort options"
         >
@@ -79,12 +79,12 @@ export function SortDropdown({ currentSort }: { currentSort?: string }) {
                 className={cn(
                   'w-full flex items-center justify-between px-4 py-2 text-left text-body-sm transition-colors',
                   isSelected
-                    ? 'bg-gold-50 font-medium text-gold-900'
-                    : 'text-neutral-700 hover:bg-neutral-50 hover:text-neutral-950'
+                    ? 'bg-neutral-950/[0.05] font-medium text-neutral-950'
+                    : 'text-neutral-700 hover:bg-neutral-950/[0.03] hover:text-neutral-950'
                 )}
               >
                 <span>{option.label}</span>
-                {isSelected && <Check className="h-4 w-4 text-gold-600" aria-hidden="true" />}
+                {isSelected && <Check className="h-4 w-4" aria-hidden="true" />}
               </button>
             );
           })}

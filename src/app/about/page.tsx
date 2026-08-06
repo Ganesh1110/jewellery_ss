@@ -39,7 +39,7 @@ export default async function AboutPage() {
               />
             </div>
             <div>
-              <span className="overline text-gold-600 mb-3 inline-block">Our Story</span>
+              <span className="overline mb-3 inline-block">Our Story</span>
               <h1 id="about-title" className="font-heading text-display-lg tracking-tight text-neutral-950 mb-6">
                 Crafted with Intention, Rooted in Mumbai
               </h1>
@@ -64,17 +64,15 @@ export default async function AboutPage() {
       <section className="section" aria-labelledby="values-heading">
         <div className="container">
           <header className="max-w-2xl mx-auto text-center mb-12 lg:mb-16">
-            <span className="overline text-gold-600 mb-3 inline-block">What We Stand For</span>
+            <span className="overline mb-3 inline-block">What We Stand For</span>
             <h2 id="values-heading" className="font-heading text-display-md tracking-tight text-neutral-950 mb-4">
               The Style Statement by Shakthi Promise
             </h2>
           </header>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {values.map((value) => (
-              <article key={value.title} className="card p-8 text-center">
-                <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-gold-100 text-gold-700 mb-5">
-                  <value.icon className="h-7 w-7" aria-hidden="true" />
-                </div>
+              <article key={value.title} className="border-t border-neutral-950/10 pt-8">
+                <value.icon className="h-6 w-6 text-neutral-400 mb-5" aria-hidden="true" />
                 <h3 className="font-heading text-heading-md text-neutral-950 mb-3">{value.title}</h3>
                 <p className="text-body-sm text-neutral-600">{value.text}</p>
               </article>

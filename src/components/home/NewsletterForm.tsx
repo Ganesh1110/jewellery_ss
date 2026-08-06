@@ -21,15 +21,15 @@ export function NewsletterForm() {
 
   if (status === 'success') {
     return (
-      <div className="p-6 rounded-lg bg-neutral-900 border border-gold-500/30 text-center animate-fade-in space-y-3">
-        <CheckCircle2 className="h-8 w-8 text-gold-400 mx-auto" />
+      <div className="p-6 border border-cream-50/20 bg-neutral-900 text-center animate-fade-in space-y-3">
+        <CheckCircle2 className="h-8 w-8 text-cream-50 mx-auto" />
         <h3 className="font-heading text-heading-md text-cream-50">Welcome to the Collective</h3>
         <p className="text-body-sm text-cream-50/70">
           Thank you for subscribing. We&apos;ve sent a welcome invitation to your inbox.
         </p>
         <button
           onClick={() => setStatus('idle')}
-          className="text-caption uppercase tracking-wider text-gold-400 hover:underline pt-2 inline-block"
+          className="text-caption uppercase tracking-[0.16em] text-cream-50/70 hover:underline pt-2 inline-block"
         >
           Subscribe another email
         </button>
@@ -47,19 +47,19 @@ export function NewsletterForm() {
         value={email}
         onChange={(e) => setEmail(e.target.value)}
         placeholder="Enter your email address"
-        className="flex-1 bg-neutral-900 border border-neutral-700 text-cream-50 placeholder:text-neutral-500 text-body-sm px-4 py-3.5 min-h-[48px] focus:border-gold-500 focus:ring-2 focus:ring-gold-500/20 focus:outline-none transition-all"
+        className="flex-1 bg-transparent border border-cream-50/25 text-cream-50 placeholder:text-cream-50/40 text-body-sm px-4 py-3 min-h-[46px] focus:border-cream-50 focus:outline-none transition-colors"
         required
       />
       <Button
         type="submit"
         disabled={status === 'submitting'}
-        variant="gold"
-        className="whitespace-nowrap flex items-center justify-center gap-2"
+        variant="secondary"
+        className="whitespace-nowrap flex items-center justify-center gap-2 !border-cream-50/40 !text-cream-50 hover:!border-cream-50 hover:!bg-cream-50 hover:!text-neutral-950"
       >
         {status === 'submitting' ? (
           <>
             <Loader2 className="h-4 w-4 animate-spin" />
-            Joining...
+            Joining…
           </>
         ) : (
           <>

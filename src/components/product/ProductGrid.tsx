@@ -53,16 +53,11 @@ export function ProductGrid({ products, loading = false, columns = 3, showQuickA
 
 function ProductCardSkeleton() {
   return (
-    <article className="card animate-pulse" aria-hidden="true">
-      <div className="aspect-4-5 bg-neutral-200" />
-      <div className="p-4 pt-5 space-y-3">
-        <div className="h-3 w-24 bg-neutral-200 rounded" />
-        <div className="h-5 w-3/4 bg-neutral-200 rounded" />
-        <div className="h-5 w-1/2 bg-neutral-200 rounded" />
-        <div className="flex items-center gap-2">
-          <div className="h-5 w-20 bg-neutral-200 rounded" />
-          <div className="h-4 w-16 bg-neutral-200 rounded" />
-        </div>
+    <article className="animate-pulse" aria-hidden="true">
+      <div className="aspect-4-5 bg-cream-100" />
+      <div className="pt-4 space-y-2">
+        <div className="h-4 w-3/4 bg-cream-100 rounded-sm" />
+        <div className="h-4 w-1/3 bg-cream-100 rounded-sm" />
       </div>
     </article>
   );

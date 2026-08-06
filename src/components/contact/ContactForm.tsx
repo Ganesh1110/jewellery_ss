@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { CheckCircle2, Loader2, Send } from 'lucide-react';
+import { Loader2, Send } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 
 export function ContactForm() {
@@ -55,10 +55,7 @@ export function ContactForm() {
     <div className="card p-6 sm:p-8">
       {status === 'success' ? (
         <div className="text-center py-8 space-y-4 animate-fade-in">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gold-100 text-gold-700 mx-auto">
-            <CheckCircle2 className="h-8 w-8" />
-          </div>
-          <h3 className="font-heading text-heading-lg text-neutral-950">Message Sent Successfully</h3>
+          <h3 className="font-heading text-heading-lg text-neutral-950">Message sent successfully</h3>
           <p className="text-body text-neutral-600 max-w-sm mx-auto">
             Thank you for reaching out. Our client advisors will review your inquiry and respond within 24 hours.
           </p>

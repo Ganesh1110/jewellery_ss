@@ -104,7 +104,6 @@ export function ProductImage({
   priority = false,
 }: ProductImageProps) {
   const [hovered, setHovered] = useState(false);
-  const [currentIndex, setCurrentIndex] = useState(0);
 
   const displayImages = selectedVariantImage
     ? [selectedVariantImage, ...images.filter((img) => img.url !== selectedVariantImage?.url)]
@@ -131,34 +130,8 @@ export function ProductImage({
         fill
         priority={priority}
         placeholder="blur"
-        className="transition-opacity duration-500 ease-out-expo"
+        className="transition-opacity duration-500 ease-out"
       />
-      
-      {displayImages.length > 1 && (
-        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1 opacity-0 transition-opacity duration-300 group-hover:opacity-100" role="tablist" aria-label="Product images">
-          {displayImages.slice(0, 5).map((image, index) => (
-            <button
-              key={image.url}
-              role="tab"
-              aria-selected={index === currentIndex}
-              aria-label={`View image ${index + 1}`}
-              onClick={() => setCurrentIndex(index)}
-              className={cn(
-                'w-1.5 h-1.5 rounded-full transition-all duration-300',
-                index === currentIndex
-                  ? 'bg-neutral-950 w-3'
-                  : 'bg-neutral-400 hover:bg-neutral-600'
-              )}
-            />
-          ))}
-        </div>
-      )}
-
-      {displayImages.length > 5 && (
-        <span className="absolute bottom-3 right-3 text-caption bg-neutral-950/80 text-cream-50 px-2 py-1 rounded">
-          +{displayImages.length - 5}
-        </span>
-      )}
     </div>
   );
 }

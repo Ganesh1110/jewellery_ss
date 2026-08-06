@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 import Link from 'next/link';
-import { AlertTriangle, RefreshCw, Home } from 'lucide-react';
+import { RefreshCw, Home } from 'lucide-react';
 
 export default function GlobalError({
   error,
@@ -17,10 +17,7 @@ export default function GlobalError({
 
   return (
     <div className="min-h-[70vh] flex items-center justify-center px-4 py-16 bg-cream-50">
-      <div className="text-center max-w-md card p-8 sm:p-10 shadow-medium">
-        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-red-100 text-red-600 mb-6">
-          <AlertTriangle className="h-8 w-8" aria-hidden="true" />
-        </div>
+      <div className="text-center max-w-md">
         <h1 className="font-heading text-display-sm tracking-tight text-neutral-950 mb-3">
           Something went wrong
         </h1>

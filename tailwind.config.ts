@@ -47,7 +47,7 @@ const config: Config = {
       },
       fontFamily: {
         heading: ['var(--font-cormorant)', 'Georgia', 'serif'],
-        sans: ['var(--font-inter)', 'system-ui', 'sans-serif'],
+        sans: ['-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Helvetica Neue', 'Arial', 'sans-serif'],
       },
       fontSize: {
         'display-xl': ['clamp(3.2rem, 7vw, 5.5rem)', { lineHeight: '1.08', letterSpacing: '-0.03em' }],
@@ -78,10 +78,10 @@ const config: Config = {
         'full': '9999px',
       },
       boxShadow: {
-        'subtle': '0 1px 3px 0 rgb(0 0 0 / 0.04), 0 1px 2px -1px rgb(0 0 0 / 0.04)',
-        'soft': '0 4px 12px -2px rgb(0 0 0 / 0.05), 0 2px 6px -1px rgb(0 0 0 / 0.03)',
-        'medium': '0 8px 24px -4px rgb(0 0 0 / 0.08), 0 4px 12px -2px rgb(0 0 0 / 0.04)',
-        'strong': '0 16px 40px -8px rgb(0 0 0 / 0.12), 0 8px 20px -4px rgb(0 0 0 / 0.06)',
+        'subtle': '0 1px 2px 0 rgb(0 0 0 / 0.03)',
+        'soft': '0 8px 24px -12px rgb(0 0 0 / 0.08)',
+        'medium': '0 16px 40px -16px rgb(0 0 0 / 0.10)',
+        'strong': '0 24px 60px -20px rgb(0 0 0 / 0.16)',
       },
       animation: {
         'fade-in': 'fadeIn 0.4s ease-out',

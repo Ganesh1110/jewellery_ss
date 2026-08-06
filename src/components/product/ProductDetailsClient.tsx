@@ -81,38 +81,22 @@ export function ProductDetailsClient({
       {/* Product Content */}
       <section className="section bg-white" aria-labelledby="product-title">
         <div className="container">
-          <div className="grid lg:grid-cols-2 gap-12 lg:gap-16">
+          <div className="grid lg:grid-cols-2 gap-12 lg:gap-20">
             {/* Gallery */}
-            <div className="sticky top-24 lg:top-32">
+            <div className="lg:sticky lg:top-24">
               <ProductGallery
                 product={product}
                 selectedVariant={selectedVariant}
                 selectedOptions={selectedOptions}
                 onOptionChange={handleOptionChange}
               />
-
-              {/* Product Badges */}
-              <div className="mt-6 flex flex-wrap gap-2" aria-label="Product features">
-                <span className="badge-neutral flex items-center gap-1.5">
-                  <Shield className="h-3 w-3" aria-hidden="true" />
-                  Certified Authentic
-                </span>
-                <span className="badge-neutral flex items-center gap-1.5">
-                  <Truck className="h-3 w-3" aria-hidden="true" />
-                  Free Shipping ₹15K+
-                </span>
-                <span className="badge-neutral flex items-center gap-1.5">
-                  <RotateCcw className="h-3 w-3" aria-hidden="true" />
-                  14-Day Returns
-                </span>
-              </div>
             </div>
 
             {/* Product Info */}
-            <div className="space-y-6">
+            <div className="space-y-8">
               {/* Category */}
               {product.productType && (
-                <p className="overline text-gold-600">{product.productType}</p>
+                <p className="overline text-neutral-600">{product.productType}</p>
               )}
 
               {/* Title */}
@@ -126,23 +110,18 @@ export function ProductDetailsClient({
                 {onSale && compareAtPrice && (
                   <span className="price-compare text-heading-md tabular-nums">{formatMoney(compareAtPrice, currencyCode)}</span>
                 )}
-                {onSale && compareAtPrice && (
-                  <span className="badge-gold">
-                    −{Math.round((1 - price / compareAtPrice!) * 100)}%
-                  </span>
-                )}
               </div>
 
               {/* Availability */}
               <div className="flex items-center gap-2 text-body-sm">
                 <span className={cn(
-                  'w-2 h-2 rounded-full',
-                  availability.status === 'in_stock' && 'bg-green-500',
-                  availability.status === 'low_stock' && 'bg-amber-500',
+                  'w-1.5 h-1.5 rounded-full',
+                  availability.status === 'in_stock' && 'bg-neutral-950',
+                  availability.status === 'low_stock' && 'bg-amber-600',
                   availability.status === 'out_of_stock' && 'bg-neutral-400'
                 )} aria-hidden="true" />
                 <span className={cn(
-                  availability.status === 'in_stock' && 'text-green-700',
+                  availability.status === 'in_stock' && 'text-neutral-700',
                   availability.status === 'low_stock' && 'text-amber-700',
                   availability.status === 'out_of_stock' && 'text-neutral-500'
                 )}>
@@ -151,7 +130,7 @@ export function ProductDetailsClient({
               </div>
 
               {/* Description */}
-              <div className="prose prose-neutral max-w-none">
+              <div className="text-body text-neutral-600 leading-relaxed">
                 <div dangerouslySetInnerHTML={{ __html: product.descriptionHtml || product.description }} />
               </div>
 
@@ -166,7 +145,7 @@ export function ProductDetailsClient({
               )}
 
               {/* Quantity & Add to Cart */}
-              <div className="flex flex-col sm:flex-row gap-4 items-start pt-4 border-t border-neutral-200">
+              <div className="flex flex-col sm:flex-row gap-4 items-start pt-8 border-t border-neutral-950/10">
                 <QuantitySelector
                   value={quantity}
                   onChange={setQuantity}
@@ -178,7 +157,7 @@ export function ProductDetailsClient({
                     onClick={handleAddToCart}
                     loading={cartLoading}
                     disabled={availability.status === 'out_of_stock'}
-                    className="w-full sm:w-auto"
+                    className="w-full sm:w-auto min-w-[180px]"
                   >
                     {addedToCart ? (
                       <>
@@ -195,32 +174,31 @@ export function ProductDetailsClient({
               </div>
 
               {/* Wishlist & Share */}
-              <div className="flex items-center gap-4 pt-4 border-t border-neutral-200">
-                <button className="btn-ghost p-2" aria-label="Add to wishlist">
-                  <Heart className="h-5 w-5" />
+              <div className="flex items-center gap-6 pt-8 border-t border-neutral-950/10">
+                <button className="inline-flex items-center gap-2 text-body-sm font-medium text-neutral-700 hover:text-neutral-950 transition-colors" aria-label="Add to wishlist">
+                  <Heart className="h-4 w-4" aria-hidden="true" />
+                  Add to wishlist
                 </button>
-                <button className="btn-ghost p-2" aria-label="Share product">
-                  <Share2 className="h-5 w-5" />
+                <button className="inline-flex items-center gap-2 text-body-sm font-medium text-neutral-700 hover:text-neutral-950 transition-colors" aria-label="Share product">
+                  <Share2 className="h-4 w-4" aria-hidden="true" />
+                  Share
                 </button>
               </div>
 
-              {/* Trust Signals */}
-              <div className="pt-6 border-t border-neutral-200 space-y-4">
-                {[
-                  { icon: Shield, title: 'Certified Authentic', desc: 'All gemstones certified by IGI/GIA' },
-                  { icon: Truck, title: 'Free Shipping', desc: 'On orders over ₹15,000 worldwide' },
-                  { icon: RotateCcw, title: 'Easy Returns', desc: '14-day hassle-free return policy' },
-                ].map((signal) => (
-                  <div key={signal.title} className="flex items-start gap-3">
-                    <div className="flex-shrink-0 w-10 h-10 rounded-full bg-neutral-100 flex items-center justify-center">
-                      <signal.icon className="h-5 w-5 text-neutral-700" aria-hidden="true" />
-                    </div>
-                    <div>
-                      <p className="font-medium text-neutral-950">{signal.title}</p>
-                      <p className="text-body-sm text-neutral-600">{signal.desc}</p>
-                    </div>
-                  </div>
-                ))}
+              {/* Service Note */}
+              <div className="space-y-3 text-body-sm text-neutral-600 pt-2">
+                <p className="flex items-center gap-3">
+                  <Truck className="h-4 w-4 text-neutral-400" aria-hidden="true" />
+                  Complimentary shipping on orders over ₹15,000
+                </p>
+                <p className="flex items-center gap-3">
+                  <RotateCcw className="h-4 w-4 text-neutral-400" aria-hidden="true" />
+                  14-day complimentary returns
+                </p>
+                <p className="flex items-center gap-3">
+                  <Shield className="h-4 w-4 text-neutral-400" aria-hidden="true" />
+                  Gemstones certified by IGI · GIA
+                </p>
               </div>
             </div>
           </div>
@@ -229,13 +207,13 @@ export function ProductDetailsClient({
 
       {/* You May Also Like */}
       {recommendations.length > 0 && (
-        <section className="section bg-white border-y border-neutral-200 pb-20 sm:pb-24" aria-labelledby="recommendations-heading">
+        <section className="section bg-cream-50 border-y border-neutral-950/10" aria-labelledby="recommendations-heading">
           <div className="container">
-            <header className="max-w-2xl mx-auto text-center mb-12">
-              <h2 id="recommendations-heading" className="font-heading text-display-md tracking-tight text-neutral-950 mb-4">
+            <header className="max-w-2xl mx-auto text-center mb-12 lg:mb-20">
+              <h2 id="recommendations-heading" className="font-heading text-display-sm sm:text-display-md tracking-tight text-neutral-950 mb-4">
                 You May Also Like
               </h2>
-              <p className="text-body-lg text-neutral-600">
+              <p className="text-body text-neutral-600">
                 Handpicked pieces that complement your selection.
               </p>
             </header>
@@ -245,19 +223,19 @@ export function ProductDetailsClient({
       )}
 
       {/* Sticky Mobile Add-to-Bag Bottom Bar */}
-      <div className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-neutral-200 p-3.5 sm:hidden shadow-strong animate-slide-up">
+      <div className="fixed bottom-0 left-0 right-0 z-40 bg-cream-50/95 backdrop-blur-md border-t border-neutral-950/10 p-3.5 sm:hidden">
         <div className="flex items-center justify-between gap-3">
           <div className="min-w-0 flex-1">
-            <p className="font-heading text-body-sm font-semibold text-neutral-950 truncate">{product.title}</p>
-            <p className="text-xs font-semibold text-neutral-900 tabular-nums">{formatMoney(price, currencyCode)}</p>
+            <p className="font-heading text-body-sm font-medium text-neutral-950 truncate">{product.title}</p>
+            <p className="text-body-sm font-medium text-neutral-900 tabular-nums">{formatMoney(price, currencyCode)}</p>
           </div>
           <AddToCartButton
             onClick={handleAddToCart}
             loading={cartLoading}
             disabled={availability.status === 'out_of_stock'}
-            className="btn-gold py-2.5 px-5 text-caption font-semibold uppercase tracking-wider min-h-[42px]"
+            className="px-5 py-2.5 text-caption font-medium min-h-[42px]"
           >
-            {addedToCart ? 'Added!' : availability.status === 'out_of_stock' ? 'Sold Out' : 'Add to Bag'}
+            {addedToCart ? 'Added' : availability.status === 'out_of_stock' ? 'Sold Out' : 'Add to Bag'}
           </AddToCartButton>
         </div>
       </div>

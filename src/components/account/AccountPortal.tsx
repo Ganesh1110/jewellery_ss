@@ -34,15 +34,15 @@ export function AccountPortal() {
   return (
     <div className="max-w-2xl mx-auto space-y-8">
       {/* Navigation tabs */}
-      <div className="flex border-b border-neutral-200" role="tablist" aria-label="Account tabs">
+      <div className="flex border-b border-neutral-950/10" role="tablist" aria-label="Account tabs">
         <button
           role="tab"
           aria-selected={activeTab === 'signin'}
           onClick={() => setActiveTab('signin')}
           className={cn(
-            'flex items-center gap-2 px-5 py-3 text-body-sm font-medium border-b-2 transition-colors',
+            'flex items-center gap-2 px-5 py-3 text-body-sm font-medium border-b transition-colors',
             activeTab === 'signin'
-              ? 'border-gold-600 text-neutral-950 font-semibold'
+              ? 'border-neutral-950 text-neutral-950'
               : 'border-transparent text-neutral-500 hover:text-neutral-950'
           )}
         >
@@ -54,9 +54,9 @@ export function AccountPortal() {
           aria-selected={activeTab === 'orders'}
           onClick={() => setActiveTab('orders')}
           className={cn(
-            'flex items-center gap-2 px-5 py-3 text-body-sm font-medium border-b-2 transition-colors',
+            'flex items-center gap-2 px-5 py-3 text-body-sm font-medium border-b transition-colors',
             activeTab === 'orders'
-              ? 'border-gold-600 text-neutral-950 font-semibold'
+              ? 'border-neutral-950 text-neutral-950'
               : 'border-transparent text-neutral-500 hover:text-neutral-950'
           )}
         >
@@ -68,9 +68,9 @@ export function AccountPortal() {
           aria-selected={activeTab === 'wishlist'}
           onClick={() => setActiveTab('wishlist')}
           className={cn(
-            'flex items-center gap-2 px-5 py-3 text-body-sm font-medium border-b-2 transition-colors',
+            'flex items-center gap-2 px-5 py-3 text-body-sm font-medium border-b transition-colors',
             activeTab === 'wishlist'
-              ? 'border-gold-600 text-neutral-950 font-semibold'
+              ? 'border-neutral-950 text-neutral-950'
               : 'border-transparent text-neutral-500 hover:text-neutral-950'
           )}
         >
@@ -82,9 +82,9 @@ export function AccountPortal() {
           aria-selected={activeTab === 'settings'}
           onClick={() => setActiveTab('settings')}
           className={cn(
-            'flex items-center gap-2 px-5 py-3 text-body-sm font-medium border-b-2 transition-colors',
+            'flex items-center gap-2 px-5 py-3 text-body-sm font-medium border-b transition-colors',
             activeTab === 'settings'
-              ? 'border-gold-600 text-neutral-950 font-semibold'
+              ? 'border-neutral-950 text-neutral-950'
               : 'border-transparent text-neutral-500 hover:text-neutral-950'
           )}
         >
@@ -100,7 +100,7 @@ export function AccountPortal() {
             {isSignedIn ? (
               <div className="space-y-6">
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-full bg-gold-100 text-gold-700 flex items-center justify-center font-bold text-lg">
+                  <div className="w-12 h-12 rounded-full bg-neutral-950/[0.06] text-neutral-900 flex items-center justify-center font-medium text-lg">
                     {signedInEmail.charAt(0).toUpperCase()}
                   </div>
                   <div>
@@ -108,7 +108,7 @@ export function AccountPortal() {
                     <p className="text-body-sm text-neutral-500">{signedInEmail}</p>
                   </div>
                 </div>
-                <div className="pt-4 border-t border-neutral-200 flex gap-4">
+                <div className="pt-4 border-t border-neutral-950/10 flex gap-4">
                   <Button variant="secondary" onClick={handleSignOut}>
                     Sign Out
                   </Button>
@@ -197,12 +197,12 @@ export function AccountPortal() {
                 </div>
                 <span className="text-body-sm font-semibold text-neutral-800">INR (₹)</span>
               </div>
-              <div className="flex items-center justify-between p-4 bg-neutral-50 rounded">
+              <div className="flex items-center justify-between p-4 bg-neutral-950/[0.03] rounded-sm">
                 <div>
                   <p className="text-body font-medium text-neutral-950">Marketing Communications</p>
                   <p className="text-caption text-neutral-500">Receive new release updates</p>
                 </div>
-                <span className="text-caption text-gold-700 bg-gold-100 px-2 py-1 rounded font-medium">Subscribed</span>
+                <span className="text-caption text-neutral-900 font-medium">Subscribed</span>
               </div>
             </div>
           </div>

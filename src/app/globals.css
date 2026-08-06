@@ -5,11 +5,11 @@
 @layer base {
   :root {
     --font-cormorant: 'Cormorant Garamond', Georgia, serif;
-    --font-inter: 'Inter', system-ui, sans-serif;
+    --hairline: 1px solid rgba(0, 0, 0, 0.08);
   }
 
   * {
-    @apply border-neutral-200;
+    border-color: rgba(0, 0, 0, 0.08);
   }
 
   html {
@@ -20,6 +20,7 @@
 
   body {
     @apply bg-cream-50 text-neutral-900 font-sans text-body leading-relaxed;
+    font-feature-settings: 'kern' 1, 'liga' 1, 'calt' 1;
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -33,12 +34,16 @@
   h5 { @apply text-heading-lg; }
   h6 { @apply text-heading-md; }
 
+  h1, h2, h3, h4, h5, h6, p {
+    text-wrap: balance;
+  }
+
   *:focus-visible {
-    @apply outline-none ring-2 ring-gold-500 ring-offset-2 ring-offset-cream-50;
+    @apply outline-none ring-2 ring-neutral-950/25 ring-offset-2 ring-offset-cream-50;
   }
 
   ::selection {
-    @apply bg-gold-500/20 text-neutral-950;
+    @apply bg-neutral-950 text-cream-50;
   }
 }
 
@@ -52,66 +57,72 @@
     @apply mx-auto px-4 sm:px-6 lg:px-8 max-w-prose;
   }
 
-  /* Akiiko Styled Buttons */
+  /* Buttons — flat, crisp, no default shadows */
   .btn {
-    @apply inline-flex items-center justify-center gap-2 font-sans font-semibold text-body-sm 
-           uppercase tracking-wider transition-all duration-200 ease-out
-           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-500 focus-visible:ring-offset-2
-           disabled:opacity-40 disabled:pointer-events-none rounded-md;
+    @apply inline-flex items-center justify-center gap-2 font-sans font-medium text-body-sm 
+           tracking-wide transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)]
+           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-950/25
+           disabled:opacity-30 disabled:pointer-events-none rounded-md active:scale-[0.99];
   }
 
   .btn-primary {
-    @apply btn bg-gold-500 !text-white hover:bg-gold-600 active:bg-gold-700
-           px-7 py-3.5 min-h-[46px] shadow-subtle hover:shadow-soft;
+    @apply btn bg-neutral-950 !text-cream-50 hover:bg-neutral-800
+           px-6 py-3 min-h-[46px];
   }
 
   .btn-secondary {
-    @apply btn bg-white !text-neutral-950 border-2 border-neutral-950 
-           hover:bg-neutral-950 hover:!text-white active:bg-neutral-800
-           px-7 py-3.5 min-h-[46px];
+    @apply btn bg-transparent !text-neutral-950 border border-neutral-950/20
+           hover:border-neutral-950 hover:bg-neutral-950 hover:!text-cream-50
+           px-6 py-3 min-h-[46px];
   }
 
   .btn-ghost {
-    @apply btn bg-transparent !text-neutral-800 hover:bg-neutral-100 hover:!text-neutral-950
-           px-4 py-2.5;
+    @apply btn bg-transparent !text-neutral-800 hover:!text-neutral-950
+           px-3 py-2.5;
   }
 
   .btn-link {
-    @apply btn bg-transparent !text-neutral-800 hover:!text-gold-500 
-           px-2 py-2 underline-offset-4 hover:underline lowercase tracking-normal font-normal;
+    @apply btn bg-transparent !text-neutral-800 hover:!text-neutral-950
+           px-0 py-1 lowercase tracking-normal font-normal
+           underline underline-offset-4 decoration-neutral-300 hover:decoration-neutral-950;
   }
 
   .btn-gold {
-    @apply btn bg-gold-500 !text-white hover:bg-gold-600 active:bg-gold-700
-           px-7 py-3.5 min-h-[46px] shadow-subtle hover:shadow-soft;
+    @apply btn bg-gold-700 !text-cream-50 hover:bg-gold-800
+           px-6 py-3 min-h-[46px];
   }
 
   /* Inputs */
   .input {
-    @apply w-full bg-white border border-neutral-200 text-neutral-950 placeholder:text-neutral-400
-           text-body-sm px-4 py-3 min-h-[46px] rounded-md
+    @apply w-full bg-transparent border border-neutral-950/15 text-neutral-950 placeholder:text-neutral-400
+           text-body-sm px-4 py-3 min-h-[46px] rounded-sm
            transition-all duration-200
-           focus:border-gold-500 focus:ring-2 focus:ring-gold-500/15 focus:outline-none
+           focus:border-neutral-950 focus:ring-0 focus:outline-none
            disabled:bg-neutral-100 disabled:cursor-not-allowed;
   }
 
-  .label {
-    @apply block text-body-sm font-medium text-neutral-700 mb-1.5;
+  .input-error {
+    @apply border-red-400 focus:border-red-400;
   }
 
-  /* Akiiko Cards */
+  .label {
+    @apply block text-caption font-medium uppercase tracking-wider text-neutral-700 mb-1.5;
+  }
+
+  /* Cards — flat surfaces, one hairline, near-zero elevation */
   .card {
-    @apply bg-white border border-neutral-200/80 rounded-lg transition-all duration-300 ease-out
-           hover:border-neutral-300 hover:shadow-soft;
+    @apply bg-white border border-neutral-950/[0.07] rounded-sm;
   }
 
   .card-interactive {
-    @apply card cursor-pointer hover:shadow-medium hover:-translate-y-1;
+    @apply card transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]
+           hover:border-neutral-950/20 hover:-translate-y-1
+           hover:shadow-[0_16px_40px_-16px_rgba(0,0,0,0.12)];
   }
 
-  /* Product grid: 2 columns on mobile for modern e-commerce feel */
+  /* Product grid: 2/3/4 responsive */
   .product-grid {
-    @apply grid gap-3.5 sm:gap-6 lg:gap-8;
+    @apply grid gap-x-4 gap-y-10 sm:gap-x-6 lg:gap-x-8 sm:gap-y-12;
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
@@ -135,7 +146,7 @@
 
   /* Section spacing */
   .section {
-    @apply py-14 sm:py-20 lg:py-24;
+    @apply py-16 sm:py-24 lg:py-32;
   }
 
   .section-sm {
@@ -148,41 +159,41 @@
   }
 
   .overline {
-    @apply text-overline font-semibold text-gold-500 uppercase tracking-widest;
+    @apply text-caption font-sans font-medium text-neutral-500 uppercase tracking-[0.2em];
   }
 
   .price {
-    @apply font-sans font-semibold text-neutral-950 tabular-nums text-body;
+    @apply font-sans font-medium text-neutral-950 tabular-nums text-body;
   }
 
   .price-sale {
-    @apply text-gold-500;
+    @apply text-neutral-900;
   }
 
   .price-compare {
     @apply text-neutral-400 line-through text-body-sm font-normal ml-2;
   }
 
-  /* Badges */
+  /* Badges — flat, square, not pills */
   .badge {
-    @apply inline-flex items-center px-2.5 py-0.5 text-caption font-semibold rounded-full uppercase tracking-wider;
+    @apply inline-flex items-center px-2 py-0.5 text-caption font-medium tracking-[0.12em] uppercase bg-neutral-900/[0.06] text-neutral-700 rounded-sm;
   }
 
   .badge-neutral {
-    @apply badge bg-neutral-100 text-neutral-700;
+    @apply badge bg-neutral-950/[0.05] text-neutral-800;
   }
 
   .badge-gold {
-    @apply badge bg-gold-500 text-white;
+    @apply badge bg-neutral-950 text-cream-50;
   }
 
   .badge-sold-out {
-    @apply badge bg-neutral-200 text-neutral-600;
+    @apply badge bg-cream-50 text-neutral-600;
   }
 
   /* Divider */
   .divider {
-    @apply h-px bg-neutral-200;
+    @apply h-px bg-neutral-950/10;
   }
 }
 

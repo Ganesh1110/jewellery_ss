@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from 'next';
+import { Cormorant_Garamond } from 'next/font/google';
 import Script from 'next/script';
 import './globals.css';
 import { Header } from '@/components/layout/Header';
@@ -9,8 +10,13 @@ import { CartProvider } from '@/context/CartContext';
 import { fetchShop, fetchMenus } from '@/lib/shopify';
 import { StorefrontLayoutWrapper } from '@/components/layout/StorefrontLayoutWrapper';
 
-const inter = { variable: 'font-sans' };
-const cormorant = { variable: 'font-serif' };
+const cormorant = Cormorant_Garamond({
+  subsets: ['latin'],
+  weight: ['300', '400', '500', '600', '700'],
+  style: ['normal', 'italic'],
+  variable: '--font-cormorant',
+  display: 'swap',
+});
 
 export const viewport: Viewport = {
   themeColor: [
@@ -87,7 +93,7 @@ export default async function RootLayout({
   const gaId = process.env.NEXT_PUBLIC_GA_ID;
 
   return (
-    <html lang="en" className={`${inter.variable} ${cormorant.variable}`}>
+      <html lang="en" className={`${cormorant.variable}`}>
       <body className="font-sans antialiased text-neutral-900 bg-cream-50 selection:bg-gold-500/20 selection:text-neutral-950">
         {gaId && (
           <>

@@ -46,15 +46,15 @@ export function Header() {
   return (
     <header
       className={cn(
-        'sticky top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-b border-neutral-200/80 transition-shadow duration-normal',
-        scrolled ? 'shadow-soft' : 'shadow-subtle'
+        'sticky top-0 left-0 right-0 z-50 bg-cream-50/95 backdrop-blur-md border-b border-neutral-950/10 transition-shadow duration-normal',
+        scrolled && 'shadow-[0_8px_24px_-20px_rgba(0,0,0,0.18)]'
       )}
       onKeyDown={handleKeyDown}
       role="banner"
     >
       {/* Announcement Bar */}
-      <div className="bg-neutral-950 text-cream-50 py-2.5 px-4 text-center text-caption uppercase tracking-widest font-medium">
-        Complimentary shipping on orders over ₹15,000 &mdash; Returns within 14 days
+      <div className="bg-neutral-950 text-cream-50 py-2.5 px-4 text-center text-caption uppercase tracking-[0.2em] font-medium">
+        Complimentary shipping on orders over ₹15,000
       </div>
 
       {/* Main Header */}
@@ -93,8 +93,8 @@ export function Header() {
               aria-label="Search"
             >
               <Search className="h-5 w-5 sm:hidden" />
-              <span className="hidden sm:inline-flex items-center gap-2 text-body-sm font-medium uppercase tracking-wider">
-                <Search className="h-4 w-4 text-gold-600" />
+              <span className="hidden sm:inline-flex items-center gap-2 text-body-sm font-medium uppercase tracking-[0.14em]">
+                <Search className="h-4 w-4" />
                 Search
               </span>
             </button>
@@ -106,7 +106,7 @@ export function Header() {
               aria-label="Account"
             >
               <User className="h-5 w-5 sm:hidden" />
-              <span className="hidden sm:inline text-body-sm font-medium uppercase tracking-wider">Account</span>
+              <span className="hidden sm:inline text-body-sm font-medium uppercase tracking-[0.14em]">Account</span>
             </Link>
 
             {/* Cart */}
@@ -116,15 +116,15 @@ export function Header() {
               aria-label={`Shopping bag${totalQuantity > 0 ? `, ${totalQuantity} items` : ''}`}
             >
               <ShoppingBag className="h-5 w-5 sm:hidden" />
-              <span className="hidden sm:inline-flex items-center gap-2 text-body-sm font-medium uppercase tracking-wider">
+              <span className="hidden sm:inline-flex items-center gap-2 text-body-sm font-medium uppercase tracking-[0.14em]">
                 Bag
                 {totalQuantity > 0 && (
-                  <span className="text-gold-600 font-semibold">({totalQuantity})</span>
+                  <span className="text-neutral-950 font-medium">({totalQuantity})</span>
                 )}
               </span>
               {totalQuantity > 0 && (
                 <span
-                  className="sm:hidden absolute top-1 right-1 flex h-4 w-4 items-center justify-center text-[9px] font-bold text-cream-50 bg-gold-600 rounded-full"
+                  className="sm:hidden absolute top-1 right-1 flex h-4 w-4 items-center justify-center text-[9px] font-bold text-cream-50 bg-neutral-950 rounded-full"
                   aria-live="polite"
                 >
                   {totalQuantity > 99 ? '99+' : totalQuantity}
@@ -135,13 +135,13 @@ export function Header() {
         </div>
 
         {/* Desktop Navigation */}
-        <nav className="hidden lg:block border-t border-neutral-100" aria-label="Main navigation">
-          <ul className="flex justify-center gap-10 py-3.5 text-body-sm font-medium uppercase tracking-widest text-neutral-700">
+        <nav className="hidden lg:block border-t border-neutral-950/10" aria-label="Main navigation">
+          <ul className="flex justify-center gap-12 py-3.5 text-body-sm font-medium tracking-[0.14em] uppercase text-neutral-700">
             {navigation.map((item) => (
               <li key={item.name}>
                 <Link
                   href={item.href}
-                  className="hover:text-gold-600 transition-colors duration-fast relative py-1 after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[1.5px] after:bg-gold-600 after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:duration-200"
+                  className="hover:text-neutral-950 transition-colors duration-fast relative py-1 after:absolute after:bottom-0 after:left-0 after:right-0 after:h-px after:bg-neutral-950 after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:duration-300"
                 >
                   {item.name}
                 </Link>
@@ -155,18 +155,18 @@ export function Header() {
       {mobileMenuOpen && mounted && createPortal(
         <div className="fixed inset-0 z-[100] lg:hidden flex" role="dialog" aria-modal="true" aria-label="Menu">
           <div className="fixed inset-0 bg-neutral-950/60 backdrop-blur-sm" onClick={() => setMobileMenuOpen(false)} />
-          <div className="relative z-[110] w-full max-w-xs sm:max-w-sm h-full bg-white p-6 overflow-y-auto animate-slide-in-left flex flex-col justify-between shadow-strong mr-auto">
+          <div className="relative z-[110] w-full max-w-xs sm:max-w-sm h-full bg-cream-50 p-6 overflow-y-auto animate-slide-in-left flex flex-col justify-between border-r border-neutral-950/10 mr-auto">
             <div>
-              <div className="flex items-center justify-between mb-6 pb-4 border-b border-neutral-200">
+              <div className="flex items-center justify-between mb-6 pb-4 border-b border-neutral-950/10">
                 <span className="font-heading text-heading-lg tracking-tight text-neutral-950">
                   <span className="flex items-baseline gap-1.5 font-semibold">
                     <span>Style Statement</span>
-                    <span className="text-[9px] uppercase tracking-[0.25em] text-neutral-500">by Shakthi</span>
+                    <span className="text-[9px] uppercase tracking-[0.2em] text-neutral-500">by Shakthi</span>
                   </span>
                 </span>
                 <button
                   onClick={() => setMobileMenuOpen(false)}
-                  className="p-1.5 rounded-full text-neutral-500 hover:text-neutral-950 hover:bg-neutral-100 transition-colors"
+                  className="p-1.5 rounded-sm text-neutral-500 hover:text-neutral-950 transition-colors"
                   aria-label="Close menu"
                 >
                   <X className="h-6 w-6" />
@@ -210,17 +210,17 @@ export function Header() {
                   className="flex items-center gap-3 text-body-sm font-medium text-neutral-700 hover:text-neutral-950 py-1"
                   onClick={() => setMobileMenuOpen(false)}
                 >
-                  <User className="h-4 w-4 text-gold-600" />
+                  <User className="h-4 w-4 text-neutral-400" />
                   My Account
                 </Link>
                 <button
                   onClick={() => { setMobileMenuOpen(false); openCart(); }}
                   className="w-full text-left flex items-center gap-3 text-body-sm font-medium text-neutral-700 hover:text-neutral-950 py-1"
                 >
-                  <ShoppingBag className="h-4 w-4 text-gold-600" />
+                  <ShoppingBag className="h-4 w-4 text-neutral-400" />
                   Shopping Bag
                   {totalQuantity > 0 && (
-                    <span className="ml-auto text-gold-600 font-bold">({totalQuantity})</span>
+                    <span className="ml-auto text-neutral-950 font-bold">({totalQuantity})</span>
                   )}
                 </button>
               </div>
@@ -242,14 +242,14 @@ export function Header() {
         <div className="fixed inset-0 z-[100] flex flex-col justify-start" role="dialog" aria-modal="true" aria-label="Search">
           <div className="fixed inset-0 bg-neutral-950/65 backdrop-blur-md transition-opacity" onClick={() => setSearchOpen(false)} />
           
-          <div className="relative z-[110] w-full bg-white border-b border-neutral-200/80 shadow-strong animate-slide-up">
+          <div className="relative z-[110] w-full bg-cream-50 border-b border-neutral-950/10 animate-slide-up">
             <div className="max-w-container-2xl mx-auto px-4 sm:px-6 lg:px-8 py-5 sm:py-7">
               <form
                 action="/search"
                 onSubmit={() => setSearchOpen(false)}
-                className="flex items-center gap-3 sm:gap-4 border-b-2 border-gold-500 pb-3"
+                className="flex items-center gap-3 sm:gap-4 border-b border-neutral-950/20 pb-3 focus-within:border-neutral-950 transition-colors"
               >
-                <Search className="h-5 w-5 sm:h-6 sm:w-6 text-gold-600 flex-shrink-0" aria-hidden="true" />
+                <Search className="h-5 w-5 sm:h-6 sm:w-6 text-neutral-500 flex-shrink-0" aria-hidden="true" />
                 <input
                   type="search"
                   name="q"
@@ -260,14 +260,14 @@ export function Header() {
                 />
                 <button
                   type="submit"
-                  className="btn-gold py-2 px-5 text-caption font-semibold uppercase tracking-wider hidden sm:inline-flex"
+                  className="btn-primary py-2 px-5 text-caption font-medium uppercase tracking-[0.14em] hidden sm:inline-flex"
                 >
                   Search
                 </button>
                 <button
                   type="button"
                   onClick={() => setSearchOpen(false)}
-                  className="p-2 rounded-full text-neutral-400 hover:text-neutral-950 hover:bg-neutral-100 transition-colors"
+                  className="p-2 rounded-sm text-neutral-400 hover:text-neutral-950 transition-colors"
                   aria-label="Close search"
                 >
                   <X className="h-6 w-6" />
@@ -288,7 +288,7 @@ export function Header() {
                     key={tag.label}
                     href={`/search?q=${encodeURIComponent(tag.query)}`}
                     onClick={() => setSearchOpen(false)}
-                    className="px-3 py-1 bg-neutral-100 hover:bg-gold-500 hover:text-white rounded-full text-neutral-700 transition-all font-sans font-medium text-caption"
+                    className="px-3 py-1.5 bg-neutral-950/[0.04] hover:bg-neutral-950 hover:text-cream-50 rounded-sm text-neutral-700 transition-colors font-sans font-medium text-caption"
                   >
                     {tag.label}
                   </Link>

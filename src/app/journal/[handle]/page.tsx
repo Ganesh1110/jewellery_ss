@@ -57,7 +57,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
 
   return (
     <div className="flex flex-col">
-      <header className="section-sm bg-white border-b border-neutral-200">
+      <header className="section-sm bg-white border-b border-neutral-950/10">
         <div className="container-narrow">
           <nav className="flex items-center gap-2 text-caption text-neutral-500 mb-6" aria-label="Breadcrumb">
             <Link href="/" className="hover:text-neutral-950 transition-colors">Home</Link>
@@ -66,7 +66,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
             <span aria-hidden="true">/</span>
             <span className="text-neutral-950 font-medium truncate">{article.title}</span>
           </nav>
-          <p className="overline text-gold-600 mb-3">{article.blog.title}</p>
+          <p className="overline mb-3">{article.blog.title}</p>
           <h1 className="font-heading text-display-md sm:text-display-lg tracking-tight text-neutral-950 mb-4">
             {article.title}
           </h1>
@@ -83,7 +83,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
       </header>
 
       {article.image && (
-        <div className="relative aspect-16-9 bg-neutral-100 border-b border-neutral-200">
+        <div className="relative aspect-16-9 bg-cream-100 border-b border-neutral-950/10">
           <OptimizedImage
             src={article.image.url}
             alt={article.image.altText || article.title}
@@ -99,7 +99,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
             className="prose prose-neutral max-w-none"
             dangerouslySetInnerHTML={{ __html: article.contentHtml || `<p>${article.excerpt || ''}</p>` }}
           />
-          <div className="mt-12 pt-8 border-t border-neutral-200">
+          <div className="mt-12 pt-8 border-t border-neutral-950/10">
             <Link href="/journal" className="btn-secondary inline-flex items-center gap-2">
               <ArrowLeft className="h-4 w-4" aria-hidden="true" />
               Back to Journal
@@ -109,24 +109,24 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
       </article>
 
       {relatedArticles.length > 0 && (
-        <section className="section bg-white border-y border-neutral-200" aria-labelledby="related-heading">
+        <section className="section bg-white border-y border-neutral-950/10" aria-labelledby="related-heading">
           <div className="container">
             <header className="max-w-2xl mx-auto text-center mb-12">
               <h2 id="related-heading" className="font-heading text-display-md tracking-tight text-neutral-950 mb-4">
                 Keep Reading
               </h2>
             </header>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-10">
               {relatedArticles.map((related) => (
-                <article key={related.id} className="card-interactive group overflow-hidden">
+                <article key={related.id} className="group">
                   <Link href={`/journal/${related.handle}`} className="block">
-                    <div className="relative aspect-16-9 overflow-hidden bg-neutral-100">
+                    <div className="relative aspect-16-9 overflow-hidden bg-cream-100">
                       {related.image ? (
                         <OptimizedImage
                           src={related.image.url}
                           alt={related.image.altText || related.title}
                           fill
-                          className="transition-transform duration-700 ease-out-expo group-hover:scale-105"
+                          className="transition-transform duration-[1.2s] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.04]"
                         />
                       ) : (
                         <div className="absolute inset-0 flex items-center justify-center text-neutral-400">
@@ -134,8 +134,8 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                         </div>
                       )}
                     </div>
-                    <div className="p-5">
-                      <h3 className="font-heading text-heading-sm tracking-tight text-neutral-950 group-hover:text-gold-600 transition-colors line-clamp-2">
+                    <div className="pt-4">
+                      <h3 className="font-heading text-heading-sm tracking-tight text-neutral-950 line-clamp-2">
                         {related.title}
                       </h3>
                     </div>

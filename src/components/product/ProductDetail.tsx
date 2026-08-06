@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import { OptimizedImage } from '@/components/ui/Image';
-import { ChevronLeft, ChevronRight, Expand, X, ZoomIn, ZoomOut, RotateCcw } from 'lucide-react';
+import { ChevronLeft, ChevronRight, X, ZoomIn, ZoomOut, RotateCcw } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { Product, ProductVariant } from '@/types/shopify';
 
@@ -86,7 +86,7 @@ export function ProductGallery({ product, selectedVariant, className }: ProductG
     <div className={cn('relative', className)}>
       {/* Main Image Container with In-Place Hover Zoom */}
       <div
-        className="relative aspect-4-5 overflow-hidden bg-neutral-50 rounded-lg group border border-neutral-200/80 cursor-zoom-in"
+        className="relative aspect-4-5 overflow-hidden bg-cream-50 cursor-zoom-in"
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
         onClick={() => setLightboxOpen(true)}
@@ -107,8 +107,8 @@ export function ProductGallery({ product, selectedVariant, className }: ProductG
           />
         </div>
 
-        {/* Hover Hint Badge */}
-        <div className="absolute top-4 left-4 z-20 pointer-events-none bg-neutral-900/75 text-cream-50 text-caption px-3 py-1.5 rounded-full backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity">
+        {/* Hover Hint */}
+        <div className="absolute top-4 left-4 z-20 pointer-events-none bg-neutral-950/70 text-cream-50 text-caption px-3 py-1.5 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity">
           Click for full screen view
         </div>
 
@@ -120,7 +120,7 @@ export function ProductGallery({ product, selectedVariant, className }: ProductG
                 e.stopPropagation();
                 setActiveIndex((prev) => (prev === 0 ? displayImages.length - 1 : prev - 1));
               }}
-              className="absolute left-3 top-1/2 -translate-y-1/2 p-2.5 bg-white/90 backdrop-blur-md rounded-full text-neutral-800 hover:text-neutral-950 hover:bg-white shadow-soft transition-all opacity-0 group-hover:opacity-100 z-20"
+              className="absolute left-3 top-1/2 -translate-y-1/2 p-2.5 bg-cream-50/90 backdrop-blur-md text-neutral-800 hover:text-neutral-950 transition-colors opacity-0 group-hover:opacity-100 z-20"
               aria-label="Previous image"
             >
               <ChevronLeft className="h-5 w-5" />
@@ -130,24 +130,19 @@ export function ProductGallery({ product, selectedVariant, className }: ProductG
                 e.stopPropagation();
                 setActiveIndex((prev) => (prev === displayImages.length - 1 ? 0 : prev + 1));
               }}
-              className="absolute right-3 top-1/2 -translate-y-1/2 p-2.5 bg-white/90 backdrop-blur-md rounded-full text-neutral-800 hover:text-neutral-950 hover:bg-white shadow-soft transition-all opacity-0 group-hover:opacity-100 z-20"
+              className="absolute right-3 top-1/2 -translate-y-1/2 p-2.5 bg-cream-50/90 backdrop-blur-md text-neutral-800 hover:text-neutral-950 transition-colors opacity-0 group-hover:opacity-100 z-20"
               aria-label="Next image"
             >
               <ChevronRight className="h-5 w-5" />
             </button>
           </>
         )}
-
-        {/* Expand Icon */}
-        <div className="absolute bottom-4 right-4 p-2.5 bg-white/90 backdrop-blur-md rounded-full text-neutral-800 shadow-soft opacity-0 group-hover:opacity-100 transition-opacity z-20">
-          <Expand className="h-4 w-4" />
-        </div>
       </div>
 
       {/* Thumbnails Strip */}
       {displayImages.length > 1 && (
         <div
-          className="flex gap-3 mt-4 overflow-x-auto pb-2 scrollbar-thin"
+          className="flex gap-3 mt-4 overflow-x-auto pb-1"
           role="tablist"
           aria-label="Product image thumbnails"
         >
@@ -159,10 +154,8 @@ export function ProductGallery({ product, selectedVariant, className }: ProductG
               aria-selected={index === activeIndex}
               aria-label={`View image ${index + 1}`}
               className={cn(
-                'relative flex-shrink-0 w-20 h-20 rounded-md overflow-hidden border-2 transition-all duration-200',
-                index === activeIndex
-                  ? 'border-gold-500 shadow-subtle scale-95'
-                  : 'border-transparent opacity-75 hover:opacity-100 hover:border-neutral-300'
+                'relative flex-shrink-0 w-20 h-20 overflow-hidden transition-all duration-200',
+                index === activeIndex ? 'ring-2 ring-neutral-950' : 'opacity-60 hover:opacity-100'
               )}
             >
               <OptimizedImage
@@ -326,7 +319,7 @@ export function VariantSelector({ product, selectedOptions, onOptionChange, disa
     <div className="space-y-6" role="group" aria-label="Product options">
       {product.options.map((option) => (
         <fieldset key={option.id} className="space-y-3" disabled={disabled}>
-          <legend className="text-body-sm font-medium text-neutral-700 uppercase tracking-wider">
+          <legend className="text-caption font-medium uppercase tracking-[0.16em] text-neutral-700">
             {option.name}
           </legend>
           <div className="flex flex-wrap gap-2" role="radiogroup" aria-label={option.name}>
@@ -349,12 +342,12 @@ export function VariantSelector({ product, selectedOptions, onOptionChange, disa
                   onClick={() => !disabled && isAvailable && onOptionChange(option.name, value)}
                   disabled={!isAvailable || disabled}
                   className={cn(
-                    'px-4 py-2.5 text-body-sm font-medium rounded border-2 transition-all duration-fast',
+                    'px-4 py-2 text-body-sm font-medium border transition-colors duration-200',
                     isSelected
                       ? 'border-neutral-950 bg-neutral-950 text-cream-50'
                       : isAvailable
-                      ? 'border-neutral-300 text-neutral-950 hover:border-neutral-950 hover:bg-neutral-50'
-                      : 'border-neutral-200 text-neutral-400 cursor-not-allowed line-through'
+                      ? 'border-neutral-950/20 text-neutral-950 hover:border-neutral-950'
+                      : 'border-neutral-950/10 text-neutral-400 cursor-not-allowed line-through'
                   )}
                 >
                   {value}
@@ -378,18 +371,18 @@ export interface QuantitySelectorProps {
 export function QuantitySelector({ value, onChange, max = 99, disabled = false }: QuantitySelectorProps) {
   return (
     <div className="flex items-center gap-4">
-      <label htmlFor="quantity" className="text-body-sm font-medium text-neutral-700 uppercase tracking-wider whitespace-nowrap">
+      <label htmlFor="quantity" className="text-caption font-medium uppercase tracking-[0.16em] text-neutral-700 whitespace-nowrap">
         Quantity
       </label>
-      <div className="flex items-center border border-neutral-300 rounded">
+      <div className="flex items-center border border-neutral-950/20">
         <button
           onClick={() => onChange(Math.max(1, value - 1))}
           disabled={value <= 1 || disabled}
-          className="p-3 text-neutral-700 hover:text-neutral-950 hover:bg-neutral-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+          className="p-3 text-neutral-700 hover:text-neutral-950 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
           aria-label="Decrease quantity"
         >
           <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 12H4" />
           </svg>
         </button>
         <input
@@ -402,18 +395,18 @@ export function QuantitySelector({ value, onChange, max = 99, disabled = false }
           }}
           min="1"
           max={max}
-          className="w-16 text-center text-body font-medium text-neutral-950 border-x border-neutral-300 bg-transparent focus:outline-none focus:ring-0"
+          className="w-16 text-center text-body font-medium text-neutral-950 border-x border-neutral-950/20 bg-transparent focus:outline-none focus:ring-0 tabular-nums"
           aria-label="Quantity"
           disabled={disabled}
         />
         <button
           onClick={() => onChange(Math.min(max, value + 1))}
           disabled={value >= max || disabled}
-          className="p-3 text-neutral-700 hover:text-neutral-950 hover:bg-neutral-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+          className="p-3 text-neutral-700 hover:text-neutral-950 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
           aria-label="Increase quantity"
         >
           <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 4v16m8-8H4" />
           </svg>
         </button>
       </div>
