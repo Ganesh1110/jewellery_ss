@@ -56,28 +56,28 @@ export default async function HomePage() {
   return (
     <div className="flex flex-col bg-cream-50">
       {/* Hero Section */}
-      <HeroSlider slides={heroSlides} className="min-h-[75vh] sm:min-h-[82vh] lg:min-h-[88vh]">
-        <div className="max-w-3xl text-cream-50">
-          <span className="inline-block overline text-gold-300 mb-4 animate-slide-up delay-100">
+      <HeroSlider slides={heroSlides} className="min-h-[70vh] sm:min-h-[82vh] lg:min-h-[88vh]">
+        <div className="max-w-3xl text-cream-50 mx-auto sm:mx-0">
+          <span className="inline-block overline text-gold-300 mb-2 sm:mb-4 animate-slide-up delay-100 text-xs sm:text-overline">
             Akiiko-Inspired Luxury Collection
           </span>
-          <h1 className="font-heading text-display-xl tracking-tight text-cream-50 mb-6 animate-slide-up delay-200">
+          <h1 className="font-heading text-3xl sm:text-display-lg lg:text-display-xl tracking-tight text-cream-50 mb-4 sm:mb-6 animate-slide-up delay-200">
             Jewelry Crafted<br />
             <span className="text-gold-300">With Intention</span>
           </h1>
-          <p className="text-body-lg text-cream-50/90 max-w-2xl mx-auto sm:mx-0 mb-8 animate-slide-up delay-300">
+          <p className="text-body-sm sm:text-body-lg text-cream-50/90 max-w-2xl mx-auto sm:mx-0 mb-6 sm:mb-8 animate-slide-up delay-300">
             Curated collections of fine jewelry designed to celebrate everyday moments and become lifelong family heirlooms.
           </p>
-          <div className="flex flex-col sm:flex-row items-center sm:items-start justify-center sm:justify-start gap-4 animate-slide-up delay-400">
+          <div className="flex flex-col sm:flex-row items-center sm:items-start justify-center sm:justify-start gap-3 sm:gap-4 animate-slide-up delay-400">
             <Link
               href="/collections/new-arrivals"
-              className="btn-gold w-full sm:w-auto"
+              className="btn-gold w-full sm:w-auto text-body-sm py-3 px-6"
             >
               Shop New Arrivals <ArrowRight className="h-4 w-4" aria-hidden="true" />
             </Link>
             <Link
               href="/collections"
-              className="btn-secondary text-cream-50 border-cream-50/50 hover:bg-cream-50 hover:text-neutral-950 w-full sm:w-auto"
+              className="btn-secondary text-cream-50 border-cream-50/50 hover:bg-cream-50 hover:text-neutral-950 w-full sm:w-auto text-body-sm py-3 px-6"
             >
               View All Collections
             </Link>
@@ -86,22 +86,22 @@ export default async function HomePage() {
       </HeroSlider>
 
       {/* Brand Value Promises Strip */}
-      <section className="bg-white border-y border-neutral-200/80 py-8" aria-labelledby="features-heading">
+      <section className="bg-white border-y border-neutral-200/80 py-6 sm:py-8" aria-labelledby="features-heading">
         <div className="container">
           <h2 id="features-heading" className="sr-only">Our Promise</h2>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-6 lg:gap-8">
             {features.map((feature, index) => (
               <article
                 key={feature.title}
-                className="flex flex-col sm:flex-row items-center sm:items-start gap-4 text-center sm:text-left p-2 animate-slide-up"
+                className="flex flex-col sm:flex-row items-center sm:items-start gap-2.5 sm:gap-4 text-center sm:text-left p-3 sm:p-2 rounded-xl bg-cream-50/50 sm:bg-transparent border border-neutral-200/60 sm:border-0 animate-slide-up"
                 style={{ animationDelay: `${(index + 1) * 80}ms` }}
               >
-                <div className="flex-shrink-0 w-12 h-12 rounded-full bg-gold-100 text-gold-600 flex items-center justify-center">
-                  <feature.icon className="h-6 w-6" aria-hidden="true" />
+                <div className="flex-shrink-0 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gold-100 text-gold-600 flex items-center justify-center">
+                  <feature.icon className="h-5 w-5 sm:h-6 sm:w-6" aria-hidden="true" />
                 </div>
                 <div>
-                  <h3 className="font-sans text-body font-semibold text-neutral-950 mb-1">{feature.title}</h3>
-                  <p className="text-caption text-neutral-500 leading-snug">{feature.description}</p>
+                  <h3 className="font-sans text-xs sm:text-body font-semibold text-neutral-950 mb-0.5 sm:mb-1">{feature.title}</h3>
+                  <p className="text-[11px] sm:text-caption text-neutral-500 leading-snug line-clamp-2 sm:line-clamp-none">{feature.description}</p>
                 </div>
               </article>
             ))}

@@ -146,7 +146,8 @@ export function CartDrawer() {
             
             <Button
               onClick={() => window.location.href = cart?.checkoutUrl || '/checkout'}
-              className="w-full"
+              variant="gold"
+              className="w-full shadow-medium"
               size="lg"
               disabled={isLoading}
               loading={isLoading}

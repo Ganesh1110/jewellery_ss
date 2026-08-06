@@ -187,51 +187,51 @@ export function ProductGallery({ product, selectedVariant, className }: ProductG
         >
           {/* Top Control Bar */}
           <div
-            className="flex items-center justify-between w-full z-[110] relative"
+            className="flex flex-wrap items-center justify-between gap-2 w-full z-[110] relative"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="text-cream-50 text-body-sm font-medium tracking-wide bg-neutral-900/80 px-4 py-2 rounded-full border border-neutral-800">
+            <div className="text-cream-50 text-caption sm:text-body-sm font-medium tracking-wide bg-neutral-900/80 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full border border-neutral-800">
               {activeIndex + 1} / {displayImages.length}
             </div>
 
             {/* Lightbox Zoom Controls & Close Button */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5 sm:gap-2">
               <button
                 onClick={zoomIn}
                 disabled={zoomScale >= 3}
-                className="p-3 bg-neutral-900/90 text-cream-50 hover:bg-gold-500 hover:text-white rounded-full border border-neutral-700 shadow-strong transition-all disabled:opacity-30"
+                className="p-2 sm:p-3 bg-neutral-900/90 text-cream-50 hover:bg-gold-500 hover:text-white rounded-full border border-neutral-700 shadow-strong transition-all disabled:opacity-30"
                 aria-label="Zoom in"
                 title="Zoom In"
               >
-                <ZoomIn className="h-5 w-5" />
+                <ZoomIn className="h-4 w-4 sm:h-5 sm:w-5" />
               </button>
               <button
                 onClick={zoomOut}
                 disabled={zoomScale <= 1}
-                className="p-3 bg-neutral-900/90 text-cream-50 hover:bg-gold-500 hover:text-white rounded-full border border-neutral-700 shadow-strong transition-all disabled:opacity-30"
+                className="p-2 sm:p-3 bg-neutral-900/90 text-cream-50 hover:bg-gold-500 hover:text-white rounded-full border border-neutral-700 shadow-strong transition-all disabled:opacity-30"
                 aria-label="Zoom out"
                 title="Zoom Out"
               >
-                <ZoomOut className="h-5 w-5" />
+                <ZoomOut className="h-4 w-4 sm:h-5 sm:w-5" />
               </button>
               {zoomScale > 1 && (
                 <button
                   onClick={resetZoom}
-                  className="p-3 bg-neutral-900/90 text-cream-50 hover:bg-gold-500 hover:text-white rounded-full border border-neutral-700 shadow-strong transition-all"
+                  className="p-2 sm:p-3 bg-neutral-900/90 text-cream-50 hover:bg-gold-500 hover:text-white rounded-full border border-neutral-700 shadow-strong transition-all"
                   aria-label="Reset zoom"
                   title="Reset Zoom"
                 >
-                  <RotateCcw className="h-5 w-5" />
+                  <RotateCcw className="h-4 w-4 sm:h-5 sm:w-5" />
                 </button>
               )}
               {/* High visibility Close Button */}
               <button
                 onClick={() => { setLightboxOpen(false); setZoomScale(1); }}
-                className="p-3 bg-gold-500 text-white hover:bg-gold-600 rounded-full shadow-strong transition-transform hover:scale-105 ml-2 flex items-center gap-1.5 px-4 font-sans font-medium text-body-sm"
+                className="p-2 sm:p-3 bg-gold-500 text-white hover:bg-gold-600 rounded-full shadow-strong transition-transform hover:scale-105 ml-1 sm:ml-2 flex items-center gap-1.5 px-3 sm:px-4 font-sans font-medium text-body-sm"
                 aria-label="Close zoom modal"
               >
-                <X className="h-5 w-5" />
-                <span>Close</span>
+                <X className="h-4 w-4 sm:h-5 sm:w-5" />
+                <span className="hidden sm:inline">Close</span>
               </button>
             </div>
           </div>
@@ -248,10 +248,10 @@ export function ProductGallery({ product, selectedVariant, className }: ProductG
                   setActiveIndex((prev) => (prev === 0 ? displayImages.length - 1 : prev - 1));
                   setZoomScale(1);
                 }}
-                className="absolute left-4 z-[110] p-4 bg-neutral-900/80 text-cream-50 hover:text-white hover:bg-gold-500 rounded-full border border-neutral-700 shadow-strong transition-all"
+                className="absolute left-2 sm:left-4 z-[110] p-2 sm:p-4 bg-neutral-900/80 text-cream-50 hover:text-white hover:bg-gold-500 rounded-full border border-neutral-700 shadow-strong transition-all"
                 aria-label="Previous image"
               >
-                <ChevronLeft className="h-8 w-8" />
+                <ChevronLeft className="h-5 w-5 sm:h-8 sm:w-8" />
               </button>
             )}
 
@@ -277,10 +277,10 @@ export function ProductGallery({ product, selectedVariant, className }: ProductG
                   setActiveIndex((prev) => (prev === displayImages.length - 1 ? 0 : prev + 1));
                   setZoomScale(1);
                 }}
-                className="absolute right-4 z-[110] p-4 bg-neutral-900/80 text-cream-50 hover:text-white hover:bg-gold-500 rounded-full border border-neutral-700 shadow-strong transition-all"
+                className="absolute right-2 sm:right-4 z-[110] p-2 sm:p-4 bg-neutral-900/80 text-cream-50 hover:text-white hover:bg-gold-500 rounded-full border border-neutral-700 shadow-strong transition-all"
                 aria-label="Next image"
               >
-                <ChevronRight className="h-8 w-8" />
+                <ChevronRight className="h-5 w-5 sm:h-8 sm:w-8" />
               </button>
             )}
           </div>
@@ -288,7 +288,7 @@ export function ProductGallery({ product, selectedVariant, className }: ProductG
           {/* Lightbox Bottom Thumbnails */}
           {displayImages.length > 1 && (
             <div
-              className="flex justify-center gap-3 z-[110] relative pt-2"
+              className="flex justify-center gap-2 sm:gap-3 z-[110] relative pt-2 overflow-x-auto"
               onClick={(e) => e.stopPropagation()}
             >
               {displayImages.map((image, index) => (
@@ -296,7 +296,7 @@ export function ProductGallery({ product, selectedVariant, className }: ProductG
                   key={image.url}
                   onClick={() => { setActiveIndex(index); setZoomScale(1); }}
                   className={cn(
-                    'w-14 h-14 rounded-md overflow-hidden border-2 transition-all',
+                    'w-10 h-10 sm:w-14 sm:h-14 rounded-md overflow-hidden border-2 transition-all flex-shrink-0',
                     index === activeIndex
                       ? 'border-gold-500 scale-105 shadow-strong'
                       : 'border-neutral-800 opacity-60 hover:opacity-100'

@@ -51,16 +51,16 @@ export default async function CollectionsPage() {
               <p className="text-body text-neutral-500">No collections available at the moment.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
               {collections.map((collection, index) => (
                 <article
                   key={collection.id}
-                  className="relative group overflow-hidden rounded-xl animate-slide-up"
+                  className="relative group overflow-hidden rounded-xl animate-slide-up border border-neutral-200/80 shadow-subtle bg-white"
                   style={{ animationDelay: `${Math.min(index * 50, 300)}ms` }}
                 >
                   <Link
                     href={`/collections/${collection.handle}`}
-                    className="block"
+                    className="block relative aspect-4-5 overflow-hidden"
                     aria-label={`Shop ${collection.title} collection`}
                   >
                     {collection.image ? (
@@ -71,16 +71,16 @@ export default async function CollectionsPage() {
                         className="transition-transform duration-700 ease-out-expo group-hover:scale-105"
                       />
                     ) : (
-                      <div className="aspect-4-5 bg-neutral-100 flex items-center justify-center">
+                      <div className="w-full h-full bg-neutral-100 flex items-center justify-center">
                         <span className="text-body text-neutral-400">No image</span>
                       </div>
                     )}
-                    <div className="absolute inset-0 bg-gradient-to-t from-neutral-950/70 via-neutral-950/10 to-transparent" />
-                    <div className="absolute bottom-0 left-0 right-0 p-6 text-center">
-                      <h3 className="font-heading text-heading-lg text-cream-50 mb-2">{collection.title}</h3>
-                      <p className="text-body-sm text-cream-50/80 mb-4 line-clamp-2">{collection.description || 'Explore this curated collection of fine jewelry.'}</p>
-                      <span className="inline-flex items-center gap-1.5 text-body-sm font-medium text-cream-50">
-                        Shop Collection <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-neutral-950/85 via-neutral-950/20 to-transparent" />
+                    <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-6 text-center">
+                      <h3 className="font-heading text-heading-md sm:text-heading-lg text-cream-50 mb-1 sm:mb-2">{collection.title}</h3>
+                      <p className="text-caption sm:text-body-sm text-cream-50/80 mb-3 line-clamp-2">{collection.description || 'Explore this curated collection of fine jewelry.'}</p>
+                      <span className="inline-flex items-center gap-1.5 text-caption sm:text-body-sm font-medium text-cream-50 group-hover:text-gold-300 transition-colors">
+                        Shop Collection <ArrowRight className="h-3.5 w-3.5 sm:h-4 sm:w-4 transition-transform group-hover:translate-x-1" />
                       </span>
                     </div>
                   </Link>

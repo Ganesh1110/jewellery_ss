@@ -229,7 +229,7 @@ export function ProductDetailsClient({
 
       {/* You May Also Like */}
       {recommendations.length > 0 && (
-        <section className="section bg-white border-y border-neutral-200" aria-labelledby="recommendations-heading">
+        <section className="section bg-white border-y border-neutral-200 pb-20 sm:pb-24" aria-labelledby="recommendations-heading">
           <div className="container">
             <header className="max-w-2xl mx-auto text-center mb-12">
               <h2 id="recommendations-heading" className="font-heading text-display-md tracking-tight text-neutral-950 mb-4">
@@ -243,6 +243,24 @@ export function ProductDetailsClient({
           </div>
         </section>
       )}
+
+      {/* Sticky Mobile Add-to-Bag Bottom Bar */}
+      <div className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-neutral-200 p-3.5 sm:hidden shadow-strong animate-slide-up">
+        <div className="flex items-center justify-between gap-3">
+          <div className="min-w-0 flex-1">
+            <p className="font-heading text-body-sm font-semibold text-neutral-950 truncate">{product.title}</p>
+            <p className="text-xs font-semibold text-neutral-900 tabular-nums">{formatMoney(price, currencyCode)}</p>
+          </div>
+          <AddToCartButton
+            onClick={handleAddToCart}
+            loading={cartLoading}
+            disabled={availability.status === 'out_of_stock'}
+            className="btn-gold py-2.5 px-5 text-caption font-semibold uppercase tracking-wider min-h-[42px]"
+          >
+            {addedToCart ? 'Added!' : availability.status === 'out_of_stock' ? 'Sold Out' : 'Add to Bag'}
+          </AddToCartButton>
+        </div>
+      </div>
     </div>
   );
 }

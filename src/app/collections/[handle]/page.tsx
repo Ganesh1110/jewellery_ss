@@ -171,12 +171,12 @@ export default async function CollectionPage({ params, searchParams }: Collectio
       {/* Other Collections */}
       <section className="section bg-white border-y border-neutral-200" aria-labelledby="other-collections-heading">
         <div className="container">
-          <header className="max-w-2xl mx-auto text-center mb-12">
-            <h2 id="other-collections-heading" className="font-heading text-display-md tracking-tight text-neutral-950 mb-4">
+          <header className="max-w-2xl mx-auto text-center mb-8 sm:mb-12">
+            <h2 id="other-collections-heading" className="font-heading text-display-sm sm:text-display-md tracking-tight text-neutral-950 mb-2 sm:mb-4">
               Explore More Collections
             </h2>
           </header>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-6">
             {allCollections
               .filter((c) => c.handle !== collection.handle)
               .slice(0, 4)
@@ -184,7 +184,7 @@ export default async function CollectionPage({ params, searchParams }: Collectio
                 <Link
                   key={otherCollection.id}
                   href={`/collections/${otherCollection.handle}`}
-                  className="relative group overflow-hidden rounded-xl animate-slide-up"
+                  className="relative group overflow-hidden rounded-xl aspect-4-5 animate-slide-up border border-neutral-200/80 shadow-subtle"
                   style={{ animationDelay: `${(index + 1) * 50}ms` }}
                 >
                   {otherCollection.image ? (
@@ -197,9 +197,9 @@ export default async function CollectionPage({ params, searchParams }: Collectio
                   ) : (
                     <div className="aspect-4-5 bg-neutral-100" />
                   )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-neutral-950/70 via-neutral-950/10 to-transparent" />
-                  <div className="absolute bottom-0 left-0 right-0 p-4 text-center">
-                    <h3 className="font-heading text-heading-md text-cream-50">{otherCollection.title}</h3>
+                  <div className="absolute inset-0 bg-gradient-to-t from-neutral-950/80 via-neutral-950/20 to-transparent" />
+                  <div className="absolute bottom-0 left-0 right-0 p-3 sm:p-4 text-center">
+                    <h3 className="font-heading text-body sm:text-heading-md text-cream-50 font-medium">{otherCollection.title}</h3>
                   </div>
                 </Link>
               ))}

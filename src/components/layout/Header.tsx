@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import { useCart } from '@/context/CartContext';
 import { cn } from '@/lib/utils';
@@ -24,8 +25,10 @@ export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     const handleScroll = () => {
       setScrolled(window.scrollY > 10);
     };
@@ -59,7 +62,7 @@ export function Header() {
         <div className="flex items-center justify-between h-16 sm:h-20">
           {/* Mobile Menu Button */}
           <button
-            className="sm:hidden p-2 -ml-2 text-neutral-700 hover:text-neutral-950 transition-colors"
+            className="lg:hidden p-2 -ml-2 text-neutral-700 hover:text-neutral-950 transition-colors"
             onClick={() => setMobileMenuOpen(true)}
             aria-label="Open menu"
             aria-expanded={mobileMenuOpen}
@@ -148,99 +151,153 @@ export function Header() {
         </nav>
       </div>
 
-      {/* Mobile Menu */}
-      {mobileMenuOpen && (
-        <div className="fixed inset-0 z-50 sm:hidden" role="dialog" aria-modal="true" aria-label="Menu">
-          <div className="absolute inset-0 bg-neutral-950/50" onClick={() => setMobileMenuOpen(false)} />
-          <div className="absolute top-0 right-0 bottom-0 w-full max-w-sm bg-cream-50 p-6 overflow-y-auto animate-slide-in">
-            <div className="flex items-center justify-between mb-8">
-              <span className="font-heading text-display-sm tracking-tight text-neutral-950">
-                <span className="flex items-baseline gap-1.5 font-light">
-                  <span>Style Statement</span>
-                  <span className="text-body-xs uppercase tracking-[0.3em] text-neutral-500">by Shakthi</span>
+      {/* Mobile Menu Portal */}
+      {mobileMenuOpen && mounted && createPortal(
+        <div className="fixed inset-0 z-[100] lg:hidden flex" role="dialog" aria-modal="true" aria-label="Menu">
+          <div className="fixed inset-0 bg-neutral-950/60 backdrop-blur-sm" onClick={() => setMobileMenuOpen(false)} />
+          <div className="relative z-[110] w-full max-w-xs sm:max-w-sm h-full bg-white p-6 overflow-y-auto animate-slide-in-left flex flex-col justify-between shadow-strong mr-auto">
+            <div>
+              <div className="flex items-center justify-between mb-6 pb-4 border-b border-neutral-200">
+                <span className="font-heading text-heading-lg tracking-tight text-neutral-950">
+                  <span className="flex items-baseline gap-1.5 font-semibold">
+                    <span>Style Statement</span>
+                    <span className="text-[9px] uppercase tracking-[0.25em] text-neutral-500">by Shakthi</span>
+                  </span>
                 </span>
-              </span>
-              <button
-                onClick={() => setMobileMenuOpen(false)}
-                className="p-2 text-neutral-700 hover:text-neutral-950"
-                aria-label="Close menu"
+                <button
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="p-1.5 rounded-full text-neutral-500 hover:text-neutral-950 hover:bg-neutral-100 transition-colors"
+                  aria-label="Close menu"
+                >
+                  <X className="h-6 w-6" />
+                </button>
+              </div>
+
+              {/* Mobile Quick Search Input */}
+              <form
+                action="/search"
+                onSubmit={() => setMobileMenuOpen(false)}
+                className="relative mb-6"
               >
-                <X className="h-6 w-6" />
-              </button>
+                <Search className="h-4 w-4 text-neutral-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                <input
+                  type="search"
+                  name="q"
+                  placeholder="Search rings, necklaces, Gold..."
+                  className="input pl-9 text-body-sm py-2.5 min-h-[42px]"
+                />
+              </form>
+
+              <nav aria-label="Mobile navigation">
+                <ul className="space-y-3">
+                  {navigation.map((item) => (
+                    <li key={item.name}>
+                      <Link
+                        href={item.href}
+                        className="block text-body-lg font-medium text-neutral-950 hover:text-gold-600 transition-colors py-1 border-b border-neutral-100"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        {item.name}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </nav>
+
+              <div className="mt-6 space-y-3">
+                <Link
+                  href="/account"
+                  className="flex items-center gap-3 text-body-sm font-medium text-neutral-700 hover:text-neutral-950 py-1"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <User className="h-4 w-4 text-gold-600" />
+                  My Account
+                </Link>
+                <button
+                  onClick={() => { setMobileMenuOpen(false); openCart(); }}
+                  className="w-full text-left flex items-center gap-3 text-body-sm font-medium text-neutral-700 hover:text-neutral-950 py-1"
+                >
+                  <ShoppingBag className="h-4 w-4 text-gold-600" />
+                  Shopping Bag
+                  {totalQuantity > 0 && (
+                    <span className="ml-auto text-gold-600 font-bold">({totalQuantity})</span>
+                  )}
+                </button>
+              </div>
             </div>
-            <nav aria-label="Mobile navigation">
-              <ul className="space-y-4">
-                {navigation.map((item) => (
-                  <li key={item.name}>
-                    <Link
-                      href={item.href}
-                      className="block text-heading-sm font-medium text-neutral-950 hover:text-gold-600 transition-colors"
-                      onClick={() => setMobileMenuOpen(false)}
-                    >
-                      {item.name}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </nav>
-            <div className="mt-10 border-t border-neutral-200 pt-6 space-y-4">
-              <Link
-                href="/account"
-                className="block text-body font-medium text-neutral-700 hover:text-neutral-950"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                My Account
-              </Link>
-              <button
-                onClick={() => { setMobileMenuOpen(false); openCart(); }}
-                className="w-full text-left flex items-center gap-3 text-body font-medium text-neutral-700 hover:text-neutral-950"
-              >
-                <ShoppingBag className="h-5 w-5" />
-                Shopping Bag
-                {totalQuantity > 0 && (
-                  <span className="ml-auto text-gold-600 font-bold">({totalQuantity})</span>
-                )}
-              </button>
+
+            {/* Support Info Footer */}
+            <div className="mt-8 pt-6 border-t border-neutral-200 text-caption text-neutral-500 space-y-2">
+              <p className="font-semibold text-neutral-900 uppercase tracking-wider text-[10px]">Client Concierge</p>
+              <p>Mon–Fri: 10:00 AM – 6:00 PM IST</p>
+              <p className="text-gold-600 font-medium">+91 22 XXXX XXXX &bull; hello@sss.com</p>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
-      {/* Search Modal */}
-      {searchOpen && (
-        <div className="fixed inset-0 z-50 flex items-start justify-center pt-20 sm:pt-24" role="dialog" aria-modal="true" aria-label="Search">
-          <div className="absolute inset-0 bg-neutral-950/50" onClick={() => setSearchOpen(false)} />
-          <form
-            action="/search"
-            onSubmit={() => setSearchOpen(false)}
-            className="relative w-full max-w-2xl mx-4 bg-white rounded-xl shadow-strong overflow-hidden animate-scale-in"
-          >
-            <div className="flex items-center gap-4 p-4 border-b border-neutral-200">
-              <Search className="h-5 w-5 text-neutral-400 flex-shrink-0" aria-hidden="true" />
-              <input
-                type="search"
-                name="q"
-                placeholder="Search products, collections, journal..."
-                className="flex-1 bg-transparent text-body text-neutral-950 placeholder:text-neutral-400 focus:outline-none"
-                autoFocus
-                aria-label="Search"
-              />
-              <button
-                type="button"
-                onClick={() => setSearchOpen(false)}
-                className="p-1 text-neutral-400 hover:text-neutral-950"
-                aria-label="Close search"
+      {/* Search Modal Portal */}
+      {searchOpen && mounted && createPortal(
+        <div className="fixed inset-0 z-[100] flex flex-col justify-start" role="dialog" aria-modal="true" aria-label="Search">
+          <div className="fixed inset-0 bg-neutral-950/65 backdrop-blur-md transition-opacity" onClick={() => setSearchOpen(false)} />
+          
+          <div className="relative z-[110] w-full bg-white border-b border-neutral-200/80 shadow-strong animate-slide-up">
+            <div className="max-w-container-2xl mx-auto px-4 sm:px-6 lg:px-8 py-5 sm:py-7">
+              <form
+                action="/search"
+                onSubmit={() => setSearchOpen(false)}
+                className="flex items-center gap-3 sm:gap-4 border-b-2 border-gold-500 pb-3"
               >
-                <X className="h-5 w-5" />
-              </button>
+                <Search className="h-5 w-5 sm:h-6 sm:w-6 text-gold-600 flex-shrink-0" aria-hidden="true" />
+                <input
+                  type="search"
+                  name="q"
+                  placeholder="Search rings, necklaces, Gold, diamonds..."
+                  className="flex-1 bg-transparent font-heading text-lg sm:text-display-sm text-neutral-950 placeholder:font-sans placeholder:text-body-sm sm:placeholder:text-body placeholder:text-neutral-400 focus:outline-none border-none p-0"
+                  autoFocus
+                  aria-label="Search"
+                />
+                <button
+                  type="submit"
+                  className="btn-gold py-2 px-5 text-caption font-semibold uppercase tracking-wider hidden sm:inline-flex"
+                >
+                  Search
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSearchOpen(false)}
+                  className="p-2 rounded-full text-neutral-400 hover:text-neutral-950 hover:bg-neutral-100 transition-colors"
+                  aria-label="Close search"
+                >
+                  <X className="h-6 w-6" />
+                </button>
+              </form>
+
+              {/* Quick Trending Searches */}
+              <div className="mt-4 pt-1 flex flex-wrap items-center gap-2 text-caption">
+                <span className="text-neutral-400 font-semibold uppercase tracking-wider text-[10px] mr-1">Trending:</span>
+                {[
+                  { label: 'Gold Necklaces', query: 'gold' },
+                  { label: 'Solitaire Rings', query: 'ring' },
+                  { label: 'Bestsellers', query: 'bestseller' },
+                  { label: 'New Arrivals', query: 'new' },
+                  { label: 'Earrings', query: 'earrings' },
+                ].map((tag) => (
+                  <Link
+                    key={tag.label}
+                    href={`/search?q=${encodeURIComponent(tag.query)}`}
+                    onClick={() => setSearchOpen(false)}
+                    className="px-3 py-1 bg-neutral-100 hover:bg-gold-500 hover:text-white rounded-full text-neutral-700 transition-all font-sans font-medium text-caption"
+                  >
+                    {tag.label}
+                  </Link>
+                ))}
+              </div>
             </div>
-            <div className="p-4">
-              <button type="submit" className="btn-primary w-full">
-                Search
-              </button>
-            </div>
-          </form>
-        </div>
+          </div>
+        </div>,
+        document.body
       )}
     </header>
   );

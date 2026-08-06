@@ -28,11 +28,11 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       'inline-flex items-center justify-center gap-2 font-sans font-semibold tracking-wide transition-all duration-200 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-500 focus-visible:ring-offset-2 disabled:opacity-40 disabled:pointer-events-none rounded-md shadow-subtle';
 
     const variantClasses = {
-      primary: 'bg-neutral-950 text-white hover:bg-neutral-800 active:bg-neutral-900',
-      secondary: 'bg-white text-neutral-950 border-2 border-neutral-950 hover:bg-neutral-950 hover:text-white',
+      primary: 'bg-neutral-950 !text-white hover:bg-neutral-800 active:bg-neutral-900',
+      secondary: 'bg-white !text-neutral-950 border-2 border-neutral-950 hover:bg-neutral-950 hover:!text-white',
       ghost: 'bg-transparent text-neutral-800 hover:bg-neutral-100 active:bg-neutral-200',
       link: 'bg-transparent text-neutral-800 hover:text-gold-600 px-2 underline-offset-4 hover:underline font-normal',
-      gold: 'bg-gold-500 text-white hover:bg-gold-600 active:bg-gold-700',
+      gold: 'bg-gold-500 !text-white hover:bg-gold-600 active:bg-gold-700',
     };
 
     const sizeClasses = {
