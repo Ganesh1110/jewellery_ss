@@ -24,20 +24,21 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     },
     ref
   ) => {
-    const baseClasses = 'inline-flex items-center justify-center gap-2 font-sans font-medium transition-all duration-fast ease-out-expo focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-500 focus-visible:ring-offset-2 focus-visible:ring-offset-cream-50 disabled:opacity-40 disabled:pointer-events-none';
+    const baseClasses =
+      'inline-flex items-center justify-center gap-2 font-sans font-semibold tracking-wide transition-all duration-200 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-500 focus-visible:ring-offset-2 disabled:opacity-40 disabled:pointer-events-none rounded-md shadow-subtle';
 
     const variantClasses = {
-      primary: 'bg-neutral-950 text-cream-50 hover:bg-neutral-800 active:bg-neutral-950',
-      secondary: 'bg-transparent text-neutral-950 border border-neutral-300 hover:bg-neutral-100 active:bg-neutral-200',
-      ghost: 'bg-transparent text-neutral-700 hover:bg-neutral-100 active:bg-neutral-200',
-      link: 'bg-transparent text-neutral-700 hover:text-neutral-950 px-2 underline-offset-4 hover:underline',
-      gold: 'bg-gold-500 text-neutral-950 hover:bg-gold-400 active:bg-gold-600',
+      primary: 'bg-neutral-950 text-white hover:bg-neutral-800 active:bg-neutral-900',
+      secondary: 'bg-white text-neutral-950 border-2 border-neutral-950 hover:bg-neutral-950 hover:text-white',
+      ghost: 'bg-transparent text-neutral-800 hover:bg-neutral-100 active:bg-neutral-200',
+      link: 'bg-transparent text-neutral-800 hover:text-gold-600 px-2 underline-offset-4 hover:underline font-normal',
+      gold: 'bg-gold-500 text-white hover:bg-gold-600 active:bg-gold-700',
     };
 
     const sizeClasses = {
-      sm: 'text-caption px-3 py-2 min-h-[40px]',
+      sm: 'text-caption px-4 py-2 min-h-[40px]',
       md: 'text-body-sm px-6 py-3.5 min-h-[48px]',
-      lg: 'text-body px-8 py-4 min-h-[56px]',
+      lg: 'text-body px-8 py-4 min-h-[54px]',
     };
 
     return (
@@ -55,7 +56,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       >
         {loading && (
           <svg
-            className="animate-spin h-4 w-4"
+            className="animate-spin h-4 w-4 text-current"
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
             viewBox="0 0 24 24"
@@ -76,7 +77,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
             />
           </svg>
         )}
-        {children}
+        <span className="inline-flex items-center gap-2 text-inherit">{children}</span>
       </button>
     );
   }

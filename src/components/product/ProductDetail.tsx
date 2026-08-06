@@ -1,10 +1,10 @@
 'use client';
 
 import { useState, useCallback, useEffect } from 'react';
-import { OptimizedImage, ProductImage } from '@/components/ui/Image';
-import { ChevronLeft, ChevronRight, Expand, X } from 'lucide-react';
+import { OptimizedImage } from '@/components/ui/Image';
+import { ChevronLeft, ChevronRight, Expand, X, ZoomIn, ZoomOut, RotateCcw } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import type { Product, ProductVariant, Image } from '@/types/shopify';
+import type { Product, ProductVariant } from '@/types/shopify';
 
 interface ProductGalleryProps {
   product: Product;
@@ -14,9 +14,15 @@ interface ProductGalleryProps {
   className?: string;
 }
 
-export function ProductGallery({ product, selectedVariant, selectedOptions, onOptionChange, className }: ProductGalleryProps) {
+export function ProductGallery({ product, selectedVariant, className }: ProductGalleryProps) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [lightboxOpen, setLightboxOpen] = useState(false);
+  
+  // Hover lens zoom position on main image
+  const [hoverZoom, setHoverZoom] = useState({ active: false, x: 50, y: 50 });
+
+  // Lightbox zoom level (1 = normal, 2 = 2x, 3 = 3x)
+  const [zoomScale, setZoomScale] = useState(1);
 
   const images = product.images.edges.map(({ node }) => node);
   const variantImage = selectedVariant?.image;
@@ -30,13 +36,27 @@ export function ProductGallery({ product, selectedVariant, selectedOptions, onOp
     setActiveIndex(index);
   }, []);
 
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const { left, top, width, height } = e.currentTarget.getBoundingClientRect();
+    const x = ((e.clientX - left) / width) * 100;
+    const y = ((e.clientY - top) / height) * 100;
+    setHoverZoom({ active: true, x, y });
+  };
+
+  const handleMouseLeave = () => {
+    setHoverZoom({ active: false, x: 50, y: 50 });
+  };
+
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     if (e.key === 'ArrowLeft') {
       setActiveIndex((prev) => (prev === 0 ? displayImages.length - 1 : prev - 1));
+      setZoomScale(1);
     } else if (e.key === 'ArrowRight') {
       setActiveIndex((prev) => (prev === displayImages.length - 1 ? 0 : prev + 1));
+      setZoomScale(1);
     } else if (e.key === 'Escape') {
       setLightboxOpen(false);
+      setZoomScale(1);
     }
   }, [displayImages.length]);
 
@@ -56,38 +76,61 @@ export function ProductGallery({ product, selectedVariant, selectedOptions, onOp
     setActiveIndex(0);
   }, [selectedVariant?.id]);
 
-  const currentImage = displayImages[activeIndex];
+  const currentImage = displayImages[activeIndex] || displayImages[0];
+
+  const zoomIn = () => setZoomScale((prev) => Math.min(prev + 0.5, 3));
+  const zoomOut = () => setZoomScale((prev) => Math.max(prev - 0.5, 1));
+  const resetZoom = () => setZoomScale(1);
 
   return (
     <div className={cn('relative', className)}>
-      {/* Main Image */}
-      <div className="relative aspect-4-5 overflow-hidden bg-neutral-50">
-        <button
-          onClick={() => setLightboxOpen(true)}
-          className="absolute inset-0 z-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-500 focus-visible:ring-offset-2"
-          aria-label="Zoom image"
+      {/* Main Image Container with In-Place Hover Zoom */}
+      <div
+        className="relative aspect-4-5 overflow-hidden bg-neutral-50 rounded-lg group border border-neutral-200/80 cursor-zoom-in"
+        onMouseMove={handleMouseMove}
+        onMouseLeave={handleMouseLeave}
+        onClick={() => setLightboxOpen(true)}
+      >
+        <div
+          className="w-full h-full transition-transform duration-200 ease-out"
+          style={{
+            transformOrigin: `${hoverZoom.x}% ${hoverZoom.y}%`,
+            transform: hoverZoom.active ? 'scale(1.8)' : 'scale(1)',
+          }}
         >
-          <ProductImage
-            images={displayImages}
-            selectedVariantImage={variantImage ? { url: variantImage.url, altText: variantImage.altText } : null}
-            aspectRatio="4:5"
+          <OptimizedImage
+            src={currentImage?.url}
+            alt={currentImage?.altText || product.title}
+            fill
             priority={activeIndex === 0}
+            objectFit="cover"
           />
-        </button>
+        </div>
+
+        {/* Hover Hint Badge */}
+        <div className="absolute top-4 left-4 z-20 pointer-events-none bg-neutral-900/75 text-cream-50 text-caption px-3 py-1.5 rounded-full backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity">
+          Click for full screen view
+        </div>
 
         {/* Navigation Arrows */}
         {displayImages.length > 1 && (
           <>
             <button
-              onClick={() => setActiveIndex((prev) => (prev === 0 ? displayImages.length - 1 : prev - 1))}
-              className="absolute left-3 top-1/2 -translate-y-1/2 p-2 bg-white/80 backdrop-blur-sm rounded-full text-neutral-700 hover:text-neutral-950 hover:bg-white transition-all opacity-0 group-hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-500"
+              onClick={(e) => {
+                e.stopPropagation();
+                setActiveIndex((prev) => (prev === 0 ? displayImages.length - 1 : prev - 1));
+              }}
+              className="absolute left-3 top-1/2 -translate-y-1/2 p-2.5 bg-white/90 backdrop-blur-md rounded-full text-neutral-800 hover:text-neutral-950 hover:bg-white shadow-soft transition-all opacity-0 group-hover:opacity-100 z-20"
               aria-label="Previous image"
             >
               <ChevronLeft className="h-5 w-5" />
             </button>
             <button
-              onClick={() => setActiveIndex((prev) => (prev === displayImages.length - 1 ? 0 : prev + 1))}
-              className="absolute right-3 top-1/2 -translate-y-1/2 p-2 bg-white/80 backdrop-blur-sm rounded-full text-neutral-700 hover:text-neutral-950 hover:bg-white transition-all opacity-0 group-hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-500"
+              onClick={(e) => {
+                e.stopPropagation();
+                setActiveIndex((prev) => (prev === displayImages.length - 1 ? 0 : prev + 1));
+              }}
+              className="absolute right-3 top-1/2 -translate-y-1/2 p-2.5 bg-white/90 backdrop-blur-md rounded-full text-neutral-800 hover:text-neutral-950 hover:bg-white shadow-soft transition-all opacity-0 group-hover:opacity-100 z-20"
               aria-label="Next image"
             >
               <ChevronRight className="h-5 w-5" />
@@ -95,18 +138,18 @@ export function ProductGallery({ product, selectedVariant, selectedOptions, onOp
           </>
         )}
 
-        {/* Zoom Indicator */}
-        <div className="absolute bottom-3 right-3 p-2 bg-white/80 backdrop-blur-sm rounded-full text-neutral-700 opacity-0 group-hover:opacity-100">
+        {/* Expand Icon */}
+        <div className="absolute bottom-4 right-4 p-2.5 bg-white/90 backdrop-blur-md rounded-full text-neutral-800 shadow-soft opacity-0 group-hover:opacity-100 transition-opacity z-20">
           <Expand className="h-4 w-4" />
         </div>
       </div>
 
-      {/* Thumbnails */}
+      {/* Thumbnails Strip */}
       {displayImages.length > 1 && (
         <div
-          className="flex gap-2 mt-4 overflow-x-auto pb-2 scrollbar-thin"
+          className="flex gap-3 mt-4 overflow-x-auto pb-2 scrollbar-thin"
           role="tablist"
-          aria-label="Product images"
+          aria-label="Product image thumbnails"
         >
           {displayImages.map((image, index) => (
             <button
@@ -116,10 +159,10 @@ export function ProductGallery({ product, selectedVariant, selectedOptions, onOp
               aria-selected={index === activeIndex}
               aria-label={`View image ${index + 1}`}
               className={cn(
-                'relative flex-shrink-0 w-20 h-20 rounded overflow-hidden border-2 transition-all duration-300',
+                'relative flex-shrink-0 w-20 h-20 rounded-md overflow-hidden border-2 transition-all duration-200',
                 index === activeIndex
-                  ? 'border-gold-500'
-                  : 'border-transparent hover:border-neutral-300'
+                  ? 'border-gold-500 shadow-subtle scale-95'
+                  : 'border-transparent opacity-75 hover:opacity-100 hover:border-neutral-300'
               )}
             >
               <OptimizedImage
@@ -133,64 +176,138 @@ export function ProductGallery({ product, selectedVariant, selectedOptions, onOp
         </div>
       )}
 
-      {/* Lightbox */}
+      {/* FULL SCREEN LIGHTBOX MODAL (Z-INDEX 100 OVERRIDE) */}
       {lightboxOpen && (
         <div
-          className="fixed inset-0 z-50 bg-neutral-950 flex items-center justify-center p-4"
+          className="fixed inset-0 z-[100] bg-neutral-950/95 backdrop-blur-lg flex flex-col justify-between p-4 sm:p-8 animate-fade-in"
           role="dialog"
           aria-modal="true"
-          aria-label="Image zoom"
+          aria-label="Full screen image view"
+          onClick={() => { setLightboxOpen(false); setZoomScale(1); }}
         >
-          <button
-            onClick={() => setLightboxOpen(false)}
-            className="absolute top-4 right-4 p-2 text-cream-50/70 hover:text-cream-50 transition-colors"
-            aria-label="Close zoom"
+          {/* Top Control Bar */}
+          <div
+            className="flex items-center justify-between w-full z-[110] relative"
+            onClick={(e) => e.stopPropagation()}
           >
-            <X className="h-6 w-6" />
-          </button>
-          
-          <button
-            onClick={() => setActiveIndex((prev) => (prev === 0 ? displayImages.length - 1 : prev - 1))}
-            className="absolute left-4 p-2 text-cream-50/70 hover:text-cream-50 transition-colors hidden sm:block"
-            aria-label="Previous image"
-          >
-            <ChevronLeft className="h-8 w-8" />
-          </button>
+            <div className="text-cream-50 text-body-sm font-medium tracking-wide bg-neutral-900/80 px-4 py-2 rounded-full border border-neutral-800">
+              {activeIndex + 1} / {displayImages.length}
+            </div>
 
-          <div className="relative max-w-5xl max-h-[90vh]">
-            <OptimizedImage
-              src={currentImage.url}
-              alt={currentImage.altText || ''}
-              width={1200}
-              height={1500}
-              objectFit="contain"
-            />
-          </div>
-
-          <button
-            onClick={() => setActiveIndex((prev) => (prev === displayImages.length - 1 ? 0 : prev + 1))}
-            className="absolute right-4 p-2 text-cream-50/70 hover:text-cream-50 transition-colors hidden sm:block"
-            aria-label="Next image"
-          >
-            <ChevronRight className="h-8 w-8" />
-          </button>
-
-          {/* Thumbnails in lightbox */}
-          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
-            {displayImages.map((image, index) => (
+            {/* Lightbox Zoom Controls & Close Button */}
+            <div className="flex items-center gap-2">
               <button
-                key={image.url}
-                onClick={() => { setActiveIndex(index); setLightboxOpen(true); }}
-                className={cn(
-                  'w-16 h-16 rounded overflow-hidden border-2 transition-all',
-                  index === activeIndex ? 'border-gold-500' : 'border-transparent hover:border-neutral-600'
-                )}
-                aria-label={`View image ${index + 1}`}
+                onClick={zoomIn}
+                disabled={zoomScale >= 3}
+                className="p-3 bg-neutral-900/90 text-cream-50 hover:bg-gold-500 hover:text-white rounded-full border border-neutral-700 shadow-strong transition-all disabled:opacity-30"
+                aria-label="Zoom in"
+                title="Zoom In"
               >
-                <OptimizedImage src={image.url} alt="" fill objectFit="cover" />
+                <ZoomIn className="h-5 w-5" />
               </button>
-            ))}
+              <button
+                onClick={zoomOut}
+                disabled={zoomScale <= 1}
+                className="p-3 bg-neutral-900/90 text-cream-50 hover:bg-gold-500 hover:text-white rounded-full border border-neutral-700 shadow-strong transition-all disabled:opacity-30"
+                aria-label="Zoom out"
+                title="Zoom Out"
+              >
+                <ZoomOut className="h-5 w-5" />
+              </button>
+              {zoomScale > 1 && (
+                <button
+                  onClick={resetZoom}
+                  className="p-3 bg-neutral-900/90 text-cream-50 hover:bg-gold-500 hover:text-white rounded-full border border-neutral-700 shadow-strong transition-all"
+                  aria-label="Reset zoom"
+                  title="Reset Zoom"
+                >
+                  <RotateCcw className="h-5 w-5" />
+                </button>
+              )}
+              {/* High visibility Close Button */}
+              <button
+                onClick={() => { setLightboxOpen(false); setZoomScale(1); }}
+                className="p-3 bg-gold-500 text-white hover:bg-gold-600 rounded-full shadow-strong transition-transform hover:scale-105 ml-2 flex items-center gap-1.5 px-4 font-sans font-medium text-body-sm"
+                aria-label="Close zoom modal"
+              >
+                <X className="h-5 w-5" />
+                <span>Close</span>
+              </button>
+            </div>
           </div>
+
+          {/* Main Zoomed Image Container */}
+          <div
+            className="flex-1 flex items-center justify-center relative overflow-hidden py-4 my-2"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Previous Arrow */}
+            {displayImages.length > 1 && (
+              <button
+                onClick={() => {
+                  setActiveIndex((prev) => (prev === 0 ? displayImages.length - 1 : prev - 1));
+                  setZoomScale(1);
+                }}
+                className="absolute left-4 z-[110] p-4 bg-neutral-900/80 text-cream-50 hover:text-white hover:bg-gold-500 rounded-full border border-neutral-700 shadow-strong transition-all"
+                aria-label="Previous image"
+              >
+                <ChevronLeft className="h-8 w-8" />
+              </button>
+            )}
+
+            {/* Click to Zoom Image View */}
+            <div
+              className="relative max-w-5xl max-h-[80vh] w-full h-full flex items-center justify-center transition-transform duration-300 ease-out cursor-pointer"
+              style={{ transform: `scale(${zoomScale})` }}
+              onClick={() => setZoomScale((prev) => (prev === 1 ? 2 : 1))}
+            >
+              <OptimizedImage
+                src={currentImage?.url}
+                alt={currentImage?.altText || product.title}
+                width={1400}
+                height={1750}
+                objectFit="contain"
+              />
+            </div>
+
+            {/* Next Arrow */}
+            {displayImages.length > 1 && (
+              <button
+                onClick={() => {
+                  setActiveIndex((prev) => (prev === displayImages.length - 1 ? 0 : prev + 1));
+                  setZoomScale(1);
+                }}
+                className="absolute right-4 z-[110] p-4 bg-neutral-900/80 text-cream-50 hover:text-white hover:bg-gold-500 rounded-full border border-neutral-700 shadow-strong transition-all"
+                aria-label="Next image"
+              >
+                <ChevronRight className="h-8 w-8" />
+              </button>
+            )}
+          </div>
+
+          {/* Lightbox Bottom Thumbnails */}
+          {displayImages.length > 1 && (
+            <div
+              className="flex justify-center gap-3 z-[110] relative pt-2"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {displayImages.map((image, index) => (
+                <button
+                  key={image.url}
+                  onClick={() => { setActiveIndex(index); setZoomScale(1); }}
+                  className={cn(
+                    'w-14 h-14 rounded-md overflow-hidden border-2 transition-all',
+                    index === activeIndex
+                      ? 'border-gold-500 scale-105 shadow-strong'
+                      : 'border-neutral-800 opacity-60 hover:opacity-100'
+                  )}
+                  aria-label={`View image ${index + 1}`}
+                >
+                  <OptimizedImage src={image.url} alt="" fill objectFit="cover" />
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       )}
     </div>
@@ -215,7 +332,6 @@ export function VariantSelector({ product, selectedOptions, onOptionChange, disa
           <div className="flex flex-wrap gap-2" role="radiogroup" aria-label={option.name}>
             {option.values.map((value) => {
               const isSelected = selectedOptions[option.name] === value;
-              // Check if this value is available with current other selections
               const isAvailable = product.variants.edges.some(({ node: variant }) => {
                 const matches = variant.selectedOptions.every(
                   (opt) => opt.name === option.name ? opt.value === value : selectedOptions[opt.name] === opt.value

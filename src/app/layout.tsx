@@ -7,6 +7,7 @@ import { CartDrawer } from '@/components/cart/CartDrawer';
 import { CookieConsent } from '@/components/ui/CookieConsent';
 import { CartProvider } from '@/context/CartContext';
 import { fetchShop, fetchMenus } from '@/lib/shopify';
+import { StorefrontLayoutWrapper } from '@/components/layout/StorefrontLayoutWrapper';
 
 const inter = { variable: 'font-sans' };
 const cormorant = { variable: 'font-serif' };
@@ -77,21 +78,17 @@ export const metadata: Metadata = {
   manifest: '/site.webmanifest',
 };
 
-interface LayoutProps {
+export default async function RootLayout({
+  children,
+}: {
   children: React.ReactNode;
-}
-
-export default async function RootLayout({ children }: LayoutProps) {
+}) {
   const [shop, menus] = await Promise.all([fetchShop(), fetchMenus()]);
   const gaId = process.env.NEXT_PUBLIC_GA_ID;
 
   return (
-    <html lang="en" className={`${inter.variable} ${cormorant.variable} scroll-smooth`}>
-      <head>
-        <link rel="preconnect" href="https://cdn.shopify.com" crossOrigin="anonymous" />
-        <link rel="dns-prefetch" href="https://cdn.shopify.com" />
-      </head>
-      <body className="bg-cream-50 text-neutral-900 antialiased">
+    <html lang="en" className={`${inter.variable} ${cormorant.variable}`}>
+      <body className="font-sans antialiased text-neutral-900 bg-cream-50 selection:bg-gold-500/20 selection:text-neutral-950">
         {gaId && (
           <>
             <Script
@@ -111,17 +108,9 @@ export default async function RootLayout({ children }: LayoutProps) {
           </>
         )}
         <CartProvider>
-          <a
-            href="#main-content"
-            className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 z-50 bg-neutral-950 text-cream-50 px-4 py-2 rounded"
-          >
-            Skip to main content
-          </a>
-          <Header />
-          <main id="main-content" className="min-h-screen">
+          <StorefrontLayoutWrapper menus={menus} policies={shop.policies} shopName={shop.name}>
             {children}
-          </main>
-          <Footer menus={menus} policies={shop.policies} shopName={shop.name} />
+          </StorefrontLayoutWrapper>
           <CartDrawer />
           <CookieConsent />
         </CartProvider>

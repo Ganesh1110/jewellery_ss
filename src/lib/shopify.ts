@@ -737,6 +737,8 @@ export const GET_ARTICLE_BY_HANDLE = gql`
 `;
 
 // API Functions
+import { getCustomProducts, applyInventoryOverrides } from './custom-products';
+
 export async function fetchProducts(
   first = 12,
   after?: string,
@@ -745,10 +747,11 @@ export async function fetchProducts(
   query?: string
 ): Promise<ProductConnection> {
   if (shouldUseMockData()) {
-    const products = sortMockProducts(
-      query ? mockSearchProducts(query) : mockProducts,
-      sortKey
-    );
+    const custom = typeof window !== 'undefined' ? getCustomProducts() : [];
+    const baseList = query ? mockSearchProducts(query) : mockProducts;
+    const combined = [...custom, ...baseList.filter((b) => !custom.some((c) => c.handle === b.handle))].map(applyInventoryOverrides);
+    const products = sortMockProducts(combined, sortKey);
+
     return {
       edges: products.slice(0, first).map((node) => ({ node, cursor: node.handle })),
       pageInfo: {
@@ -772,7 +775,11 @@ export async function fetchProducts(
 
 export async function fetchProduct(handle: string): Promise<Product | null> {
   if (shouldUseMockData()) {
-    return mockProduct(handle);
+    const custom = typeof window !== 'undefined' ? getCustomProducts() : [];
+    const matchCustom = custom.find((p) => p.handle === handle);
+    if (matchCustom) return applyInventoryOverrides(matchCustom);
+    const base = mockProduct(handle);
+    return base ? applyInventoryOverrides(base) : null;
   }
   const data = await client.request<{ product: Product | null }>(GET_PRODUCT_BY_HANDLE, { handle });
   return data.product;
@@ -808,7 +815,29 @@ export async function fetchCollection(
   after?: string
 ): Promise<Collection | null> {
   if (shouldUseMockData()) {
-    return getMockCollection(handle);
+    const baseCollection = getMockCollection(handle);
+    if (!baseCollection) return null;
+
+    const custom = typeof window !== 'undefined' ? getCustomProducts() : [];
+    const matchingCustom = custom.filter(
+      (p) => p.tags.includes(handle) || handle === 'all' || handle === 'bestsellers' || handle === 'new-arrivals'
+    );
+
+    if (matchingCustom.length > 0) {
+      const existingEdges = baseCollection.products.edges;
+      const customEdges = matchingCustom.map((node) => ({ node, cursor: node.handle }));
+      const merged = [...customEdges, ...existingEdges.filter((e) => !matchingCustom.some((c) => c.handle === e.node.handle))];
+
+      return {
+        ...baseCollection,
+        products: {
+          ...baseCollection.products,
+          edges: merged,
+        },
+      };
+    }
+
+    return baseCollection;
   }
   const data = await client.request<{ collection: Collection | null }>(GET_COLLECTION_BY_HANDLE, {
     handle,
