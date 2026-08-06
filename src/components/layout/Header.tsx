@@ -1,9 +1,8 @@
 'use client';
 
-import { forwardRef, useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { useCart } from '@/context/CartContext';
-import { Button } from '@/components/ui/Button';
 import { cn } from '@/lib/utils';
 import {
   Menu,
@@ -11,7 +10,6 @@ import {
   ShoppingBag,
   Search,
   User,
-  ChevronDown,
 } from 'lucide-react';
 
 const navigation = [
@@ -22,14 +20,14 @@ const navigation = [
 ];
 
 export function Header() {
-  const { totalQuantity, openCart, isCartOpen } = useCart();
+  const { totalQuantity, openCart } = useCart();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
-      setScrolled(window.scrollY > 20);
+      setScrolled(window.scrollY > 10);
     };
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
@@ -45,24 +43,23 @@ export function Header() {
   return (
     <header
       className={cn(
-        'fixed top-0 left-0 right-0 z-50 transition-all duration-normal ease-out-expo',
-        scrolled && 'bg-cream-50/95 backdrop-blur-sm border-b border-neutral-200',
-        !scrolled && 'bg-transparent'
+        'sticky top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-b border-neutral-200/80 transition-shadow duration-normal',
+        scrolled ? 'shadow-soft' : 'shadow-subtle'
       )}
       onKeyDown={handleKeyDown}
       role="banner"
     >
       {/* Announcement Bar */}
-      <div className="hidden sm:block bg-neutral-950 text-cream-50 py-2 px-4 text-center text-caption uppercase tracking-widest">
+      <div className="bg-neutral-950 text-cream-50 py-2.5 px-4 text-center text-caption uppercase tracking-widest font-medium">
         Complimentary shipping on orders over ₹15,000 &mdash; Returns within 14 days
       </div>
 
       {/* Main Header */}
-      <div className="relative px-4 sm:px-6 lg:px-8">
+      <div className="relative max-w-container-2xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 sm:h-20">
           {/* Mobile Menu Button */}
           <button
-            className="sm:hidden p-2 -ml-2 text-neutral-700 hover:text-neutral-950"
+            className="sm:hidden p-2 -ml-2 text-neutral-700 hover:text-neutral-950 transition-colors"
             onClick={() => setMobileMenuOpen(true)}
             aria-label="Open menu"
             aria-expanded={mobileMenuOpen}
@@ -71,30 +68,30 @@ export function Header() {
           </button>
 
           {/* Logo */}
-          <div className="flex-1 flex justify-center">
+          <div className="flex-1 flex justify-center sm:justify-start lg:justify-center">
             <Link
               href="/"
-              className="font-heading text-display-sm tracking-tight text-neutral-950 hover:opacity-80 transition-opacity"
+              className="font-heading tracking-tight text-neutral-950 hover:opacity-85 transition-opacity"
               aria-label="Style Statement by Shakthi Home"
             >
-              <span className="flex items-baseline gap-1.5 font-light">
-                <span>Style Statement</span>
-                <span className="text-body-xs uppercase tracking-[0.3em] text-neutral-500">by Shakthi</span>
+              <span className="flex items-baseline gap-2">
+                <span className="font-heading text-heading-lg sm:text-display-sm font-semibold tracking-tight">Style Statement</span>
+                <span className="text-[10px] sm:text-body-xs uppercase tracking-[0.25em] text-neutral-500 font-sans">by Shakthi</span>
               </span>
             </Link>
           </div>
 
           {/* Actions */}
-          <div className="flex items-center gap-1 sm:gap-4">
+          <div className="flex items-center gap-2 sm:gap-6">
             {/* Search */}
             <button
-              className="p-2 sm:p-0 text-neutral-700 hover:text-neutral-950"
+              className="p-2 sm:px-3 sm:py-1.5 text-neutral-700 hover:text-neutral-950 transition-colors"
               onClick={() => setSearchOpen(true)}
               aria-label="Search"
             >
               <Search className="h-5 w-5 sm:hidden" />
-              <span className="hidden sm:inline-flex items-center gap-1.5 text-body-sm font-medium uppercase tracking-wider">
-                <Search className="h-4 w-4" />
+              <span className="hidden sm:inline-flex items-center gap-2 text-body-sm font-medium uppercase tracking-wider">
+                <Search className="h-4 w-4 text-gold-600" />
                 Search
               </span>
             </button>
@@ -102,7 +99,7 @@ export function Header() {
             {/* Account */}
             <Link
               href="/account"
-              className="p-2 sm:p-0 text-neutral-700 hover:text-neutral-950"
+              className="p-2 sm:px-3 sm:py-1.5 text-neutral-700 hover:text-neutral-950 transition-colors"
               aria-label="Account"
             >
               <User className="h-5 w-5 sm:hidden" />
@@ -112,19 +109,19 @@ export function Header() {
             {/* Cart */}
             <button
               onClick={openCart}
-              className="relative p-2 sm:p-0 text-neutral-700 hover:text-neutral-950"
+              className="relative p-2 sm:px-3 sm:py-1.5 text-neutral-700 hover:text-neutral-950 transition-colors"
               aria-label={`Shopping bag${totalQuantity > 0 ? `, ${totalQuantity} items` : ''}`}
             >
-              <ShoppingBag className="h-5 w-5 sm:h-6 sm:w-6" />
-              <span className="hidden sm:inline-flex items-center gap-1.5 text-body-sm font-medium uppercase tracking-wider">
+              <ShoppingBag className="h-5 w-5 sm:hidden" />
+              <span className="hidden sm:inline-flex items-center gap-2 text-body-sm font-medium uppercase tracking-wider">
                 Bag
                 {totalQuantity > 0 && (
-                  <span className="text-gold-600">({totalQuantity})</span>
+                  <span className="text-gold-600 font-semibold">({totalQuantity})</span>
                 )}
               </span>
               {totalQuantity > 0 && (
                 <span
-                  className="absolute -top-1 -right-1 sm:-top-2 sm:-right-2 flex h-5 w-5 items-center justify-center text-[10px] font-bold text-cream-50 bg-gold-600 rounded-full"
+                  className="sm:hidden absolute top-1 right-1 flex h-4 w-4 items-center justify-center text-[9px] font-bold text-cream-50 bg-gold-600 rounded-full"
                   aria-live="polite"
                 >
                   {totalQuantity > 99 ? '99+' : totalQuantity}
@@ -135,13 +132,13 @@ export function Header() {
         </div>
 
         {/* Desktop Navigation */}
-        <nav className="hidden lg:block border-t border-neutral-200" aria-label="Main navigation">
-          <ul className="flex justify-center gap-8 py-4 text-body-sm font-medium uppercase tracking-wider">
+        <nav className="hidden lg:block border-t border-neutral-100" aria-label="Main navigation">
+          <ul className="flex justify-center gap-10 py-3.5 text-body-sm font-medium uppercase tracking-widest text-neutral-700">
             {navigation.map((item) => (
               <li key={item.name}>
                 <Link
                   href={item.href}
-                  className="text-neutral-700 hover:text-neutral-950 transition-colors duration-fast"
+                  className="hover:text-gold-600 transition-colors duration-fast relative py-1 after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[1.5px] after:bg-gold-600 after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:duration-200"
                 >
                   {item.name}
                 </Link>

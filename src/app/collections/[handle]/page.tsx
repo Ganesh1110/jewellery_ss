@@ -1,21 +1,43 @@
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import { ChevronDown, Filter, X } from 'lucide-react';
 import { ProductGrid } from '@/components/product/ProductGrid';
+import { SortDropdown } from '@/components/product/SortDropdown';
 import { OptimizedImage } from '@/components/ui/Image';
-import { Button } from '@/components/ui/Button';
 import { fetchCollection, fetchCollections, fetchShop } from '@/lib/shopify';
-import { cn } from '@/lib/utils';
+import type { Product } from '@/types/shopify';
 
 interface CollectionPageProps {
   params: Promise<{ handle: string }>;
   searchParams: Promise<{ page?: string; sort?: string; min?: string; max?: string; tag?: string }>;
 }
 
+function sortProducts(products: Product[], sortKey?: string): Product[] {
+  const list = [...products];
+  switch (sortKey) {
+    case 'TITLE_ASC':
+      return list.sort((a, b) => a.title.localeCompare(b.title));
+    case 'TITLE_DESC':
+      return list.sort((a, b) => b.title.localeCompare(a.title));
+    case 'PRICE_ASC':
+      return list.sort(
+        (a, b) => a.priceRange.minVariantPrice.amount - b.priceRange.minVariantPrice.amount
+      );
+    case 'PRICE_DESC':
+      return list.sort(
+        (a, b) => b.priceRange.minVariantPrice.amount - a.priceRange.minVariantPrice.amount
+      );
+    case 'CREATED_DESC':
+      return list.sort((a, b) => (b.publishedAt || '').localeCompare(a.publishedAt || ''));
+    case 'BEST_SELLING':
+    default:
+      return list;
+  }
+}
+
 async function getCollectionData(handle: string, searchParams: { page?: string; sort?: string; min?: string; max?: string; tag?: string }) {
   const page = parseInt(searchParams.page || '1');
-  const first = 12;
+  const first = 24;
   
   const [collection, allCollections, shop] = await Promise.all([
     fetchCollection(handle, first),
@@ -50,15 +72,6 @@ export async function generateMetadata({ params }: CollectionPageProps): Promise
   };
 }
 
-const sortOptions = [
-  { value: 'BEST_SELLING', label: 'Best Selling' },
-  { value: 'CREATED_DESC', label: 'Newest' },
-  { value: 'TITLE_ASC', label: 'Name: A to Z' },
-  { value: 'TITLE_DESC', label: 'Name: Z to A' },
-  { value: 'PRICE_ASC', label: 'Price: Low to High' },
-  { value: 'PRICE_DESC', label: 'Price: High to Low' },
-];
-
 export default async function CollectionPage({ params, searchParams }: CollectionPageProps) {
   const resolvedParams = await params;
   const resolvedSearchParams = await searchParams;
@@ -70,6 +83,9 @@ export default async function CollectionPage({ params, searchParams }: Collectio
   }
 
   const { collection, allCollections, shop, currentPage } = data;
+  const rawProducts = collection.products.edges.map(({ node }) => node);
+  const sortedProducts = sortProducts(rawProducts, resolvedSearchParams.sort);
+
   const hasNextPage = collection.products.pageInfo.hasNextPage;
   const hasPrevPage = currentPage > 1;
 
@@ -102,18 +118,7 @@ export default async function CollectionPage({ params, searchParams }: Collectio
               )}
             </div>
             <div className="flex items-center gap-4" role="group" aria-label="Collection actions">
-              {/* Sort Dropdown */}
-              <div className="relative">
-                <button
-                  className="btn-secondary flex items-center gap-2"
-                  aria-haspopup="listbox"
-                  aria-label="Sort products"
-                >
-                  <Filter className="h-4 w-4" aria-hidden="true" />
-                  <span>Sort</span>
-                  <ChevronDown className="h-4 w-4" aria-hidden="true" />
-                </button>
-              </div>
+              <SortDropdown currentSort={resolvedSearchParams.sort} />
             </div>
           </div>
         </div>
@@ -125,12 +130,12 @@ export default async function CollectionPage({ params, searchParams }: Collectio
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-8">
             <h2 id="products-heading" className="sr-only">Products</h2>
             <p className="text-body-sm text-neutral-500">
-              {collection.products.edges.length} product{collection.products.edges.length !== 1 ? 's' : ''} in this collection
+              {sortedProducts.length} product{sortedProducts.length !== 1 ? 's' : ''} in this collection
             </p>
           </div>
 
           <ProductGrid
-            products={collection.products.edges.map(({ node }) => node)}
+            products={sortedProducts}
             columns={4}
           />
 

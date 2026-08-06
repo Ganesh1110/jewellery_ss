@@ -1,9 +1,10 @@
 'use client';
 
-import { forwardRef, ImgHTMLAttributes, useState } from 'react';
+import { forwardRef, useState } from 'react';
+import NextImage from 'next/image';
 import { cn } from '@/lib/utils';
 
-export interface OptimizedImageProps extends Omit<ImgHTMLAttributes<HTMLImageElement>, 'src'> {
+export interface OptimizedImageProps {
   src: string | null | undefined;
   alt: string;
   width?: number;
@@ -27,75 +28,29 @@ const OptimizedImage = forwardRef<HTMLImageElement, OptimizedImageProps>(
       height,
       priority = false,
       fill = false,
-      sizes,
+      sizes = '(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw',
       className,
       placeholder = 'empty',
       blurDataURL,
       objectFit = 'cover',
       objectPosition = 'center',
-      ...props
     },
     ref
   ) => {
-    const [isLoading, setIsLoading] = useState(true);
     const [hasError, setHasError] = useState(false);
-    const [currentSrc, setCurrentSrc] = useState<string | null>(src || null);
 
-    // Generate blur data URL if not provided
-    const blurUrl = blurDataURL || 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"%3E%3Crect fill="%23e5e5e5" width="10" height="10"/%3E%3C/svg%3E';
+    const defaultBlurUrl =
+      'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"%3E%3Crect fill="%23e5e5e5" width="10" height="10"/%3E%3C/svg%3E';
 
-    const handleLoad = () => {
-      setIsLoading(false);
-    };
+    const imageSrc = hasError || !src ? '/placeholder.svg' : src;
 
-    const handleError = () => {
-      setHasError(true);
-      setIsLoading(false);
-      // Fallback to placeholder
-      if (currentSrc !== '/placeholder.svg') {
-        setCurrentSrc('/placeholder.svg');
-      }
-    };
-
-    // For fill images, we use absolute positioning
-    const imageStyles: React.CSSProperties = {
-      objectFit,
-      objectPosition,
-      transition: 'opacity 0.3s ease-out',
-      opacity: isLoading || hasError ? 0 : 1,
-    };
-
-    if (fill) {
-      imageStyles.position = 'absolute';
-      imageStyles.inset = '0';
-      imageStyles.width = '100%';
-      imageStyles.height = '100%';
-    } else if (width && height) {
-      imageStyles.width = width;
-      imageStyles.height = height;
-    }
-
-    const placeholderStyles: React.CSSProperties = {
-      position: 'absolute',
-      inset: '0',
-      backgroundSize: 'cover',
-      backgroundPosition: 'center',
-      backgroundImage: `url(${blurUrl})`,
-      opacity: isLoading ? 1 : 0,
-      transition: 'opacity 0.3s ease-out',
-      filter: 'blur(20px)',
-      transform: 'scale(1.1)',
-    };
-
-    if (!src) {
+    if (!src && !hasError) {
       return (
         <div
           className={cn('relative bg-neutral-100 overflow-hidden', className)}
           style={{ width: fill ? '100%' : width, height: fill ? '100%' : height }}
           aria-hidden="true"
-        >
-          <div style={placeholderStyles} aria-hidden="true" />
-        </div>
+        />
       );
     }
 
@@ -103,25 +58,25 @@ const OptimizedImage = forwardRef<HTMLImageElement, OptimizedImageProps>(
       <div
         className={cn('relative overflow-hidden', fill && 'absolute inset-0', className)}
         style={{ width: fill ? undefined : width, height: fill ? undefined : height }}
-        role={alt ? 'img' : undefined}
-        aria-label={alt}
       >
-        {placeholder === 'blur' && (
-          <div style={placeholderStyles} aria-hidden="true" />
-        )}
-        <img
+        <NextImage
           ref={ref}
-          src={currentSrc || undefined}
+          src={imageSrc}
           alt={alt}
-          width={width}
-          height={height}
+          width={!fill ? width || 800 : undefined}
+          height={!fill ? height || 800 : undefined}
+          fill={fill}
+          priority={priority}
           sizes={sizes}
-          loading={priority ? 'eager' : 'lazy'}
-          fetchPriority={priority ? 'high' : 'auto'}
-          style={imageStyles}
-          onLoad={handleLoad}
-          onError={handleError}
-          {...props}
+          unoptimized={hasError || imageSrc.endsWith('.svg')}
+          placeholder={placeholder === 'blur' && !hasError ? 'blur' : 'empty'}
+          blurDataURL={placeholder === 'blur' && !hasError ? blurDataURL || defaultBlurUrl : undefined}
+          onError={() => setHasError(true)}
+          style={{
+            objectFit,
+            objectPosition,
+          }}
+          className="transition-opacity duration-300"
         />
       </div>
     );

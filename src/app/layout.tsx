@@ -1,26 +1,15 @@
 import type { Metadata, Viewport } from 'next';
-import { Inter, Cormorant_Garamond } from 'next/font/google';
+import Script from 'next/script';
 import './globals.css';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { CartDrawer } from '@/components/cart/CartDrawer';
+import { CookieConsent } from '@/components/ui/CookieConsent';
 import { CartProvider } from '@/context/CartContext';
 import { fetchShop, fetchMenus } from '@/lib/shopify';
 
-const inter = Inter({
-  subsets: ['latin'],
-  variable: '--font-inter',
-  display: 'swap',
-  preload: true,
-});
-
-const cormorant = Cormorant_Garamond({
-  subsets: ['latin'],
-  variable: '--font-cormorant',
-  display: 'swap',
-  preload: true,
-  weight: ['300', '400', '500', '600', '700'],
-});
+const inter = { variable: 'font-sans' };
+const cormorant = { variable: 'font-serif' };
 
 export const viewport: Viewport = {
   themeColor: [
@@ -94,6 +83,7 @@ interface LayoutProps {
 
 export default async function RootLayout({ children }: LayoutProps) {
   const [shop, menus] = await Promise.all([fetchShop(), fetchMenus()]);
+  const gaId = process.env.NEXT_PUBLIC_GA_ID;
 
   return (
     <html lang="en" className={`${inter.variable} ${cormorant.variable} scroll-smooth`}>
@@ -102,6 +92,24 @@ export default async function RootLayout({ children }: LayoutProps) {
         <link rel="dns-prefetch" href="https://cdn.shopify.com" />
       </head>
       <body className="bg-cream-50 text-neutral-900 antialiased">
+        {gaId && (
+          <>
+            <Script
+              src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`}
+              strategy="afterInteractive"
+            />
+            <Script id="google-analytics" strategy="afterInteractive">
+              {`
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){dataLayer.push(arguments);}
+                gtag('js', new Date());
+                gtag('config', '${gaId}', {
+                  page_path: window.location.pathname,
+                });
+              `}
+            </Script>
+          </>
+        )}
         <CartProvider>
           <a
             href="#main-content"
@@ -110,11 +118,12 @@ export default async function RootLayout({ children }: LayoutProps) {
             Skip to main content
           </a>
           <Header />
-          <main id="main-content" className="min-h-screen pt-16 sm:pt-20">
+          <main id="main-content" className="min-h-screen">
             {children}
           </main>
           <Footer menus={menus} policies={shop.policies} shopName={shop.name} />
           <CartDrawer />
+          <CookieConsent />
         </CartProvider>
       </body>
     </html>

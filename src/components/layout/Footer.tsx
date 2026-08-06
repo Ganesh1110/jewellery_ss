@@ -33,40 +33,6 @@ export function Footer({ menus, policies, shopName = 'Style Statement by Shakthi
 
   return (
     <footer className="bg-neutral-950 text-cream-50" role="contentinfo">
-      {/* Newsletter Section */}
-      <div className="border-b border-neutral-800">
-        <div className="container py-12 sm:py-16 lg:py-20">
-          <div className="max-w-2xl mx-auto text-center">
-            <h2 className="font-heading text-display-sm sm:text-display-md tracking-tight mb-4">
-              Join the Style Statement Collective
-            </h2>
-            <p className="text-body-lg text-cream-50/70 mb-8">
-              Receive early access to new collections, private sales, and editorial stories.
-            </p>
-            <form className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto" action="#">
-              <label htmlFor="footer-email" className="sr-only">Email address</label>
-              <input
-                type="email"
-                id="footer-email"
-                name="email"
-                placeholder="Enter your email"
-                className="flex-1 bg-transparent border border-neutral-700 text-cream-50 placeholder:text-neutral-500 text-body-sm px-4 py-3.5 min-h-[48px] focus:border-gold-500 focus:ring-2 focus:ring-gold-500/20 focus:outline-none transition-all"
-                required
-              />
-              <button
-                type="submit"
-                className="btn-primary whitespace-nowrap"
-              >
-                Subscribe <ArrowRight className="h-4 w-4" aria-hidden="true" />
-              </button>
-            </form>
-            <p className="mt-4 text-caption text-neutral-500">
-              By subscribing, you agree to our <a href="/privacy-policy" className="underline hover:text-gold-400">Privacy Policy</a>.
-            </p>
-          </div>
-        </div>
-      </div>
-
       {/* Main Footer Links */}
       <div className="py-12 sm:py-16 lg:py-20">
         <div className="container">

@@ -1,15 +1,15 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
-import { ArrowRight, Sparkles, Truck, RotateCcw, Shield, Gem } from 'lucide-react';
+import { ArrowRight, Truck, RotateCcw, Shield, Gem } from 'lucide-react';
 import { ProductGrid } from '@/components/product/ProductGrid';
 import { HeroSlider } from '@/components/home/HeroSlider';
+import { Testimonials } from '@/components/home/Testimonials';
 import { OptimizedImage } from '@/components/ui/Image';
 import { fetchProducts, fetchCollections, fetchShop } from '@/lib/shopify';
-import { cn } from '@/lib/utils';
 
 export const metadata: Metadata = {
   title: 'Curated Jewelry for the Modern Collector',
-  description: 'Handpicked fine jewelry with intention. Explore our collections of gold, diamonds, and gemstones. Shipped worldwide from Mumbai.',
+  description: 'Handcrafted fine jewelry with intention. Explore our collections of gold, diamonds, and gemstones. Shipped worldwide from Mumbai.',
 };
 
 const heroSlides = [
@@ -30,10 +30,10 @@ const localCollectionImages = [
 const brandStoryImage = '/images/Image6.jpeg';
 
 const features = [
-  { icon: Gem, title: 'Handcrafted Excellence', description: 'Each piece is meticulously crafted by master artisans in Mumbai using traditional techniques.' },
-  { icon: Shield, title: 'Certified Quality', description: 'All diamonds and gemstones are ethically sourced and certified for authenticity.' },
-  { icon: Truck, title: 'Global Shipping', description: 'Complimentary worldwide shipping on orders over ₹15,000. Duties included for select regions.' },
-  { icon: RotateCcw, title: '14-Day Returns', description: 'Not quite right? Return within 14 days for a full refund or exchange.' },
+  { icon: Gem, title: 'Artisanal Craftsmanship', description: 'Each piece is meticulously crafted in Mumbai by master artisans using traditional techniques.' },
+  { icon: Shield, title: 'Certified Authenticity', description: 'All diamonds and gemstones are 100% ethically sourced and certified.' },
+  { icon: Truck, title: 'Complimentary Shipping', description: 'Free worldwide shipping on orders over ₹15,000. Delivered securely to your door.' },
+  { icon: RotateCcw, title: '14-Day Returns', description: 'Complimentary return and exchange window within 14 days of purchase.' },
 ];
 
 async function getHomepageData() {
@@ -54,19 +54,19 @@ export default async function HomePage() {
   const { featuredProducts, collections, shop } = await getHomepageData();
 
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col bg-cream-50">
       {/* Hero Section */}
-      <HeroSlider slides={heroSlides} className="min-h-[78vh] sm:min-h-[84vh] lg:min-h-[92vh]">
+      <HeroSlider slides={heroSlides} className="min-h-[75vh] sm:min-h-[82vh] lg:min-h-[88vh]">
         <div className="max-w-3xl text-cream-50">
-          <span className="inline-block overline text-gold-400 mb-6 animate-slide-up delay-100">
-            New Collection — Summer 2024
+          <span className="inline-block overline text-gold-300 mb-4 animate-slide-up delay-100">
+            Akiiko-Inspired Luxury Collection
           </span>
-          <h1 className="font-heading text-display-xl sm:text-display-lg lg:text-display-xl tracking-tight text-cream-50 mb-6 animate-slide-up delay-200">
-            Jewelry That Tells<br />
-            <span className="text-gold-400">Your Story</span>
+          <h1 className="font-heading text-display-xl tracking-tight text-cream-50 mb-6 animate-slide-up delay-200">
+            Jewelry Crafted<br />
+            <span className="text-gold-300">With Intention</span>
           </h1>
-          <p className="text-body-lg text-cream-50/85 max-w-2xl mx-auto sm:mx-0 mb-10 animate-slide-up delay-300">
-            Curated collections of fine jewelry handcrafted with intention. Each piece designed to become a cherished heirloom, passed down through generations.
+          <p className="text-body-lg text-cream-50/90 max-w-2xl mx-auto sm:mx-0 mb-8 animate-slide-up delay-300">
+            Curated collections of fine jewelry designed to celebrate everyday moments and become lifelong family heirlooms.
           </p>
           <div className="flex flex-col sm:flex-row items-center sm:items-start justify-center sm:justify-start gap-4 animate-slide-up delay-400">
             <Link
@@ -77,7 +77,7 @@ export default async function HomePage() {
             </Link>
             <Link
               href="/collections"
-              className="inline-flex items-center justify-center gap-2 border border-cream-50/40 text-cream-50 hover:bg-cream-50 hover:text-neutral-950 font-medium tracking-wide px-8 py-4 min-h-[48px] w-full sm:w-auto transition-all"
+              className="btn-secondary text-cream-50 border-cream-50/50 hover:bg-cream-50 hover:text-neutral-950 w-full sm:w-auto"
             >
               View All Collections
             </Link>
@@ -85,58 +85,53 @@ export default async function HomePage() {
         </div>
       </HeroSlider>
 
-      {/* Scroll indicator */}
-      <div className="relative z-10 -mt-8 flex justify-center" aria-hidden="true">
-        <div className="w-10 h-16 rounded-full border-2 border-neutral-300 flex items-start justify-center pt-2">
-          <div className="w-1.5 h-3 rounded-full bg-gold-400 animate-bounce" />
-        </div>
-      </div>
-
-      {/* Features */}
-      <section className="section bg-white border-y border-neutral-200" aria-labelledby="features-heading">
+      {/* Brand Value Promises Strip */}
+      <section className="bg-white border-y border-neutral-200/80 py-8" aria-labelledby="features-heading">
         <div className="container">
           <h2 id="features-heading" className="sr-only">Our Promise</h2>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
             {features.map((feature, index) => (
               <article
                 key={feature.title}
-                className="text-center p-4 sm:p-6 animate-slide-up"
-                style={{ animationDelay: `${(index + 1) * 100}ms` }}
+                className="flex flex-col sm:flex-row items-center sm:items-start gap-4 text-center sm:text-left p-2 animate-slide-up"
+                style={{ animationDelay: `${(index + 1) * 80}ms` }}
               >
-                <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-neutral-100 text-neutral-950 mb-4">
-                  <feature.icon className="h-7 w-7" aria-hidden="true" />
+                <div className="flex-shrink-0 w-12 h-12 rounded-full bg-gold-100 text-gold-600 flex items-center justify-center">
+                  <feature.icon className="h-6 w-6" aria-hidden="true" />
                 </div>
-                <h3 className="font-heading text-heading-sm text-neutral-950 mb-2">{feature.title}</h3>
-                <p className="text-body-sm text-neutral-600">{feature.description}</p>
+                <div>
+                  <h3 className="font-sans text-body font-semibold text-neutral-950 mb-1">{feature.title}</h3>
+                  <p className="text-caption text-neutral-500 leading-snug">{feature.description}</p>
+                </div>
               </article>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Featured Collections */}
+      {/* Featured Categories */}
       <section className="section" aria-labelledby="collections-heading">
         <div className="container">
-          <header className="max-w-2xl mx-auto text-center mb-12 lg:mb-16 animate-fade-in">
-            <span className="overline text-gold-600 mb-3 inline-block">Explore by Category</span>
-            <h2 id="collections-heading" className="font-heading text-display-md tracking-tight text-neutral-950 mb-4">
-              Our Collections
+          <header className="max-w-2xl mx-auto text-center mb-12 lg:mb-16">
+            <span className="overline mb-2 inline-block">Curated Categories</span>
+            <h2 id="collections-heading" className="font-heading text-display-md tracking-tight text-neutral-950 mb-3">
+              Shop by Collection
             </h2>
-            <p className="text-body-lg text-neutral-600">
-              Discover jewelry organized by style, occasion, and gemstone. Each collection tells a unique story.
+            <p className="text-body text-neutral-600">
+              Discover timeless pieces organized by design, gemstone, and everyday elegance.
             </p>
           </header>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
             {collections.map((collection, index) => (
               <article
                 key={collection.id}
-                className="relative group overflow-hidden rounded-xl animate-slide-up"
+                className="relative group overflow-hidden rounded-xl bg-white border border-neutral-200/80 shadow-subtle hover:shadow-medium transition-all duration-300 animate-slide-up"
                 style={{ animationDelay: `${(index + 1) * 100}ms` }}
               >
                 <Link
                   href={`/collections/${collection.handle}`}
-                  className="block"
+                  className="block relative aspect-4-5 overflow-hidden"
                   aria-label={`Shop ${collection.title} collection`}
                 >
                   {localCollectionImages[index % localCollectionImages.length] && (
@@ -145,15 +140,15 @@ export default async function HomePage() {
                       alt={collection.title}
                       fill
                       priority={index < 3}
-                      className="transition-transform duration-700 ease-out-expo group-hover:scale-105"
+                      className="transition-transform duration-700 ease-out group-hover:scale-105"
                     />
                   )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-neutral-950/70 via-neutral-950/10 to-transparent" />
-                  <div className="absolute bottom-0 left-0 right-0 p-6 text-center">
+                  <div className="absolute inset-0 bg-gradient-to-t from-neutral-950/85 via-neutral-950/20 to-transparent" />
+                  <div className="absolute bottom-0 left-0 right-0 p-6 text-center text-cream-50">
+                    <span className="text-caption uppercase tracking-widest text-gold-300 mb-1 block">Collection</span>
                     <h3 className="font-heading text-heading-lg text-cream-50 mb-2">{collection.title}</h3>
-                    <p className="text-body-sm text-cream-50/80 mb-4 line-clamp-2">{collection.description}</p>
-                    <span className="inline-flex items-center gap-1.5 text-body-sm font-medium text-cream-50">
-                      Shop Collection <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                    <span className="inline-flex items-center gap-1.5 text-body-sm font-medium text-cream-50 group-hover:text-gold-300 transition-colors">
+                      Explore Collection <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                     </span>
                   </div>
                 </Link>
@@ -161,24 +156,24 @@ export default async function HomePage() {
             ))}
           </div>
 
-          <div className="text-center mt-12 animate-fade-in delay-300">
+          <div className="text-center mt-12">
             <Link href="/collections" className="btn-secondary">
-              View All Collections <ArrowRight className="h-4 w-4" />
+              View All Categories <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
         </div>
       </section>
 
-      {/* Featured Products */}
-      <section className="section bg-white border-y border-neutral-200" aria-labelledby="featured-heading">
+      {/* Best Sellers */}
+      <section className="section bg-white border-y border-neutral-200/80" aria-labelledby="featured-heading">
         <div className="container">
           <header className="max-w-2xl mx-auto text-center mb-12 lg:mb-16">
-            <span className="overline text-gold-600 mb-3 inline-block">Best Sellers</span>
-            <h2 id="featured-heading" className="font-heading text-display-md tracking-tight text-neutral-950 mb-4">
-              Customer Favorites
+            <span className="overline mb-2 inline-block">Collector Favorites</span>
+            <h2 id="featured-heading" className="font-heading text-display-md tracking-tight text-neutral-950 mb-3">
+              Best Selling Creations
             </h2>
-            <p className="text-body-lg text-neutral-600">
-              Our most-loved pieces, chosen by collectors worldwide.
+            <p className="text-body text-neutral-600">
+              Our most celebrated designs, chosen by collectors worldwide.
             </p>
           </header>
 
@@ -192,73 +187,46 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* Newsletter CTA */}
-      <section className="section bg-neutral-950 text-cream-50" aria-labelledby="newsletter-heading">
-        <div className="container">
-          <div className="max-w-2xl mx-auto text-center">
-            <h2 id="newsletter-heading" className="font-heading text-display-sm sm:text-display-md tracking-tight mb-4">
-              Join the Style Statement by Shakthi Collective
-            </h2>
-            <p className="text-body-lg text-cream-50/70 mb-8">
-              Receive early access to new collections, private sales, and editorial stories from our journal.
-            </p>
-            <form className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto" action="#">
-              <label htmlFor="home-email" className="sr-only">Email address</label>
-              <input
-                type="email"
-                id="home-email"
-                name="email"
-                placeholder="Enter your email"
-                className="flex-1 bg-transparent border border-neutral-700 text-cream-50 placeholder:text-neutral-500 text-body-sm px-4 py-3.5 min-h-[48px] focus:border-gold-500 focus:ring-2 focus:ring-gold-500/20 focus:outline-none transition-all"
-                required
-              />
-              <button type="submit" className="btn-gold whitespace-nowrap">
-                Subscribe <ArrowRight className="h-4 w-4" />
-              </button>
-            </form>
-            <p className="mt-4 text-caption text-neutral-500">
-              By subscribing, you agree to our <a href="/privacy-policy" className="underline hover:text-gold-400">Privacy Policy</a>.
-            </p>
-          </div>
-        </div>
-      </section>
+      {/* Testimonials */}
+      <Testimonials />
 
       {/* Brand Story */}
       <section className="section" aria-labelledby="story-heading">
         <div className="container">
           <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
-            <div className="relative aspect-4-5 overflow-hidden">
+            <div className="relative aspect-4-5 rounded-xl overflow-hidden shadow-medium border border-neutral-200/80">
               <OptimizedImage
                 src={brandStoryImage}
-                alt="Style Statement by Shakthi Brand Story"
+                alt="Style Statement by Shakthi Atelier"
                 fill
                 priority
                 className="object-cover"
               />
             </div>
-            <div>
-              <span className="overline text-gold-600 mb-3 inline-block">Our Story</span>
-              <h2 id="story-heading" className="font-heading text-display-md tracking-tight text-neutral-950 mb-6">
-                Crafted with Intention
+            <div className="space-y-6">
+              <span className="overline">Our Atelier Story</span>
+              <h2 id="story-heading" className="font-heading text-display-md tracking-tight text-neutral-950">
+                Crafted with Intention & Ethics
               </h2>
-              <div className="prose prose-neutral max-w-none">
-                <p className="text-body-lg text-neutral-600 mb-6">
-                  {shop.brand?.shortDescription || 'Founded in Mumbai, Style Statement by Shakthi began with a simple belief: jewelry should be more than adornment. It should be a reflection of your journey, a keeper of memories, a companion through life\'s most meaningful moments.'}
+              <div className="prose prose-neutral max-w-none text-neutral-600 space-y-4">
+                <p className="text-body-lg text-neutral-800 leading-relaxed">
+                  {shop.brand?.shortDescription || 'Founded in Mumbai, Style Statement by Shakthi began with a simple philosophy: jewelry should be more than decoration — it should be a quiet statement of individuality.'}
                 </p>
-                <p className="text-body text-neutral-600 mb-6">
-                  Every piece in our collection is designed in-house and handcrafted by master artisans who have honed their craft over generations. We use only ethically sourced diamonds, certified gemstones, and recycled precious metals.
+                <p className="text-body leading-relaxed">
+                  Every ring, pendant, and cuff in our studio is sculpted by hand using certified 100% recycled metals and conflict-free gemstones. Our goal is to create heirloom pieces that minimize environmental impact while maximizing beauty.
                 </p>
-                <p className="text-body text-neutral-600 mb-8">
-                  When you choose Style Statement by Shakthi, you&apos;re not just buying jewelry — you&apos;re becoming part of a legacy of craftsmanship, intention, and timeless beauty.
-                </p>
-                <Link href="/about" className="btn-secondary inline-flex items-center gap-2">
-                  Our Journey <ArrowRight className="h-4 w-4" />
+              </div>
+              <div className="pt-2">
+                <Link href="/about" className="btn-primary inline-flex items-center gap-2">
+                  Our Sustainability Journey <ArrowRight className="h-4 w-4" />
                 </Link>
               </div>
             </div>
           </div>
         </div>
       </section>
+
+
     </div>
   );
 }

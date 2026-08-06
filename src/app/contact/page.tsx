@@ -2,6 +2,7 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import type { ElementType } from 'react';
 import { Mail, Phone, MapPin, Clock } from 'lucide-react';
+import { ContactForm } from '@/components/contact/ContactForm';
 
 export const metadata: Metadata = {
   title: 'Contact',
@@ -47,39 +48,7 @@ export default function ContactPage() {
 
             {/* Form */}
             <div className="lg:col-span-3">
-              <form className="card p-6 sm:p-8 space-y-6" action="#">
-                <div className="grid sm:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <label htmlFor="contact-name" className="label">Full name</label>
-                    <input id="contact-name" name="name" type="text" required className="input" placeholder="Your name" />
-                  </div>
-                  <div className="space-y-2">
-                    <label htmlFor="contact-email" className="label">Email</label>
-                    <input id="contact-email" name="email" type="email" required className="input" placeholder="you@example.com" />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <label htmlFor="contact-topic" className="label">Topic</label>
-                  <select id="contact-topic" name="topic" className="input" defaultValue="Order Enquiry">
-                    <option>Order Enquiry</option>
-                    <option>Sizing</option>
-                    <option>Shipping &amp; Returns</option>
-                    <option>Jewelry Care</option>
-                    <option>Bespoke Commission</option>
-                    <option>Something Else</option>
-                  </select>
-                </div>
-                <div className="space-y-2">
-                  <label htmlFor="contact-message" className="label">Message</label>
-                  <textarea id="contact-message" name="message" required rows={6} className="input min-h-[140px] resize-y" placeholder="How can we help?" />
-                </div>
-                <button type="submit" className="btn-primary w-full sm:w-auto">
-                  Send Message
-                </button>
-                <p className="text-caption text-neutral-500">
-                  This is a demo form. Connect the action endpoint to your email or CRM in production.
-                </p>
-              </form>
+              <ContactForm />
             </div>
           </div>
         </div>
