@@ -133,8 +133,13 @@ const config: Config = {
         'slide-up': 'slideUp 0.5s ease-out',
         'slide-down': 'slideDown 0.3s ease-out',
         'scale-in': 'scaleIn 0.2s ease-out',
+        'hero-zoom': 'heroZoom 7s ease-out',
       },
       keyframes: {
+        heroZoom: {
+          '0%': { transform: 'scale(1.05)' },
+          '100%': { transform: 'scale(1.12)' },
+        },
         fadeIn: {
           '0%': { opacity: '0' },
           '100%': { opacity: '1' },

@@ -2,14 +2,32 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import { ArrowRight, Sparkles, Truck, RotateCcw, Shield, Gem } from 'lucide-react';
 import { ProductGrid } from '@/components/product/ProductGrid';
+import { HeroSlider } from '@/components/home/HeroSlider';
 import { OptimizedImage } from '@/components/ui/Image';
 import { fetchProducts, fetchCollections, fetchShop } from '@/lib/shopify';
 import { cn } from '@/lib/utils';
 
 export const metadata: Metadata = {
   title: 'Curated Jewelry for the Modern Collector',
-  description: 'Handcrafted fine jewelry with intention. Explore our collections of gold, diamonds, and gemstones. Shipped worldwide from Mumbai.',
+  description: 'Handpicked fine jewelry with intention. Explore our collections of gold, diamonds, and gemstones. Shipped worldwide from Mumbai.',
 };
+
+const heroSlides = [
+  { src: '/images/Image1.jpeg', alt: 'Signature gold jewelry statement piece' },
+  { src: '/images/Image5.jpeg', alt: 'Handcrafted gold ornaments from the atelier' },
+  { src: '/images/Image9.jpeg', alt: 'Fine jewelry modelled for the modern collector' },
+];
+
+const localCollectionImages = [
+  '/images/Image2.jpeg',
+  '/images/Image6.jpeg',
+  '/images/Image9.jpeg',
+  '/images/Image1.jpeg',
+  '/images/Image5.jpeg',
+  '/images/Image2.jpeg',
+];
+
+const brandStoryImage = '/images/Image6.jpeg';
 
 const features = [
   { icon: Gem, title: 'Handcrafted Excellence', description: 'Each piece is meticulously crafted by master artisans in Mumbai using traditional techniques.' },
@@ -38,44 +56,41 @@ export default async function HomePage() {
   return (
     <div className="flex flex-col">
       {/* Hero Section */}
-      <section className="relative min-h-[70vh] sm:min-h-[80vh] lg:min-h-[90vh] flex items-center justify-center overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-cream-50 via-cream-50 to-transparent" aria-hidden="true" />
-        
-        <div className="container relative z-10 py-16 sm:py-24 lg:py-32">
-          <div className="max-w-4xl mx-auto text-center animate-fade-in">
-            <span className="inline-block overline text-gold-600 mb-6 animate-slide-up delay-100">
-              New Collection — Summer 2024
-            </span>
-            <h1 className="font-heading text-display-xl sm:text-display-lg lg:text-display-xl tracking-tight text-neutral-950 mb-6 animate-slide-up delay-200">
-              Jewelry That Tells<br /><span className="text-gold-600">Your Story</span>
-            </h1>
-            <p className="text-body-lg text-neutral-600 max-w-2xl mx-auto mb-10 animate-slide-up delay-300">
-              Curated collections of fine jewelry handcrafted with intention. Each piece designed to become a cherished heirloom, passed down through generations.
-            </p>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-slide-up delay-400">
-              <Link
-                href="/collections/new-arrivals"
-                className="btn-primary w-full sm:w-auto"
-              >
-                Shop New Arrivals <ArrowRight className="h-4 w-4" aria-hidden="true" />
-              </Link>
-              <Link
-                href="/collections"
-                className="btn-secondary w-full sm:w-auto"
-              >
-                View All Collections
-              </Link>
-            </div>
+      <HeroSlider slides={heroSlides} className="min-h-[78vh] sm:min-h-[84vh] lg:min-h-[92vh]">
+        <div className="max-w-3xl text-cream-50">
+          <span className="inline-block overline text-gold-400 mb-6 animate-slide-up delay-100">
+            New Collection — Summer 2024
+          </span>
+          <h1 className="font-heading text-display-xl sm:text-display-lg lg:text-display-xl tracking-tight text-cream-50 mb-6 animate-slide-up delay-200">
+            Jewelry That Tells<br />
+            <span className="text-gold-400">Your Story</span>
+          </h1>
+          <p className="text-body-lg text-cream-50/85 max-w-2xl mx-auto sm:mx-0 mb-10 animate-slide-up delay-300">
+            Curated collections of fine jewelry handcrafted with intention. Each piece designed to become a cherished heirloom, passed down through generations.
+          </p>
+          <div className="flex flex-col sm:flex-row items-center sm:items-start justify-center sm:justify-start gap-4 animate-slide-up delay-400">
+            <Link
+              href="/collections/new-arrivals"
+              className="btn-gold w-full sm:w-auto"
+            >
+              Shop New Arrivals <ArrowRight className="h-4 w-4" aria-hidden="true" />
+            </Link>
+            <Link
+              href="/collections"
+              className="inline-flex items-center justify-center gap-2 border border-cream-50/40 text-cream-50 hover:bg-cream-50 hover:text-neutral-950 font-medium tracking-wide px-8 py-4 min-h-[48px] w-full sm:w-auto transition-all"
+            >
+              View All Collections
+            </Link>
           </div>
         </div>
+      </HeroSlider>
 
-        {/* Scroll indicator */}
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce" aria-hidden="true">
-          <svg className="h-6 w-6 text-neutral-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-          </svg>
+      {/* Scroll indicator */}
+      <div className="relative z-10 -mt-8 flex justify-center" aria-hidden="true">
+        <div className="w-10 h-16 rounded-full border-2 border-neutral-300 flex items-start justify-center pt-2">
+          <div className="w-1.5 h-3 rounded-full bg-gold-400 animate-bounce" />
         </div>
-      </section>
+      </div>
 
       {/* Features */}
       <section className="section bg-white border-y border-neutral-200" aria-labelledby="features-heading">
@@ -124,11 +139,12 @@ export default async function HomePage() {
                   className="block"
                   aria-label={`Shop ${collection.title} collection`}
                 >
-                  {collection.image && (
+                  {localCollectionImages[index % localCollectionImages.length] && (
                     <OptimizedImage
-                      src={collection.image.url}
-                      alt={collection.image.altText || collection.title}
+                      src={localCollectionImages[index % localCollectionImages.length]}
+                      alt={collection.title}
                       fill
+                      priority={index < 3}
                       className="transition-transform duration-700 ease-out-expo group-hover:scale-105"
                     />
                   )}
@@ -213,8 +229,8 @@ export default async function HomePage() {
           <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
             <div className="relative aspect-4-5 overflow-hidden">
               <OptimizedImage
-                src={shop.brand?.coverImage?.url || '/brand-story.svg'}
-                alt={shop.brand?.coverImage?.altText || 'Style Statement by Shakthi Brand Story'}
+                src={brandStoryImage}
+                alt="Style Statement by Shakthi Brand Story"
                 fill
                 priority
                 className="object-cover"
