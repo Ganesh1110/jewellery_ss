@@ -49,7 +49,7 @@ export default async function HomePage() {
   return (
     <div className="flex flex-col bg-cream-50">
       {/* Hero Section */}
-      <HeroSlider slides={heroSlides} className="min-h-[75vh] sm:min-h-[82vh] lg:min-h-[88vh]">
+      <HeroSlider slides={heroSlides} className="min-h-[75svh] sm:min-h-[80svh] lg:min-h-[86svh]">
         <div className="max-w-3xl text-cream-50 mx-auto sm:mx-0">
           <span className="inline-block text-caption font-sans font-medium tracking-[0.22em] uppercase text-cream-50/80 mb-4 sm:mb-6">
             Handcrafted in Mumbai

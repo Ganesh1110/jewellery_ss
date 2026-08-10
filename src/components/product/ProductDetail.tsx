@@ -83,7 +83,7 @@ export function ProductGallery({ product, selectedVariant, className }: ProductG
   const resetZoom = () => setZoomScale(1);
 
   return (
-    <div className={cn('relative', className)}>
+    <div className={cn('relative group', className)}>
       {/* Main Image Container with In-Place Hover Zoom */}
       <div
         className="relative aspect-4-5 overflow-hidden bg-cream-50 cursor-zoom-in"
@@ -112,7 +112,7 @@ export function ProductGallery({ product, selectedVariant, className }: ProductG
           Click for full screen view
         </div>
 
-        {/* Navigation Arrows */}
+        {/* Navigation Arrows — visible on touch, hover-revealed on desktop */}
         {displayImages.length > 1 && (
           <>
             <button
@@ -120,7 +120,7 @@ export function ProductGallery({ product, selectedVariant, className }: ProductG
                 e.stopPropagation();
                 setActiveIndex((prev) => (prev === 0 ? displayImages.length - 1 : prev - 1));
               }}
-              className="absolute left-3 top-1/2 -translate-y-1/2 p-2.5 bg-cream-50/90 backdrop-blur-md text-neutral-800 hover:text-neutral-950 transition-colors opacity-0 group-hover:opacity-100 z-20"
+              className="absolute left-2 top-1/2 -translate-y-1/2 inline-flex h-11 w-11 items-center justify-center bg-cream-50/90 backdrop-blur-md text-neutral-800 hover:text-neutral-950 transition-colors opacity-100 lg:opacity-0 lg:group-hover:opacity-100 z-20"
               aria-label="Previous image"
             >
               <ChevronLeft className="h-5 w-5" />
@@ -130,7 +130,7 @@ export function ProductGallery({ product, selectedVariant, className }: ProductG
                 e.stopPropagation();
                 setActiveIndex((prev) => (prev === displayImages.length - 1 ? 0 : prev + 1));
               }}
-              className="absolute right-3 top-1/2 -translate-y-1/2 p-2.5 bg-cream-50/90 backdrop-blur-md text-neutral-800 hover:text-neutral-950 transition-colors opacity-0 group-hover:opacity-100 z-20"
+              className="absolute right-2 top-1/2 -translate-y-1/2 inline-flex h-11 w-11 items-center justify-center bg-cream-50/90 backdrop-blur-md text-neutral-800 hover:text-neutral-950 transition-colors opacity-100 lg:opacity-0 lg:group-hover:opacity-100 z-20"
               aria-label="Next image"
             >
               <ChevronRight className="h-5 w-5" />
@@ -342,7 +342,7 @@ export function VariantSelector({ product, selectedOptions, onOptionChange, disa
                   onClick={() => !disabled && isAvailable && onOptionChange(option.name, value)}
                   disabled={!isAvailable || disabled}
                   className={cn(
-                    'px-4 py-2 text-body-sm font-medium border transition-colors duration-200',
+                    'inline-flex h-11 items-center justify-center px-5 text-body-sm font-medium border transition-colors duration-200',
                     isSelected
                       ? 'border-neutral-950 bg-neutral-950 text-cream-50'
                       : isAvailable
@@ -378,7 +378,7 @@ export function QuantitySelector({ value, onChange, max = 99, disabled = false }
         <button
           onClick={() => onChange(Math.max(1, value - 1))}
           disabled={value <= 1 || disabled}
-          className="p-3 text-neutral-700 hover:text-neutral-950 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+          className="inline-flex h-11 w-11 items-center justify-center text-neutral-700 hover:text-neutral-950 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
           aria-label="Decrease quantity"
         >
           <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -395,14 +395,14 @@ export function QuantitySelector({ value, onChange, max = 99, disabled = false }
           }}
           min="1"
           max={max}
-          className="w-16 text-center text-body font-medium text-neutral-950 border-x border-neutral-950/20 bg-transparent focus:outline-none focus:ring-0 tabular-nums"
+          className="w-14 text-center text-body font-medium text-neutral-950 border-x border-neutral-950/20 bg-transparent focus:outline-none focus:ring-0 tabular-nums"
           aria-label="Quantity"
           disabled={disabled}
         />
         <button
           onClick={() => onChange(Math.min(max, value + 1))}
           disabled={value >= max || disabled}
-          className="p-3 text-neutral-700 hover:text-neutral-950 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+          className="inline-flex h-11 w-11 items-center justify-center text-neutral-700 hover:text-neutral-950 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
           aria-label="Increase quantity"
         >
           <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">

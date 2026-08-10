@@ -233,12 +233,15 @@ export function ProductDetailsClient({
             onClick={handleAddToCart}
             loading={cartLoading}
             disabled={availability.status === 'out_of_stock'}
-            className="px-5 py-2.5 text-caption font-medium min-h-[42px]"
+            className="px-5 py-2.5 text-caption font-medium min-h-[44px]"
           >
             {addedToCart ? 'Added' : availability.status === 'out_of_stock' ? 'Sold Out' : 'Add to Bag'}
           </AddToCartButton>
         </div>
       </div>
+
+      {/* Mobile spacer so the last section clears the sticky bar */}
+      <div className="h-20 sm:hidden" aria-hidden="true" />
     </div>
   );
 }

@@ -114,26 +114,27 @@ export default function AdminDashboardPage() {
               </Link>
             </div>
           ) : (
-            <div className="card overflow-hidden">
-              <div className="overflow-x-auto">
+            <>
+              {/* Desktop table */}
+              <div className="card overflow-hidden hidden md:block">
                 <table className="w-full text-left text-body-sm">
-                  <thead className="bg-neutral-50 border-b border-neutral-200 text-caption uppercase text-neutral-500">
+                  <thead className="bg-neutral-50 border-b border-neutral-950/10 text-caption uppercase tracking-[0.12em] text-neutral-500">
                     <tr>
-                      <th className="p-4">Product</th>
-                      <th className="p-4">Price (₹)</th>
-                      <th className="p-4">Type</th>
-                      <th className="p-4">Status</th>
-                      <th className="p-4 text-right">Actions</th>
+                      <th scope="col" className="px-5 py-3.5 font-medium">Product</th>
+                      <th scope="col" className="px-5 py-3.5 font-medium">Price (₹)</th>
+                      <th scope="col" className="px-5 py-3.5 font-medium">Type</th>
+                      <th scope="col" className="px-5 py-3.5 font-medium">Status</th>
+                      <th scope="col" className="px-5 py-3.5 font-medium text-right">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-neutral-200">
+                  <tbody className="divide-y divide-neutral-950/10">
                     {customProducts.map((product) => {
                       const image = product.featuredImage?.url || '/placeholder.svg';
                       const price = product.priceRange.minVariantPrice.amount;
 
                       return (
                         <tr key={product.id} className="hover:bg-neutral-50/80 transition-colors">
-                          <td className="p-4">
+                          <td className="px-5 py-3.5">
                             <div className="flex items-center gap-3">
                               <div className="w-12 h-12 relative rounded bg-neutral-100 overflow-hidden flex-shrink-0">
                                 <OptimizedImage src={image} alt={product.title} fill objectFit="cover" />
@@ -144,27 +145,29 @@ export default function AdminDashboardPage() {
                               </div>
                             </div>
                           </td>
-                          <td className="p-4 font-semibold text-neutral-950">
+                          <td className="px-5 py-3.5 font-semibold text-neutral-950">
                             {formatMoney(price, 'INR')}
                           </td>
-                          <td className="p-4 text-neutral-600">{product.productType}</td>
-                          <td className="p-4">
+                          <td className="px-5 py-3.5 text-neutral-600">{product.productType}</td>
+                          <td className="px-5 py-3.5">
                             <span className="badge-gold">Active</span>
                           </td>
-                          <td className="p-4 text-right">
-                            <div className="flex items-center justify-end gap-3">
+                          <td className="px-5 py-3.5">
+                            <div className="flex items-center justify-end gap-1.5">
                               <Link
                                 href={`/products/${product.handle}`}
                                 target="_blank"
-                                className="text-neutral-500 hover:text-neutral-950 transition-colors p-1"
+                                className="h-10 w-10 inline-flex items-center justify-center rounded-md text-neutral-500 hover:text-neutral-950 hover:bg-neutral-100 transition-colors"
                                 title="View product page"
+                                aria-label={`View ${product.title} on storefront`}
                               >
                                 <ExternalLink className="h-4 w-4" />
                               </Link>
                               <button
                                 onClick={() => handleDelete(product.handle, product.title)}
-                                className="text-neutral-400 hover:text-red-600 transition-colors p-1"
+                                className="h-10 w-10 inline-flex items-center justify-center rounded-md text-neutral-400 hover:text-red-600 hover:bg-red-50 transition-colors"
                                 title="Delete product"
+                                aria-label={`Delete ${product.title}`}
                               >
                                 <Trash2 className="h-4 w-4" />
                               </button>
@@ -176,7 +179,52 @@ export default function AdminDashboardPage() {
                   </tbody>
                 </table>
               </div>
-            </div>
+
+              {/* Mobile card list */}
+              <ul className="grid gap-3 md:hidden">
+                {customProducts.map((product) => {
+                  const image = product.featuredImage?.url || '/placeholder.svg';
+                  const price = product.priceRange.minVariantPrice.amount;
+
+                  return (
+                    <li key={product.id} className="card p-4">
+                      <div className="flex items-start gap-3.5">
+                        <div className="w-16 h-[72px] relative rounded bg-neutral-100 overflow-hidden flex-shrink-0">
+                          <OptimizedImage src={image} alt={product.title} fill objectFit="cover" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-neutral-950 truncate">{product.title}</p>
+                          <p className="text-caption text-neutral-400 truncate">/{product.handle}</p>
+                          <div className="flex items-center gap-2 mt-2">
+                            <span className="font-semibold text-neutral-950">{formatMoney(price, 'INR')}</span>
+                            <span className="badge-gold">{product.productType}</span>
+                          </div>
+                        </div>
+                        <div className="flex flex-col gap-1.5 flex-shrink-0">
+                          <Link
+                            href={`/products/${product.handle}`}
+                            target="_blank"
+                            className="h-10 w-10 inline-flex items-center justify-center rounded-md border border-neutral-950/10 text-neutral-600 hover:text-neutral-950 transition-colors"
+                            title="View product page"
+                            aria-label={`View ${product.title} on storefront`}
+                          >
+                            <ExternalLink className="h-4 w-4" />
+                          </Link>
+                          <button
+                            onClick={() => handleDelete(product.handle, product.title)}
+                            className="h-10 w-10 inline-flex items-center justify-center rounded-md border border-neutral-950/10 text-neutral-400 hover:text-red-600 transition-colors"
+                            title="Delete product"
+                            aria-label={`Delete ${product.title}`}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+            </>
           )}
         </div>
       </section>

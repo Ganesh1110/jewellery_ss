@@ -14,14 +14,14 @@ interface ProductGridProps {
 
 export function ProductGrid({ products, loading = false, columns = 3, showQuickAdd = true, className }: ProductGridProps) {
   const columnClasses = {
-    2: 'grid-cols-1 sm:grid-cols-2',
-    3: 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3',
-    4: 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4',
+    2: 'grid-cols-2',
+    3: 'grid-cols-2 sm:grid-cols-2 lg:grid-cols-3',
+    4: 'grid-cols-2 lg:grid-cols-3 xl:grid-cols-4',
   };
 
   if (loading) {
     return (
-      <div className={cn('product-grid', columnClasses[columns], className)} role="status" aria-label="Loading products">
+      <div className={cn('grid gap-x-3 gap-y-10 sm:gap-x-6 sm:gap-y-12 lg:gap-x-8', columnClasses[columns], className)} role="status" aria-label="Loading products">
         {[...Array(8)].map((_, i) => (
           <ProductCardSkeleton key={i} />
         ))}
@@ -31,14 +31,14 @@ export function ProductGrid({ products, loading = false, columns = 3, showQuickA
 
   if (products.length === 0) {
     return (
-      <div className="col-span-full py-16 text-center">
+      <div className="flex justify-center py-16 text-center">
         <p className="text-body text-neutral-500">No products found in this collection.</p>
       </div>
     );
   }
 
   return (
-    <div className={cn('product-grid', columnClasses[columns], className)} role="list" aria-label="Products">
+    <div className={cn('grid gap-x-3 gap-y-10 sm:gap-x-6 sm:gap-y-12 lg:gap-x-8', columnClasses[columns], className)} role="list" aria-label="Products">
       {products.map((product, index) => (
         <ProductCard
           key={product.id}

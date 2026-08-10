@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { ArrowRight, CheckCircle2, Loader2 } from 'lucide-react';
+import { ArrowRight, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 
 export function NewsletterForm() {
@@ -21,15 +21,14 @@ export function NewsletterForm() {
 
   if (status === 'success') {
     return (
-      <div className="p-6 border border-cream-50/20 bg-neutral-900 text-center animate-fade-in space-y-3">
-        <CheckCircle2 className="h-8 w-8 text-cream-50 mx-auto" />
+      <div className="border-t border-cream-50/15 pt-4 animate-fade-in space-y-2">
         <h3 className="font-heading text-heading-md text-cream-50">Welcome to the Collective</h3>
         <p className="text-body-sm text-cream-50/70">
           Thank you for subscribing. We&apos;ve sent a welcome invitation to your inbox.
         </p>
         <button
           onClick={() => setStatus('idle')}
-          className="text-caption uppercase tracking-[0.16em] text-cream-50/70 hover:underline pt-2 inline-block"
+          className="text-caption uppercase tracking-[0.16em] text-cream-50/70 hover:underline pt-1 inline-block min-h-[44px]"
         >
           Subscribe another email
         </button>
@@ -38,7 +37,7 @@ export function NewsletterForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
+    <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-2 sm:gap-2.5 max-w-sm">
       <label htmlFor="home-email" className="sr-only">Email address</label>
       <input
         type="email"

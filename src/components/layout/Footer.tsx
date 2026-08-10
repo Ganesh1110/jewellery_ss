@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { Instagram } from 'lucide-react';
 import type { Menu, ShopPolicy } from '@/types/shopify';
+import { NewsletterForm } from '@/components/home/NewsletterForm';
 
 interface FooterProps {
   menus: Menu[];
@@ -32,13 +33,22 @@ export function Footer({ menus, policies, shopName = 'Style Statement by Shakthi
         <div className="container">
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-10 lg:gap-12">
             {/* Brand Column */}
-            <div className="sm:col-span-2 md:col-span-1 lg:col-span-2 space-y-5">
+            <div className="sm:col-span-2 md:col-span-1 lg:col-span-2 space-y-6">
               <Link href="/" className="font-heading text-heading-lg sm:text-display-sm font-medium tracking-tight text-cream-50 block" aria-label={`${shopName} Home`}>
                 {shopName}
               </Link>
               <p className="text-body-sm text-cream-50/55 max-w-xs leading-relaxed">
                 Curated jewelry for the modern collector. Handcrafted with intention in Mumbai, shipped worldwide.
               </p>
+
+              {/* Newsletter — editorial capture in the brand rail */}
+              <div className="pt-1">
+                <p className="text-caption font-medium uppercase tracking-[0.18em] text-cream-50/70 mb-3">
+                  The Collective — Join the list
+                </p>
+                <NewsletterForm />
+              </div>
+
               <a
                 href={socialLinks[0].href}
                 target="_blank"

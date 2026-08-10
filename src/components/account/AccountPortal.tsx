@@ -34,27 +34,28 @@ export function AccountPortal() {
   return (
     <div className="max-w-2xl mx-auto space-y-8">
       {/* Navigation tabs */}
-      <div className="flex border-b border-neutral-950/10" role="tablist" aria-label="Account tabs">
+      <div className="border-b border-neutral-950/10 overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0" role="tablist" aria-label="Account tabs">
+        <div className="flex min-w-max sm:min-w-0">
         <button
           role="tab"
           aria-selected={activeTab === 'signin'}
           onClick={() => setActiveTab('signin')}
           className={cn(
-            'flex items-center gap-2 px-5 py-3 text-body-sm font-medium border-b transition-colors',
+            'flex items-center gap-2 px-4 py-3 text-body-sm font-medium border-b transition-colors',
             activeTab === 'signin'
               ? 'border-neutral-950 text-neutral-950'
               : 'border-transparent text-neutral-500 hover:text-neutral-950'
           )}
         >
           <User className="h-4 w-4" />
-          {isSignedIn ? 'Account Details' : 'Sign In'}
+          {isSignedIn ? 'Account' : 'Sign In'}
         </button>
         <button
           role="tab"
           aria-selected={activeTab === 'orders'}
           onClick={() => setActiveTab('orders')}
           className={cn(
-            'flex items-center gap-2 px-5 py-3 text-body-sm font-medium border-b transition-colors',
+            'flex items-center gap-2 px-4 py-3 text-body-sm font-medium border-b transition-colors',
             activeTab === 'orders'
               ? 'border-neutral-950 text-neutral-950'
               : 'border-transparent text-neutral-500 hover:text-neutral-950'
@@ -68,7 +69,7 @@ export function AccountPortal() {
           aria-selected={activeTab === 'wishlist'}
           onClick={() => setActiveTab('wishlist')}
           className={cn(
-            'flex items-center gap-2 px-5 py-3 text-body-sm font-medium border-b transition-colors',
+            'flex items-center gap-2 px-4 py-3 text-body-sm font-medium border-b transition-colors',
             activeTab === 'wishlist'
               ? 'border-neutral-950 text-neutral-950'
               : 'border-transparent text-neutral-500 hover:text-neutral-950'
@@ -82,7 +83,7 @@ export function AccountPortal() {
           aria-selected={activeTab === 'settings'}
           onClick={() => setActiveTab('settings')}
           className={cn(
-            'flex items-center gap-2 px-5 py-3 text-body-sm font-medium border-b transition-colors',
+            'flex items-center gap-2 px-4 py-3 text-body-sm font-medium border-b transition-colors',
             activeTab === 'settings'
               ? 'border-neutral-950 text-neutral-950'
               : 'border-transparent text-neutral-500 hover:text-neutral-950'
@@ -91,6 +92,7 @@ export function AccountPortal() {
           <Settings className="h-4 w-4" />
           Settings
         </button>
+        </div>
       </div>
 
       {/* Tab Panels */}

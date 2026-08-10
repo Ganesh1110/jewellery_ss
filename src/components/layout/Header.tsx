@@ -62,7 +62,7 @@ export function Header() {
         <div className="flex items-center justify-between h-16 sm:h-20">
           {/* Mobile Menu Button */}
           <button
-            className="lg:hidden p-2 -ml-2 text-neutral-700 hover:text-neutral-950 transition-colors"
+            className="lg:hidden -ml-2 inline-flex h-11 w-11 items-center justify-center text-neutral-700 hover:text-neutral-950 transition-colors"
             onClick={() => setMobileMenuOpen(true)}
             aria-label="Open menu"
             aria-expanded={mobileMenuOpen}
@@ -79,16 +79,16 @@ export function Header() {
             >
               <span className="flex items-baseline gap-2">
                 <span className="font-heading text-heading-lg sm:text-display-sm font-semibold tracking-tight">Style Statement</span>
-                <span className="text-[10px] sm:text-body-xs uppercase tracking-[0.25em] text-neutral-500 font-sans">by Shakthi</span>
+                <span className="text-[10px] sm:text-meta uppercase tracking-[0.25em] text-neutral-500 font-sans">by Shakthi</span>
               </span>
             </Link>
           </div>
 
           {/* Actions */}
-          <div className="flex items-center gap-2 sm:gap-6">
+          <div className="flex items-center -mr-2 sm:gap-2">
             {/* Search */}
             <button
-              className="p-2 sm:px-3 sm:py-1.5 text-neutral-700 hover:text-neutral-950 transition-colors"
+              className="inline-flex h-11 w-11 items-center justify-center text-neutral-700 hover:text-neutral-950 transition-colors sm:h-auto sm:w-auto sm:px-3"
               onClick={() => setSearchOpen(true)}
               aria-label="Search"
             >
@@ -102,7 +102,7 @@ export function Header() {
             {/* Account */}
             <Link
               href="/account"
-              className="p-2 sm:px-3 sm:py-1.5 text-neutral-700 hover:text-neutral-950 transition-colors"
+              className="inline-flex h-11 w-11 items-center justify-center text-neutral-700 hover:text-neutral-950 transition-colors sm:h-auto sm:w-auto sm:px-3"
               aria-label="Account"
             >
               <User className="h-5 w-5 sm:hidden" />
@@ -112,7 +112,7 @@ export function Header() {
             {/* Cart */}
             <button
               onClick={openCart}
-              className="relative p-2 sm:px-3 sm:py-1.5 text-neutral-700 hover:text-neutral-950 transition-colors"
+              className="relative inline-flex h-11 w-11 items-center justify-center text-neutral-700 hover:text-neutral-950 transition-colors sm:h-auto sm:w-auto sm:px-3"
               aria-label={`Shopping bag${totalQuantity > 0 ? `, ${totalQuantity} items` : ''}`}
             >
               <ShoppingBag className="h-5 w-5 sm:hidden" />
@@ -124,7 +124,7 @@ export function Header() {
               </span>
               {totalQuantity > 0 && (
                 <span
-                  className="sm:hidden absolute top-1 right-1 flex h-4 w-4 items-center justify-center text-[9px] font-bold text-cream-50 bg-neutral-950 rounded-full"
+                  className="sm:hidden absolute top-0.5 right-0.5 flex h-4 w-4 items-center justify-center text-[9px] font-bold text-cream-50 bg-neutral-950 rounded-full"
                   aria-live="polite"
                 >
                   {totalQuantity > 99 ? '99+' : totalQuantity}
@@ -153,9 +153,9 @@ export function Header() {
 
       {/* Mobile Menu Portal */}
       {mobileMenuOpen && mounted && createPortal(
-        <div className="fixed inset-0 z-[100] lg:hidden flex" role="dialog" aria-modal="true" aria-label="Menu">
+        <div className="fixed inset-0 z-overlay lg:hidden flex" role="dialog" aria-modal="true" aria-label="Menu">
           <div className="fixed inset-0 bg-neutral-950/60 backdrop-blur-sm" onClick={() => setMobileMenuOpen(false)} />
-          <div className="relative z-[110] w-full max-w-xs sm:max-w-sm h-full bg-cream-50 p-6 overflow-y-auto animate-slide-in-left flex flex-col justify-between border-r border-neutral-950/10 mr-auto">
+          <div className="relative z-overlay w-full max-w-xs sm:max-w-sm h-full bg-cream-50 p-6 overflow-y-auto animate-slide-in-left flex flex-col justify-between border-r border-neutral-950/10 mr-auto">
             <div>
               <div className="flex items-center justify-between mb-6 pb-4 border-b border-neutral-950/10">
                 <span className="font-heading text-heading-lg tracking-tight text-neutral-950">
@@ -166,7 +166,7 @@ export function Header() {
                 </span>
                 <button
                   onClick={() => setMobileMenuOpen(false)}
-                  className="p-1.5 rounded-sm text-neutral-500 hover:text-neutral-950 transition-colors"
+                  className="inline-flex h-11 w-11 items-center justify-center rounded-sm text-neutral-500 hover:text-neutral-950 transition-colors"
                   aria-label="Close menu"
                 >
                   <X className="h-6 w-6" />
@@ -179,22 +179,22 @@ export function Header() {
                 onSubmit={() => setMobileMenuOpen(false)}
                 className="relative mb-6"
               >
-                <Search className="h-4 w-4 text-neutral-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                <Search className="h-4 w-4 text-neutral-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                 <input
                   type="search"
                   name="q"
                   placeholder="Search rings, necklaces, Gold..."
-                  className="input pl-9 text-body-sm py-2.5 min-h-[42px]"
+                  className="input pl-10 text-body-sm"
                 />
               </form>
 
               <nav aria-label="Mobile navigation">
-                <ul className="space-y-3">
+                <ul className="space-y-1">
                   {navigation.map((item) => (
                     <li key={item.name}>
                       <Link
                         href={item.href}
-                        className="block text-body-lg font-medium text-neutral-950 hover:text-gold-600 transition-colors py-1 border-b border-neutral-100"
+                        className="flex min-h-[44px] items-center justify-between gap-3 py-2.5 text-body-lg font-medium text-neutral-950 hover:text-gold-600 transition-colors border-b border-neutral-100"
                         onClick={() => setMobileMenuOpen(false)}
                       >
                         {item.name}
@@ -204,10 +204,10 @@ export function Header() {
                 </ul>
               </nav>
 
-              <div className="mt-6 space-y-3">
+              <div className="mt-6 space-y-1">
                 <Link
                   href="/account"
-                  className="flex items-center gap-3 text-body-sm font-medium text-neutral-700 hover:text-neutral-950 py-1"
+                  className="flex min-h-[44px] items-center gap-3 py-2.5 text-body-sm font-medium text-neutral-700 hover:text-neutral-950 transition-colors"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   <User className="h-4 w-4 text-neutral-400" />
@@ -215,7 +215,7 @@ export function Header() {
                 </Link>
                 <button
                   onClick={() => { setMobileMenuOpen(false); openCart(); }}
-                  className="w-full text-left flex items-center gap-3 text-body-sm font-medium text-neutral-700 hover:text-neutral-950 py-1"
+                  className="w-full flex min-h-[44px] items-center gap-3 py-2.5 text-left text-body-sm font-medium text-neutral-700 hover:text-neutral-950 transition-colors"
                 >
                   <ShoppingBag className="h-4 w-4 text-neutral-400" />
                   Shopping Bag
@@ -239,10 +239,10 @@ export function Header() {
 
       {/* Search Modal Portal */}
       {searchOpen && mounted && createPortal(
-        <div className="fixed inset-0 z-[100] flex flex-col justify-start" role="dialog" aria-modal="true" aria-label="Search">
+        <div className="fixed inset-0 z-overlay flex flex-col justify-start" role="dialog" aria-modal="true" aria-label="Search">
           <div className="fixed inset-0 bg-neutral-950/65 backdrop-blur-md transition-opacity" onClick={() => setSearchOpen(false)} />
           
-          <div className="relative z-[110] w-full bg-cream-50 border-b border-neutral-950/10 animate-slide-up">
+          <div className="relative z-overlay w-full bg-cream-50 border-b border-neutral-950/10 animate-slide-up">
             <div className="max-w-container-2xl mx-auto px-4 sm:px-6 lg:px-8 py-5 sm:py-7">
               <form
                 action="/search"
@@ -254,20 +254,20 @@ export function Header() {
                   type="search"
                   name="q"
                   placeholder="Search rings, necklaces, Gold, diamonds..."
-                  className="flex-1 bg-transparent font-heading text-lg sm:text-display-sm text-neutral-950 placeholder:font-sans placeholder:text-body-sm sm:placeholder:text-body placeholder:text-neutral-400 focus:outline-none border-none p-0"
+                  className="flex-1 min-h-[44px] bg-transparent font-heading text-lg sm:text-display-sm text-neutral-950 placeholder:font-sans placeholder:text-body-sm sm:placeholder:text-body placeholder:text-neutral-400 focus:outline-none border-none p-0"
                   autoFocus
                   aria-label="Search"
                 />
                 <button
                   type="submit"
-                  className="btn-primary py-2 px-5 text-caption font-medium uppercase tracking-[0.14em] hidden sm:inline-flex"
+                  className="btn-primary hidden sm:inline-flex py-2 px-5 text-caption font-medium uppercase tracking-[0.14em]"
                 >
                   Search
                 </button>
                 <button
                   type="button"
                   onClick={() => setSearchOpen(false)}
-                  className="p-2 rounded-sm text-neutral-400 hover:text-neutral-950 transition-colors"
+                  className="inline-flex h-11 w-11 items-center justify-center rounded-sm text-neutral-400 hover:text-neutral-950 transition-colors"
                   aria-label="Close search"
                 >
                   <X className="h-6 w-6" />
@@ -288,7 +288,7 @@ export function Header() {
                     key={tag.label}
                     href={`/search?q=${encodeURIComponent(tag.query)}`}
                     onClick={() => setSearchOpen(false)}
-                    className="px-3 py-1.5 bg-neutral-950/[0.04] hover:bg-neutral-950 hover:text-cream-50 rounded-sm text-neutral-700 transition-colors font-sans font-medium text-caption"
+                    className="inline-flex min-h-[40px] items-center px-3 py-1.5 bg-neutral-950/[0.04] hover:bg-neutral-950 hover:text-cream-50 rounded-sm text-neutral-700 transition-colors font-sans font-medium text-caption"
                   >
                     {tag.label}
                   </Link>

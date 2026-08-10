@@ -378,28 +378,30 @@ export default function NewProductPage() {
                           >
                             <OptimizedImage src={imgUrl} alt="" fill objectFit="cover" />
                             {/* Action overlay */}
-                            <div className="absolute inset-0 bg-neutral-950/60 backdrop-blur-[1px] opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 p-1">
+                            <div className="absolute inset-0 bg-neutral-950/50 backdrop-blur-[1px] flex items-center justify-center gap-2 p-1 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                               {index !== 0 && (
                                 <button
                                   type="button"
                                   onClick={() => handleSetPrimaryImage(index)}
-                                  className="p-1.5 bg-gold-500 text-white rounded-full hover:bg-gold-600 shadow-subtle"
+                                  className="p-2 bg-gold-500 text-white rounded-full hover:bg-gold-600 shadow-subtle"
                                   title="Make primary image"
+                                  aria-label={`Make image ${index + 1} the primary image`}
                                 >
-                                  <Star className="h-3.5 w-3.5" />
+                                  <Star className="h-4 w-4" />
                                 </button>
                               )}
                               <button
                                 type="button"
                                 onClick={() => handleRemoveImage(index)}
-                                className="p-1.5 bg-red-600 text-white rounded-full hover:bg-red-700 shadow-subtle"
+                                className="p-2 bg-red-600 text-white rounded-full hover:bg-red-700 shadow-subtle"
                                 title="Remove image"
+                                aria-label={`Remove image ${index + 1}`}
                               >
-                                <Trash2 className="h-3.5 w-3.5" />
+                                <Trash2 className="h-4 w-4" />
                               </button>
                             </div>
                             {index === 0 && (
-                              <span className="absolute bottom-1 left-1 badge-gold text-[9px] px-1.5 py-0.5">Primary</span>
+                              <span className="absolute bottom-1 left-1 badge-gold text-[9px] px-1.5 py-0.5 z-10">Primary</span>
                             )}
                           </div>
                         ))}

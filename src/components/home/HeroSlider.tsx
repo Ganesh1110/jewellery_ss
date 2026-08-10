@@ -47,7 +47,7 @@ export function HeroSlider({
           key={slide.src}
           aria-hidden={index !== current}
           className={cn(
-            'absolute inset-0 transition-opacity duration-slower ease-out-expo',
+            'absolute inset-0 transition-opacity duration-slower ease-expo',
             index === current ? 'opacity-100' : 'opacity-0'
           )}
         >
@@ -70,33 +70,37 @@ export function HeroSlider({
 
       {/* Navigation — single quiet control */}
       {slides.length > 1 && (
-        <div className="absolute inset-x-0 bottom-8 z-10 flex items-center justify-center gap-6 sm:justify-end sm:pr-6 lg:pr-8" role="tablist" aria-label="Hero slides">
+        <div className="absolute inset-x-0 bottom-6 z-10 flex items-center justify-center gap-3 sm:justify-end sm:pr-6 lg:pr-8" role="tablist" aria-label="Hero slides">
           <button
             type="button"
             onClick={() => goTo(current - 1)}
             aria-label="Previous slide"
-            className="w-9 h-9 rounded-full bg-cream-50/10 text-cream-50 backdrop-blur-md flex items-center justify-center transition-colors hover:bg-cream-50 hover:text-neutral-950"
+            className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-cream-50/10 text-cream-50 backdrop-blur-md transition-colors hover:bg-cream-50 hover:text-neutral-950"
           >
             <ChevronLeft className="h-4 w-4" />
           </button>
-          {slides.map((slide, index) => (
-            <button
-              key={slide.src}
-              role="tab"
-              aria-selected={index === current}
-              aria-label={`Show slide ${index + 1}`}
-              onClick={() => goTo(index)}
-              className={cn(
-                'h-1.5 rounded-full transition-all duration-300',
-                index === current ? 'w-8 bg-cream-50' : 'w-1.5 bg-cream-50/40 hover:bg-cream-50/70'
-              )}
-            />
-          ))}
+          <div className="flex items-center gap-2 px-1">
+            {slides.map((slide, index) => (
+              <button
+                key={slide.src}
+                role="tab"
+                aria-selected={index === current}
+                aria-label={`Show slide ${index + 1}`}
+                onClick={() => goTo(index)}
+                className={cn(
+                  'inline-flex h-11 items-center justify-center transition-all duration-300',
+                  index === current ? 'w-8' : 'w-1.5'
+                )}
+              >
+                <span className={cn('h-1.5 w-full rounded-full transition-colors', index === current ? 'bg-cream-50' : 'bg-cream-50/40 hover:bg-cream-50/70')} />
+              </button>
+            ))}
+          </div>
           <button
             type="button"
             onClick={next}
             aria-label="Next slide"
-            className="w-9 h-9 rounded-full bg-cream-50/10 text-cream-50 backdrop-blur-md flex items-center justify-center transition-colors hover:bg-cream-50 hover:text-neutral-950"
+            className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-cream-50/10 text-cream-50 backdrop-blur-md transition-colors hover:bg-cream-50 hover:text-neutral-950"
           >
             <ChevronRight className="h-4 w-4" />
           </button>

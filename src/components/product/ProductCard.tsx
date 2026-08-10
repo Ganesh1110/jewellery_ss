@@ -77,7 +77,7 @@ export function ProductCard({ product, variant, priority = false, showQuickAdd =
             <button
               onClick={handleQuickAdd}
               disabled={!primaryVariant?.id || quickAddLoading === primaryVariant?.id || cartLoading}
-              className="w-full bg-cream-50 text-neutral-950 text-body-sm font-medium min-h-[42px] px-2 flex items-center justify-center gap-2 transition-colors hover:bg-neutral-950 hover:text-cream-50"
+              className="w-full min-h-[44px] bg-cream-50 text-neutral-950 text-body-sm font-medium px-2 flex items-center justify-center gap-2 transition-colors hover:bg-neutral-950 hover:text-cream-50"
               aria-label={`Quick add ${product.title}`}
             >
               <ShoppingBag className="h-4 w-4" aria-hidden="true" />

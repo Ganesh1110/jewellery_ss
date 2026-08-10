@@ -55,7 +55,7 @@ export function CartDrawer() {
         aria-hidden="true"
       />
       <aside
-        className="fixed top-0 right-0 bottom-0 z-50 w-full max-w-md bg-cream-50 border-l border-neutral-950/10 animate-slide-in flex flex-col"
+        className="fixed top-0 right-0 bottom-0 z-drawer w-full max-w-md bg-cream-50 border-l border-neutral-950/10 animate-slide-in-right flex flex-col"
         role="dialog"
         aria-modal="true"
         aria-label="Shopping bag"
@@ -65,7 +65,7 @@ export function CartDrawer() {
           <h2 className="font-heading text-heading-lg tracking-tight text-neutral-950">Shopping Bag</h2>
           <button
             onClick={closeCart}
-            className="p-1 text-neutral-500 hover:text-neutral-950 transition-colors"
+            className="inline-flex h-11 w-11 items-center justify-center text-neutral-500 hover:text-neutral-950 transition-colors"
             aria-label="Close cart"
           >
             <X className="h-6 w-6" />
@@ -226,7 +226,7 @@ function CartItem({ line, currencyCode, onQuantityChange, onRemove }: CartItemPr
           </div>
         </div>
 
-        <div className="flex items-center justify-between pt-3 border-t border-neutral-950/10 mt-3">
+        <div className="flex items-center justify-between pt-3 border-t border-neutral-950/10 mt-3 gap-3">
           <QuantitySelector
             quantity={quantity}
             onChange={onQuantityChange}
@@ -234,7 +234,7 @@ function CartItem({ line, currencyCode, onQuantityChange, onRemove }: CartItemPr
           />
           <button
             onClick={() => onRemove(line.id)}
-            className="text-body-sm text-neutral-400 hover:text-neutral-950 transition-colors"
+            className="inline-flex min-h-[44px] items-center text-body-sm text-neutral-400 hover:text-neutral-950 transition-colors"
             aria-label={`Remove ${title}`}
           >
             Remove
@@ -257,17 +257,17 @@ function QuantitySelector({ quantity, onChange, line }: QuantitySelectorProps) {
       <button
         onClick={() => onChange(line, -1)}
         disabled={quantity <= 1}
-        className="p-2 text-neutral-700 hover:text-neutral-950 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+        className="inline-flex h-11 w-11 items-center justify-center text-neutral-700 hover:text-neutral-950 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
         aria-label="Decrease quantity"
       >
         <Minus className="h-4 w-4" />
       </button>
-      <span className="px-3 text-body font-medium text-neutral-950 tabular-nums w-8 text-center">
+      <span className="px-2 text-body font-medium text-neutral-950 tabular-nums w-8 text-center" aria-live="polite">
         {quantity}
       </span>
       <button
         onClick={() => onChange(line, 1)}
-        className="p-2 text-neutral-700 hover:text-neutral-950 transition-colors"
+        className="inline-flex h-11 w-11 items-center justify-center text-neutral-700 hover:text-neutral-950 transition-colors"
         aria-label="Increase quantity"
       >
         <Plus className="h-4 w-4" />
