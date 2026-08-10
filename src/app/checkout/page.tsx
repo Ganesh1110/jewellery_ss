@@ -17,9 +17,7 @@ export default function CheckoutPage() {
           Your bag is handled by Shopify
         </h1>
         <p className="text-body text-neutral-600 mb-10 leading-relaxed">
-          In the live store, your bag is carried securely to Shopify Checkout to complete payment and delivery
-          details. In this demo, the cart is stored locally in your browser — connect your Storefront credentials
-          to go live.
+          In the live store, your bag is carried to checkout and the order is stored in the database. Payment is captured as Cash on Delivery.
         </p>
 
         <div className="flex flex-col sm:flex-row gap-3 justify-center mb-12">
