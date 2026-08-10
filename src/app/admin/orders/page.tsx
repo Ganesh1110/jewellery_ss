@@ -5,63 +5,7 @@ import Link from 'next/link';
 import { ArrowLeft, ShoppingBag, PackageOpen, Search, ExternalLink, CheckCircle2 } from 'lucide-react';
 import { formatMoney } from '@/lib/utils';
 import { OptimizedImage } from '@/components/ui/Image';
-
-interface StoredLineItem {
-  title: string;
-  image: string;
-  quantity: number;
-}
-
-interface StoredOrder {
-  orderNumber: string;
-  name: string;
-  email: string;
-  createdAt: string;
-  total: number;
-  currencyCode: string;
-  lineItems: StoredLineItem[];
-  status: string;
-}
-
-const DEMO_ORDERS: StoredOrder[] = [
-  {
-    orderNumber: '#1042',
-    name: 'Priya Sharma',
-    email: 'priya@example.com',
-    createdAt: new Date(Date.now() - 86400000 * 2).toISOString(),
-    total: 24800,
-    currencyCode: 'INR',
-    status: 'Fulfilled',
-    lineItems: [
-      { title: '18k Gold Solitaire Pendant', image: '/images/Image2.jpeg', quantity: 1 },
-      { title: 'Rose Gold Huggie Earrings', image: '/images/Image9.jpeg', quantity: 1 },
-    ],
-  },
-  {
-    orderNumber: '#1041',
-    name: 'Ananya Verma',
-    email: 'ananya@example.com',
-    createdAt: new Date(Date.now() - 86400000 * 5).toISOString(),
-    total: 15900,
-    currencyCode: 'INR',
-    status: 'Processing',
-    lineItems: [{ title: 'Antique Temple Necklace', image: '/images/Image5.jpeg', quantity: 1 }],
-  },
-  {
-    orderNumber: '#1040',
-    name: 'Rhea Kapoor',
-    email: 'rhea@example.com',
-    createdAt: new Date(Date.now() - 86400000 * 8).toISOString(),
-    total: 59500,
-    currencyCode: 'INR',
-    status: 'Fulfilled',
-    lineItems: [
-      { title: 'Kundan Bridal Set', image: '/images/Image6.jpeg', quantity: 1 },
-      { title: 'Diamond Tennis Bracelet', image: '/images/Image1.jpeg', quantity: 1 },
-      { title: 'Gold Bangle Trio', image: '/images/Image9.jpeg', quantity: 3 },
-    ],
-  },
-];
+import type { StoredOrder } from '@/types/admin';
 
 const STATUS_STYLES: Record<string, string> = {
   Fulfilled: 'bg-emerald-100 text-emerald-800',
@@ -75,13 +19,10 @@ export default function AdminOrdersPage() {
   const [statusFilter, setStatusFilter] = useState<string>('All');
 
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem('sss_orders');
-      const stored = raw ? JSON.parse(raw) : [];
-      setOrders([...stored.map((o: StoredOrder, i: number) => ({ ...o, orderNumber: `#${1050 + i}` })), ...DEMO_ORDERS]);
-    } catch {
-      setOrders(DEMO_ORDERS);
-    }
+    fetch('/api/admin/orders')
+      .then((res) => (res.ok ? res.json() : []))
+      .then((data: StoredOrder[]) => setOrders(data))
+      .catch(() => setOrders([]));
   }, []);
 
   const statuses = ['All', ...Array.from(new Set(orders.map((o) => o.status)))];

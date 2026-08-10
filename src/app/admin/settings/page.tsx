@@ -11,8 +11,6 @@ interface ConfigRow {
   hint: string;
 }
 
-const STORE_SETTINGS_KEY = 'sss_store_settings';
-
 const DEFAULT_CONFIG: ConfigRow[] = [
   { key: 'store_name', label: 'Store Name', value: 'Style Statement by Shakthi', hint: 'Shown in the storefront header and metadata' },
   { key: 'store_email', label: 'Store Email', value: 'hello@sss.com', hint: 'Used for order notifications and contact form' },
@@ -28,41 +26,35 @@ interface SavedSettings {
   alerts: { lowStock: boolean; newOrder: boolean };
 }
 
-function loadSettings(): SavedSettings | null {
-  if (typeof window === 'undefined') return null;
-  try {
-    const raw = localStorage.getItem(STORE_SETTINGS_KEY);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw) as SavedSettings;
-    if (!Array.isArray(parsed.config) || !parsed.alerts) return null;
-    return parsed;
-  } catch (err) {
-    console.error('Failed to parse store settings:', err);
-    return null;
-  }
-}
-
 export default function AdminSettingsPage() {
   const [config, setConfig] = useState<ConfigRow[]>(DEFAULT_CONFIG);
   const [alerts, setAlerts] = useState(DEFAULT_ALERTS);
   const [saved, setSaved] = useState(false);
 
   useEffect(() => {
-    const existing = loadSettings();
-    if (existing) {
-      setConfig(existing.config);
-      setAlerts(existing.alerts);
-    }
+    fetch('/api/admin/settings')
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data: SavedSettings | null) => {
+        if (data) {
+          setConfig(data.config);
+          setAlerts(data.alerts);
+        }
+      })
+      .catch(() => {});
   }, []);
 
   const updateValue = (idx: number, value: string) => {
     setConfig((prev) => prev.map((row, i) => (i === idx ? { ...row, value } : row)));
   };
 
-  const handleSave = () => {
-    const payload: SavedSettings = { config, alerts };
+  const handleSave = async () => {
     try {
-      localStorage.setItem(STORE_SETTINGS_KEY, JSON.stringify(payload));
+      const res = await fetch('/api/admin/settings', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ config, alerts }),
+      });
+      if (!res.ok) throw new Error('Failed to save settings');
       setSaved(true);
       setTimeout(() => setSaved(false), 2500);
     } catch (err) {
