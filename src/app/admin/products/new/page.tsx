@@ -4,7 +4,7 @@ import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, CheckCircle2, Upload, Plus, Trash2, Eye, Star, Layers, Sparkles } from 'lucide-react';
-import { saveCustomProduct, CustomProductInput } from '@/lib/custom-products';
+import type { CustomProductInput } from '@/types/admin';
 import { ProductCard } from '@/components/product/ProductCard';
 import { OptimizedImage } from '@/components/ui/Image';
 import type { Product } from '@/types/shopify';
@@ -123,7 +123,15 @@ export default function NewProductPage() {
     };
 
     try {
-      saveCustomProduct(inputData);
+      const res = await fetch('/api/admin/products', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(inputData),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || 'Failed to save product');
+      }
       setSuccess(true);
       setTimeout(() => {
         router.push('/admin');

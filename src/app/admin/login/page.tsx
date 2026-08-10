@@ -15,27 +15,29 @@ function AdminLoginForm() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-
-    // Default admin passcode (demo / dev default: admin123)
-    const validPasscode = process.env.NEXT_PUBLIC_ADMIN_PASSCODE || 'admin123';
-
-    if (password !== validPasscode) {
-      setError('Invalid Store Owner Passcode. Please try again.');
-      return;
-    }
-
     setLoading(true);
 
-    // Set secure admin session cookie
-    document.cookie = 'sss_admin_session=authenticated; path=/; max-age=86400; SameSite=Lax';
-
-    setTimeout(() => {
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || 'Login failed. Please try again.');
+        return;
+      }
       router.push(fromUrl);
       router.refresh();
-    }, 400);
+    } catch {
+      setError('Login failed. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

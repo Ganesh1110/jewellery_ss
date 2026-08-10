@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Plus, Package, Trash2, ExternalLink, ShieldCheck, Tag, DollarSign, Layers } from 'lucide-react';
-import { getCustomProducts, deleteCustomProduct } from '@/lib/custom-products';
 import { formatMoney } from '@/lib/utils';
 import type { Product } from '@/types/shopify';
 import { OptimizedImage } from '@/components/ui/Image';
@@ -13,14 +12,19 @@ export default function AdminDashboardPage() {
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
-    setCustomProducts(getCustomProducts());
-    setLoaded(true);
+    fetch('/api/admin/products?first=100')
+      .then((res) => (res.ok ? res.json() : { edges: [] }))
+      .then((data: { edges: Array<{ node: Product }> }) => {
+        setCustomProducts(data.edges.map((e) => e.node));
+        setLoaded(true);
+      })
+      .catch(() => setLoaded(true));
   }, []);
 
-  const handleDelete = (handle: string, title: string) => {
+  const handleDelete = async (id: string, title: string) => {
     if (confirm(`Are you sure you want to delete "${title}"?`)) {
-      deleteCustomProduct(handle);
-      setCustomProducts(getCustomProducts());
+      const res = await fetch(`/api/admin/products/${encodeURIComponent(id)}`, { method: 'DELETE' });
+      if (res.ok) setCustomProducts((prev) => prev.filter((p) => p.id !== id));
     }
   };
 
@@ -164,7 +168,7 @@ export default function AdminDashboardPage() {
                                 <ExternalLink className="h-4 w-4" />
                               </Link>
                               <button
-                                onClick={() => handleDelete(product.handle, product.title)}
+                                onClick={() => handleDelete(product.id, product.title)}
                                 className="h-10 w-10 inline-flex items-center justify-center rounded-md text-neutral-400 hover:text-red-600 hover:bg-red-50 transition-colors"
                                 title="Delete product"
                                 aria-label={`Delete ${product.title}`}
@@ -211,7 +215,7 @@ export default function AdminDashboardPage() {
                             <ExternalLink className="h-4 w-4" />
                           </Link>
                           <button
-                            onClick={() => handleDelete(product.handle, product.title)}
+                            onClick={() => handleDelete(product.id, product.title)}
                             className="h-10 w-10 inline-flex items-center justify-center rounded-md border border-neutral-950/10 text-neutral-400 hover:text-red-600 transition-colors"
                             title="Delete product"
                             aria-label={`Delete ${product.title}`}

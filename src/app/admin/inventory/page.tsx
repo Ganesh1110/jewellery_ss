@@ -3,8 +3,6 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, AlertTriangle, CheckCircle2, XCircle, Search, RefreshCw, ExternalLink, Package, DollarSign, Plus, Minus, Layers, Pause, Play } from 'lucide-react';
-import { fetchProducts } from '@/lib/shopify';
-import { updateProductInventory, updateProductPrice, applyInventoryOverrides } from '@/lib/custom-products';
 import { formatMoney } from '@/lib/utils';
 import type { Product } from '@/types/shopify';
 import { OptimizedImage } from '@/components/ui/Image';
@@ -27,10 +25,10 @@ export default function InventoryDashboardPage() {
   const loadInventory = async () => {
     setLoading(true);
     try {
-      const res = await fetchProducts(100);
-      const rawProducts = res.edges.map((e) => e.node);
-      const updated = rawProducts.map(applyInventoryOverrides);
-      setProducts(updated);
+      const res = await fetch('/api/admin/products?first=100');
+      if (!res.ok) throw new Error('Failed to load inventory');
+      const data = await res.json();
+      setProducts(data.edges.map((e: { node: Product }) => e.node));
     } finally {
       setLoading(false);
     }
@@ -40,52 +38,42 @@ export default function InventoryDashboardPage() {
     loadInventory();
   }, []);
 
-  const handleQuantityChange = (handle: string, delta: number) => {
-    setProducts((prev) =>
-      prev.map((p) => {
-        if (p.handle !== handle) return p;
-        const currentQty = p.totalInventory ?? 0;
-        const newQty = Math.max(0, currentQty + delta);
-        updateProductInventory(handle, newQty);
-        return applyInventoryOverrides({ ...p, totalInventory: newQty, availableForSale: newQty > 0 });
-      })
-    );
+  const updateInventory = async (handle: string, body: { totalInventory?: number; price?: number; availableForSale?: boolean }) => {
+    const res = await fetch(`/api/admin/inventory/${handle}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    if (!res.ok) throw new Error('Failed to update inventory');
+    return res.json() as Promise<Product>;
   };
 
-  const handleDirectQuantitySet = (handle: string, value: number) => {
+  const handleQuantityChange = async (handle: string, delta: number) => {
+    const target = products.find((p) => p.handle === handle);
+    if (!target) return;
+    const newQty = Math.max(0, (target.totalInventory ?? 0) + delta);
+    const updated = await updateInventory(handle, { totalInventory: newQty });
+    setProducts((prev) => prev.map((p) => (p.handle === handle ? updated : p)));
+  };
+
+  const handleDirectQuantitySet = async (handle: string, value: number) => {
     const newQty = Math.max(0, isNaN(value) ? 0 : value);
-    updateProductInventory(handle, newQty);
-    setProducts((prev) =>
-      prev.map((p) => {
-        if (p.handle !== handle) return p;
-        return applyInventoryOverrides({ ...p, totalInventory: newQty, availableForSale: newQty > 0 });
-      })
-    );
+    const updated = await updateInventory(handle, { totalInventory: newQty });
+    setProducts((prev) => prev.map((p) => (p.handle === handle ? updated : p)));
   };
 
-  const handlePriceSet = (handle: string, value: number) => {
+  const handlePriceSet = async (handle: string, value: number) => {
     const newPrice = Math.max(0, isNaN(value) ? 0 : value);
-    updateProductPrice(handle, newPrice);
-    setProducts((prev) =>
-      prev.map((p) => {
-        if (p.handle !== handle) return p;
-        return applyInventoryOverrides(p);
-      })
-    );
+    const updated = await updateInventory(handle, { price: newPrice });
+    setProducts((prev) => prev.map((p) => (p.handle === handle ? updated : p)));
   };
 
-  const handleToggleStockAvailability = (handle: string, currentAvailable: boolean) => {
+  const handleToggleStockAvailability = async (handle: string, currentAvailable: boolean) => {
     const newAvailable = !currentAvailable;
-    const targetProduct = products.find((p) => p.handle === handle);
-    const newQty = newAvailable ? Math.max(1, targetProduct?.totalInventory || 5) : 0;
-
-    updateProductInventory(handle, newQty);
-    setProducts((prev) =>
-      prev.map((p) => {
-        if (p.handle !== handle) return p;
-        return applyInventoryOverrides({ ...p, totalInventory: newQty, availableForSale: newAvailable });
-      })
-    );
+    const target = products.find((p) => p.handle === handle);
+    const newQty = newAvailable ? Math.max(1, target?.totalInventory || 5) : 0;
+    const updated = await updateInventory(handle, { totalInventory: newQty, availableForSale: newAvailable });
+    setProducts((prev) => prev.map((p) => (p.handle === handle ? updated : p)));
   };
 
   // Metrics
