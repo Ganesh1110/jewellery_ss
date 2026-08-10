@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Store, KeyRound, Palette, Bell, Info } from 'lucide-react';
+import { ArrowLeft, Store, KeyRound, Palette, Bell, Info, Check } from 'lucide-react';
 
 interface ConfigRow {
   key: string;
@@ -11,18 +11,63 @@ interface ConfigRow {
   hint: string;
 }
 
+const STORE_SETTINGS_KEY = 'sss_store_settings';
+
+const DEFAULT_CONFIG: ConfigRow[] = [
+  { key: 'store_name', label: 'Store Name', value: 'Style Statement by Shakthi', hint: 'Shown in the storefront header and metadata' },
+  { key: 'store_email', label: 'Store Email', value: 'hello@sss.com', hint: 'Used for order notifications and contact form' },
+  { key: 'currency', label: 'Currency', value: 'INR (₹)', hint: 'Currency for pricing and inventory valuation' },
+  { key: 'free_shipping_threshold', label: 'Free Shipping Above', value: '₹15,000', hint: 'Complimentary shipping above this cart value' },
+  { key: 'return_window', label: 'Return Window', value: '14 days', hint: 'Return period shown on the PDP and checkout' },
+];
+
+const DEFAULT_ALERTS = { lowStock: true, newOrder: true };
+
+interface SavedSettings {
+  config: ConfigRow[];
+  alerts: { lowStock: boolean; newOrder: boolean };
+}
+
+function loadSettings(): SavedSettings | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = localStorage.getItem(STORE_SETTINGS_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as SavedSettings;
+    if (!Array.isArray(parsed.config) || !parsed.alerts) return null;
+    return parsed;
+  } catch (err) {
+    console.error('Failed to parse store settings:', err);
+    return null;
+  }
+}
+
 export default function AdminSettingsPage() {
-  const [config, setConfig] = useState<ConfigRow[]>([
-    { key: 'store_name', label: 'Store Name', value: 'Style Statement by Shakthi', hint: 'Shown in the storefront header and metadata' },
-    { key: 'store_email', label: 'Store Email', value: 'hello@sss.com', hint: 'Used for order notifications and contact form' },
-    { key: 'currency', label: 'Currency', value: 'INR (₹)', hint: 'Currency for pricing and inventory valuation' },
-    { key: 'free_shipping_threshold', label: 'Free Shipping Above', value: '₹15,000', hint: 'Complimentary shipping above this cart value' },
-    { key: 'return_window', label: 'Return Window', value: '14 days', hint: 'Return period shown on the PDP and checkout' },
-  ]);
-  const [alerts, setAlerts] = useState({ lowStock: true, newOrder: true });
+  const [config, setConfig] = useState<ConfigRow[]>(DEFAULT_CONFIG);
+  const [alerts, setAlerts] = useState(DEFAULT_ALERTS);
+  const [saved, setSaved] = useState(false);
+
+  useEffect(() => {
+    const existing = loadSettings();
+    if (existing) {
+      setConfig(existing.config);
+      setAlerts(existing.alerts);
+    }
+  }, []);
 
   const updateValue = (idx: number, value: string) => {
     setConfig((prev) => prev.map((row, i) => (i === idx ? { ...row, value } : row)));
+  };
+
+  const handleSave = () => {
+    const payload: SavedSettings = { config, alerts };
+    try {
+      localStorage.setItem(STORE_SETTINGS_KEY, JSON.stringify(payload));
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2500);
+    } catch (err) {
+      console.error('Failed to save store settings:', err);
+    }
   };
 
   return (
@@ -143,6 +188,21 @@ export default function AdminSettingsPage() {
                 </button>
               ))}
             </div>
+          </div>
+
+          <div className="card p-6 flex items-center justify-between gap-4">
+            <p className="text-body-sm text-neutral-500">
+              Changes are stored locally in this browser and applied to the storefront demo.
+            </p>
+            <button type="button" onClick={handleSave} className="btn btn-primary min-h-11 px-6">
+              {saved ? (
+                <>
+                  <Check className="h-4 w-4" /> Saved
+                </>
+              ) : (
+                'Save Changes'
+              )}
+            </button>
           </div>
         </div>
       </section>
