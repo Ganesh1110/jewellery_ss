@@ -9,7 +9,7 @@ import React, {
   ReactNode,
 } from 'react';
 import type { Cart, CartCreateInput } from '@/types/shopify';
-import { createCart, fetchCart, addToCart as addToCartApi, updateCartLine as updateCartLineApi, removeFromCart as removeFromCartApi, updateCartNote as updateCartNoteApi } from '@/lib/shopify';
+import { createCart, fetchCart, addToCart as addToCartApi, updateCartLine as updateCartLineApi, removeFromCart as removeFromCartApi, updateCartNote as updateCartNoteApi } from '@/lib/cart-api';
 
 const CART_ID_KEY = 'sss_cart_id';
 
