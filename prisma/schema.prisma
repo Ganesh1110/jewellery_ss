@@ -37,7 +37,7 @@ model Collection {
   handle          String           @unique
   title           String
   description     String           @default("")
-  descriptionHtml String           @default("")
+  descriptionHtml String           @default("") @db.Text
   image           Json?
   seo             Json?
   updatedAt       DateTime         @updatedAt
@@ -61,7 +61,7 @@ model Product {
   handle           String          @unique
   title            String
   description      String          @default("")
-  descriptionHtml  String          @default("")
+  descriptionHtml  String          @default("") @db.Text
   vendor           String          @default("Style Statement by Shakthi Atelier")
   productType      String          @default("Jewelry")
   tags             Json            @default("[]")
@@ -148,7 +148,7 @@ model Article {
   blogId      Int
   title       String
   excerpt     String   @default("")
-  contentHtml String   @default("")
+  contentHtml String   @default("") @db.Text
   image       Json?
   author      String   @default("")
   publishedAt DateTime
