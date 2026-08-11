@@ -7,8 +7,11 @@ export function middleware(request: NextRequest) {
   if (pathname.startsWith('/admin') && pathname !== '/admin/login') {
     const adminSession = request.cookies.get('sss_admin_session')?.value;
 
-    // If no valid admin session, redirect to secure admin login
-    if (!adminSession || adminSession !== 'authenticated') {
+    // Presence-only gate: a non-empty sss_admin_session cookie is treated as
+    // authenticated here. The authoritative validation (DB lookup + expiry)
+    // is performed server-side by AdminShell via getSession(), keeping the
+    // middleware a cheap redirect without blocking on a DB round-trip.
+    if (!adminSession) {
       const loginUrl = new URL('/admin/login', request.url);
       loginUrl.searchParams.set('from', pathname);
       return NextResponse.redirect(loginUrl);

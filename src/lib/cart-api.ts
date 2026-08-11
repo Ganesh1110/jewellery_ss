@@ -37,3 +37,39 @@ export function removeFromCart(cartId: string, lineIds: string[]): Promise<Cart>
 export function updateCartNote(cartId: string, note: string): Promise<Cart> {
   return request('/api/cart/note', { method: 'POST', body: JSON.stringify({ cartId, note }) });
 }
+
+export interface CheckoutOrderSuccess {
+  ok: true;
+  order: {
+    orderNumber: string;
+    name: string;
+    email: string;
+    createdAt: string;
+    total: number;
+    currencyCode: string;
+    status: string;
+    lineItems: Array<{ title: string; image: string; quantity: number }>;
+  };
+}
+export interface CheckoutOrderError {
+  ok: false;
+  error: string;
+}
+export type CheckoutOrderResult = CheckoutOrderSuccess | CheckoutOrderError;
+
+export async function checkoutOrder(cartGid: string): Promise<CheckoutOrderResult> {
+  const res = await fetch('/api/checkout', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ cartId: cartGid }),
+  });
+
+  if (!res.ok) {
+    const body = (await res.json().catch(() => ({}))) as { error?: string };
+    return { ok: false, error: body.error || 'Checkout failed' };
+  }
+
+  const data: CheckoutOrderSuccess = await res.json();
+  localStorage.removeItem('sss_cart_id');
+  return data;
+}
