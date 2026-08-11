@@ -72,7 +72,7 @@
 
 - [x] **Step 1: Write failing tests**: `checkoutOrder` with mocked `fetch` resolves `{ok:true, order}` and clears `sss_cart_id` (`tests/api/checkout-order.test.ts`); `/api/checkout` handler with a seeded DB cart creates an `Order`, decrements inventory, deletes the cart (`tests/api/checkout-route.test.ts`).
 - [x] **Step 2: Run → fail** (`checkoutOrder` was undefined → confirmed red).
-- [~] **Step 3: Implement** `checkoutOrder` in `src/lib/cart-api.ts` (POST + clear `sss_cart_id` + typed error). **Deferred:** CartDrawer button wiring + removing the CheckoutCapture auto-fire (UI follow-up, not merged).
+- [x] **Step 3: Implement** `checkoutOrder` in `src/lib/cart-api.ts` (POST + clear `sss_cart_id` + typed error). CartDrawer's "Proceed to Checkout" button now calls `checkoutOrder` and shows loading→success/error inline (`aria-live`); the order confirmation renders in the drawer and `CheckoutCapture`'s silent auto-fire was removed (component deleted, `/checkout` copy updated).
 - [x] **Step 4: Run → pass** (2/2 helper tests + 2/2 route tests green).
 - [x] **Step 5: Commit** `feat(cart): explicit checkout→/api/checkout with confirmation + error surfacing`.
 

@@ -1,15 +1,19 @@
 'use client';
 
-import { useEffect, useCallback } from 'react';
-import { X, Plus, Minus, Gift, Truck } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { X, Plus, Minus, Gift, Truck, CheckCircle2 } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 import { Button } from '@/components/ui/Button';
 import { OptimizedImage } from '@/components/ui/Image';
-import { formatMoney, cn } from '@/lib/utils';
+import { formatMoney } from '@/lib/utils';
+import { checkoutOrder, type CheckoutOrderSuccess } from '@/lib/cart-api';
 import type { CartLine } from '@/types/shopify';
 
 export function CartDrawer() {
   const { cart, isCartOpen, closeCart, updateQuantity, removeLine, updateNote, isLoading } = useCart();
+  const [isCheckingOut, setIsCheckingOut] = useState(false);
+  const [checkoutError, setCheckoutError] = useState<string | null>(null);
+  const [confirmation, setConfirmation] = useState<CheckoutOrderSuccess['order'] | null>(null);
 
   // Close on Escape key
   useEffect(() => {
@@ -34,18 +38,31 @@ export function CartDrawer() {
   const total = cart?.cost.totalAmount.amount || 0;
   const note = cart?.note || '';
 
+  const handleNoteChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    updateNote(e.target.value);
+  };
+
+  const handleCheckout = async () => {
+    if (!cart) return;
+    setIsCheckingOut(true);
+    setCheckoutError(null);
+    const result = await checkoutOrder(cart.id);
+    if (result.ok) {
+      setConfirmation(result.order);
+    } else {
+      setCheckoutError(result.error);
+    }
+    setIsCheckingOut(false);
+  };
+
+  const isEmpty = lines.length === 0;
+
   const handleQuantityChange = (line: CartLine, delta: number) => {
     const newQuantity = line.quantity + delta;
     if (newQuantity > 0) {
       updateQuantity(line.id, line.merchandise.id, newQuantity);
     }
   };
-
-  const handleNoteChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    updateNote(e.target.value);
-  };
-
-  const isEmpty = lines.length === 0;
 
   return (
     <>
@@ -74,7 +91,35 @@ export function CartDrawer() {
 
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-4 sm:p-6">
-          {isEmpty ? (
+          {confirmation ? (
+            <div className="flex flex-col h-full min-h-[300px] justify-center text-center" role="status">
+              <CheckCircle2 className="h-12 w-12 mx-auto mb-4 text-emerald-600" aria-hidden="true" />
+              <h3 className="font-heading text-heading-md text-neutral-950 mb-2">Order confirmed</h3>
+              <p className="text-caption text-neutral-500 mb-1">
+                {confirmation.orderNumber} · {confirmation.status}
+              </p>
+              <p className="text-body text-neutral-600 mb-6 max-w-xs mx-auto">
+                Thank you, {confirmation.name || 'your order is in'}. We&apos;ll reach out on delivery
+                confirmation. Pay Cash on Delivery.
+              </p>
+              <div className="flex justify-between text-body-sm text-neutral-700 mb-1">
+                <span>Total</span>
+                <span className="font-medium text-neutral-950 tabular-nums">
+                  {formatMoney(confirmation.total, confirmation.currencyCode)}
+                </span>
+              </div>
+              <ul className="text-caption text-neutral-500 border-t border-neutral-950/10 mt-4 pt-4 space-y-1" role="list">
+                {confirmation.lineItems.map((item) => (
+                  <li key={item.title} className="flex justify-between gap-3">
+                    <span className="truncate">{item.title} × {item.quantity}</span>
+                  </li>
+                ))}
+              </ul>
+              <Button onClick={closeCart} variant="secondary" className="w-full mt-6">
+                Keep Shopping
+              </Button>
+            </div>
+          ) : isEmpty ? (
             <div className="flex flex-col items-center justify-center h-full min-h-[300px] text-center">
               <h3 className="font-heading text-heading-md text-neutral-950 mb-2">Your bag is empty</h3>
               <p className="text-body text-neutral-500 mb-6 max-w-xs">
@@ -126,7 +171,7 @@ export function CartDrawer() {
         </div>
 
         {/* Footer */}
-        {!isEmpty && (
+        {!isEmpty && !confirmation && (
           <div className="border-t border-neutral-950/10 p-4 sm:p-6 space-y-4">
             <div className="flex justify-between text-body">
               <span className="text-neutral-700">Subtotal</span>
@@ -144,15 +189,21 @@ export function CartDrawer() {
             </div>
 
             <Button
-              onClick={() => window.location.href = cart?.checkoutUrl || '/checkout'}
+              onClick={handleCheckout}
               variant="gold"
               className="w-full"
               size="lg"
-              disabled={isLoading}
-              loading={isLoading}
+              disabled={isLoading || isCheckingOut}
+              loading={isLoading || isCheckingOut}
             >
               Proceed to Checkout
             </Button>
+
+            {checkoutError && (
+              <p role="alert" aria-live="assertive" className="text-center text-body-sm text-red-600">
+                {checkoutError}
+              </p>
+            )}
 
             <Button
               onClick={closeCart}
@@ -163,7 +214,7 @@ export function CartDrawer() {
             </Button>
 
             <p className="text-center text-caption text-neutral-500">
-              Secure checkout powered by Shopify
+              Cash on Delivery at checkout
             </p>
           </div>
         )}
