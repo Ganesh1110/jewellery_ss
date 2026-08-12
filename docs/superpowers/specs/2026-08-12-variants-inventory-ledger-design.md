@@ -40,6 +40,18 @@ multi-tenancy, roles/audit trail, currency/unit flexibility.
   (count fix), RETURN, DAMAGE.
 - **Per-variant reorder point**: `lowStockThreshold` column on the variant
   (default 5); in-app flag in admin inventory (no email yet).
+- **SKU/barcode uniqueness is app-layer, scoped to non-archived variants**
+  (Option A): no DB `@unique` on `sku`/`barcode` (MySQL has no partial unique
+  indexes, so a DB constraint would permanently reserve values after archive).
+  Uniqueness is enforced by check-then-write inside the same transaction as
+  variant create/update, scoped to `deletedAt: null`. This frees archived
+  SKUs/barcodes for reuse with clean data. Concurrency risk is negligible
+  (single operator, all writes via admin API).
+- **Archiving is reversible**: `PATCH /api/admin/variants/[id]/restore` clears
+  `deletedAt`; archived variants reject all movement types until restored.
+- **`Product.sku` is removed**: variants own SKUs (seed, admin create, and the
+  new-product preview generate on the variant; the mapper surfaces sku from
+  variants only). No stale duplicate source.
 
 ## Data Model
 
@@ -51,8 +63,8 @@ model ProductVariant {
   productId         Int
   product           Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
   title             String                 // "Default Title" or "M / Red"
-  sku               String?   @unique      // MySQL allows multiple NULLs
-  barcode           String?   @unique
+  sku               String?                // unique among non-archived variants (app-layer)
+  barcode           String?                // unique among non-archived variants (app-layer)
   price             Decimal  @db.Decimal(12, 2)   // price override (defaults to product price)
   compareAtPrice    Decimal? @db.Decimal(12, 2)
   currencyCode      String   @default("INR")
@@ -96,8 +108,8 @@ model InventoryMovement {
 - `Product`: add `deletedAt DateTime?` (archive replaces hard delete). Keep
   `totalInventory` + `availableForSale` as **denormalized aggregates** (sum of
   variant stock / any sellable variant), updated in the same transaction as any
-  stock write. `price`/`compareAtPrice`/`sku` remain as base values copied to
-  the first variant.
+  stock write. `price`/`compareAtPrice` remain as base values copied to the
+  first variant. **Drop `sku`** — variants own SKUs now.
 
 ### Delete semantics
 
@@ -105,7 +117,10 @@ model InventoryMovement {
   go too).
 - Variant delete → **soft-delete only** (`deletedAt` + `availableForSale=false`).
   `onDelete: Restrict` on `OrderItem.variantId` blocks hard deletion anyway;
-  hard delete of variants is removed from admin in favour of archive.
+  hard delete of variants is removed from admin in favour of archive. Archiving
+  **frees the SKU/barcode** for reuse (app-layer uniqueness is scoped to
+  `deletedAt: null`). Restore (`PATCH .../restore`) clears `deletedAt`, leaves
+  stock at 0, and the owner restocks normally.
 
 ## Migration & Backfill (expand-contract)
 
@@ -114,8 +129,8 @@ generate SQL, then hand-editing the backfill in before applying (reviewable as
 one migration).
 
 **Step A — expand:**
-1. Create `ProductVariant` + `InventoryMovement` tables (unique `sku`/`barcode`,
-   FKs to `Product`).
+1. Create `ProductVariant` + `InventoryMovement` tables (no DB unique on
+   `sku`/`barcode` — app-layer uniqueness instead; FKs to `Product`).
 2. Add `Product.deletedAt`.
 3. Add nullable `variantId` to `CartItem` and `OrderItem` (FKs: `Cascade` for
    cart, `Restrict` for order items).
@@ -137,13 +152,15 @@ UPDATE OrderItem SET variantId = (SELECT id FROM ProductVariant v WHERE v.produc
 
 **Step C — contract:**
 - `ALTER COLUMN variantId SET NOT NULL` on both tables.
+- Drop `Product.sku` (variants own SKUs; backfill already copied it).
 - Optional initial `InventoryMovement` RESTOCK rows per variant
   (`note = 'Initial stock from migration'`).
 
 **Guarantees:** non-destructive (existing carts/orders/products preserved);
 `Product.totalInventory`/`availableForSale` left intact as aggregates;
-`Product.sku` kept as base. Rollback: on MySQL/InnoDB failure, drop DB and
-re-run from last good migration + seed (dev only, no prod data).
+`Product.sku` copied to the first variant before the column is dropped.
+Rollback: on MySQL/InnoDB failure, drop DB and re-run from last good migration
++ seed (dev only, no prod data).
 
 ## Data Layer, Mappers & Inventory Service
 
@@ -192,7 +209,10 @@ touches `stock` directly.
 - `POST /api/admin/products` — accepts a full variant matrix; creates product +
   variants + initial RESTOCK movements in one transaction.
 - `PATCH /api/admin/variants/[id]` — edit SKU, barcode, price, compare-at,
-  threshold (metadata only; stock goes through movements).
+  threshold (metadata only; stock goes through movements). SKU/barcode
+  uniqueness (scoped to `deletedAt: null`) checked inside the same transaction.
+- `PATCH /api/admin/variants/[id]/restore` — clear `deletedAt` (stock stays 0;
+  owner restocks normally after).
 - `POST /api/admin/inventory/movements` — `{ variantId, type, quantity, note }`
   → `applyMovement()`.
 - `GET /api/admin/variants/[id]/movements` — movement history.
@@ -216,7 +236,8 @@ All admin routes keep the existing `getSession()` guard (`401` unauthenticated).
 - **`/admin/inventory` — variant-level ledger:** products group with expandable
   variant rows (selectedOptions, SKU/barcode, stock, threshold); In stock / Low
   / Out badges; Restock, Adjust, Damage actions (qty + note); Edit dialog for
-  variant metadata; History panel per variant listing movements.
+  variant metadata; History panel per variant listing movements; **collapsed
+  "Archived" section listing `deletedAt` variants with a Restore button**.
 - **`/admin` dashboard:** product rows show variant count + total stock;
   delete → archive (soft-delete confirm).
 - **`/admin/orders`:** line items show the purchased variant (selectedOptions
@@ -257,9 +278,11 @@ Minimal — already variant-aware:
 - Insufficient stock at checkout or on SALE/DAMAGE → `400` with
   variant-specific message.
 - Movement validation: type in enum, `quantity ≠ 0`, positive for inflows,
-  variant exists and not archived.
+  variant exists and **not archived** (archived variants reject all movement
+  types — restore first, then restock).
 - Archived variant added to cart → `400`/`404`.
-- Duplicate SKU / barcode → `409` with the offending value.
+- Duplicate SKU / barcode (app-layer, among non-archived variants) → `409` with
+  the offending value.
 - Auth: existing `getSession()` guard on all admin routes → `401`.
 - Prisma errors mapped to consistent JSON errors; movement failures never leave
   a half-applied transaction.
