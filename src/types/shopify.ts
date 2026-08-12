@@ -34,6 +34,8 @@ export interface ProductVariant {
   compareAtPrice: MoneyV2 | null;
   image: Image | null;
   sku: string | null;
+  barcode: string | null;
+  lowStockThreshold: number;
 }
 
 export interface ProductVariantConnection {

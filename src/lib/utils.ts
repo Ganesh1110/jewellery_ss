@@ -137,14 +137,13 @@ export function getSelectedVariant(
   return null;
 }
 
-export function getVariantAvailability(variant: { availableForSale: boolean; quantityAvailable: number | null }): {
+export function getVariantAvailability(variant: { availableForSale: boolean; quantityAvailable: number | null; lowStockThreshold?: number }): {
   status: 'in_stock' | 'low_stock' | 'out_of_stock';
   message: string;
 } {
-  if (!variant.availableForSale) {
-    return { status: 'out_of_stock', message: 'Sold out' };
-  }
-  if (variant.quantityAvailable !== null && variant.quantityAvailable <= 5) {
+  if (!variant.availableForSale) return { status: 'out_of_stock', message: 'Sold out' };
+  const threshold = variant.lowStockThreshold ?? 5;
+  if (variant.quantityAvailable !== null && variant.quantityAvailable <= threshold) {
     return { status: 'low_stock', message: `Only ${variant.quantityAvailable} left` };
   }
   return { status: 'in_stock', message: 'In stock' };

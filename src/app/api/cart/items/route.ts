@@ -5,7 +5,7 @@ import { cartRecordToCart, gidToId } from '@/lib/db-mappers';
 async function getCart(cartId: string) {
   const id = gidToId(cartId);
   if (id == null) return null;
-  const cart = await prisma.cart.findUnique({ where: { id }, include: { items: { include: { product: true } } } });
+  const cart = await prisma.cart.findUnique({ where: { id }, include: { items: { include: { variant: { include: { product: true } } } } } });
   return cart ? { cart, id } : null;
 }
 
@@ -31,7 +31,7 @@ export async function POST(req: Request) {
       create: { cartId: id, productId, variantId: variant.id, quantity: Math.max(1, line.quantity) },
     });
   }
-  const updated = await prisma.cart.findUnique({ where: { id }, include: { items: { include: { product: true } } } });
+  const updated = await prisma.cart.findUnique({ where: { id }, include: { items: { include: { variant: { include: { product: true } } } } } });
   return cartJson(updated!);
 }
 
@@ -51,7 +51,7 @@ export async function PATCH(req: Request) {
       await prisma.cartItem.update({ where: { id: itemId }, data: { quantity: line.quantity } }).catch(() => {});
     }
   }
-  const updated = await prisma.cart.findUnique({ where: { id }, include: { items: { include: { product: true } } } });
+  const updated = await prisma.cart.findUnique({ where: { id }, include: { items: { include: { variant: { include: { product: true } } } } } });
   return cartJson(updated!);
 }
 
@@ -67,6 +67,6 @@ export async function DELETE(req: Request) {
     if (itemId == null) continue;
     await prisma.cartItem.delete({ where: { id: itemId } }).catch(() => {});
   }
-  const updated = await prisma.cart.findUnique({ where: { id }, include: { items: { include: { product: true } } } });
+  const updated = await prisma.cart.findUnique({ where: { id }, include: { items: { include: { variant: { include: { product: true } } } } } });
   return cartJson(updated!);
 }

@@ -18,6 +18,7 @@ describe('POST /api/auth/login (DB-backed session)', () => {
     userEmail: '', // do NOT delete the real admin user; only clean up sessions
     productHandle: '',
     productIds: [],
+    variantIds: [],
     cartId: 0,
     orderNumbers: [],
     sessionTokens: [],

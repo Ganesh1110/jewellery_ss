@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { productRecordToProduct } from '@/lib/db-mappers';
+import { productRecordToProduct, variantsInclude } from '@/lib/db-mappers';
 import { getSession } from '@/lib/auth';
 import type { CustomProductInput } from '@/types/admin';
 
@@ -9,7 +9,7 @@ export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const first = Math.min(Number(searchParams.get('first')) || 12, 100);
   const after = Number(searchParams.get('after')) || 0;
-  const rows = await prisma.product.findMany({ orderBy: { createdAt: 'desc' }, skip: after, take: first + 1 });
+  const rows = await prisma.product.findMany({ where: { deletedAt: null }, orderBy: { createdAt: 'desc' }, skip: after, take: first + 1, include: variantsInclude });
   const hasNextPage = rows.length > first;
   const pageRows = rows.slice(0, first);
   return NextResponse.json({
@@ -50,6 +50,7 @@ export async function POST(req: Request) {
       seo: { title: input.title, description: input.description || '' },
       publishedAt: new Date(),
     },
+    include: variantsInclude,
   });
 
   if (input.collectionHandle) {

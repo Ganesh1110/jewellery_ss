@@ -16,13 +16,14 @@ describe('POST /api/checkout (DB-backed order creation)', () => {
     userEmail: '',
     productHandle: '',
     productIds: [],
+    variantIds: [],
     cartId: 0,
     orderNumbers: [],
     sessionTokens: [],
   };
 
   beforeAll(async () => {
-    const productId = await seedProduct(scope, { totalInventory: 10 });
+    const productId = await seedProduct(scope, { stock: 10 });
     await seedCartWithItem(scope, productId, 2);
   });
 

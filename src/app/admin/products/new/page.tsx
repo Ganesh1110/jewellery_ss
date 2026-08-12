@@ -186,6 +186,8 @@ export default function NewProductPage() {
             compareAtPrice: compareAtPrice ? { amount: Number(compareAtPrice), currencyCode: 'INR' } : null,
             image: null,
             sku: `SKU-${autoHandle}`,
+            barcode: null,
+            lowStockThreshold: 5,
           },
         },
       ],

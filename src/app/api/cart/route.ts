@@ -15,7 +15,7 @@ export async function POST(req: Request) {
       await prisma.cartItem.create({ data: { cartId: cart.id, productId, variantId: variant.id, quantity: Math.max(1, line.quantity) } });
     }
   }
-  const full = await prisma.cart.findUnique({ where: { id: cart.id }, include: { items: { include: { product: true } } } });
+  const full = await prisma.cart.findUnique({ where: { id: cart.id }, include: { items: { include: { variant: { include: { product: true } } } } } });
   return NextResponse.json(cartRecordToCart(full!, full!.items));
 }
 
@@ -25,7 +25,7 @@ export async function GET(req: Request) {
   if (!cartId) return NextResponse.json({ error: 'cartId is required' }, { status: 400 });
   const id = gidToId(cartId);
   if (id == null) return NextResponse.json({ error: 'Invalid cart id' }, { status: 400 });
-  const cart = await prisma.cart.findUnique({ where: { id }, include: { items: { include: { product: true } } } });
+  const cart = await prisma.cart.findUnique({ where: { id }, include: { items: { include: { variant: { include: { product: true } } } } } });
   if (!cart) return NextResponse.json({ error: 'Cart not found' }, { status: 404 });
   return NextResponse.json(cartRecordToCart(cart, cart.items));
 }

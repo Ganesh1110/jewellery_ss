@@ -11,6 +11,7 @@ export interface TestScope {
   userEmail: string;
   productHandle: string;
   productIds: number[];
+  variantIds: number[];
   cartId: number;
   cartGid?: string;
   orderNumbers: string[];
@@ -57,53 +58,50 @@ export async function createUnexpiringSession(email: string, scope: TestScope): 
   return token;
 }
 
-export async function seedProduct(scope: TestScope, overrides: {
-  price?: number;
-  totalInventory?: number;
-} = {}): Promise<number> {
+export async function seedProduct(scope: TestScope, overrides: { price?: number; stock?: number } = {}): Promise<number> {
   const handle = `test-${nextId()}`;
   const price = overrides.price ?? 12500;
-  const totalInventory = overrides.totalInventory ?? 10;
+  const stock = overrides.stock ?? 10;
   const product = await prisma.product.create({
     data: {
-      handle,
-      title: `Test Product ${handle}`,
-      description: 'A test product for the harness.',
-      descriptionHtml: '<p>A test product.</p>',
-      productType: 'Ring',
-      price,
-      currencyCode: 'INR',
-      totalInventory,
+      handle, title: `Test Product ${handle}`, description: 'A test product for the harness.',
+      descriptionHtml: '<p>A test product.</p>', productType: 'Ring', price, currencyCode: 'INR',
+      totalInventory: stock, availableForSale: stock > 0,
       featuredImage: JSON.stringify({ id: `gid://db/MediaImage/${handle}`, url: 'https://via.placeholder.com/400x500', altText: null, width: 1200, height: 1500 }),
       images: JSON.stringify([{ id: `gid://db/MediaImage/${handle}`, url: 'https://via.placeholder.com/400x500', altText: null, width: 400, height: 500 }]),
-      options: JSON.stringify([{ id: `gid://db/ProductOption/${handle}`, name: 'Material', values: ['18k Gold'] }]),
-      tags: ['test'],
-      seo: JSON.stringify({ title: 'Test', description: 'test' }),
-      publishedAt: new Date(),
-    },
-  });
-  await prisma.productVariant.create({
-    data: {
-      productId: product.id,
-      title: 'Default Title',
-      sku: `SSS-${handle.toUpperCase().replace(/-/g, '')}-DEFAULT`,
-      price,
-      currencyCode: 'INR',
-      stock: totalInventory,
-      selectedOptions: JSON.stringify([]),
-      availableForSale: totalInventory > 0,
+      options: JSON.stringify([{ id: `gid://db/ProductOption/${handle}`, name: 'Title', values: ['Default Title'] }]),
+      tags: ['test'], seo: JSON.stringify({ title: 'Test', description: 'test' }), publishedAt: new Date(),
     },
   });
   scope.productIds.push(product.id);
+  await seedVariant(scope, product.id, { sku: `SSS-${handle.toUpperCase().replace(/-/g, '')}`, price, stock, selectedOptions: [] });
   return product.id;
 }
 
-export async function seedCartWithItem(scope: TestScope, productId: number, quantity: number): Promise<{ cartId: string; cartRowId: number }> {
+export async function seedVariant(scope: TestScope, productId: number, overrides: {
+  sku?: string; price?: number; stock?: number; selectedOptions?: Array<{ name: string; value: string }>; lowStockThreshold?: number;
+} = {}): Promise<number> {
+  const product = await prisma.product.findUnique({ where: { id: productId } });
+  if (!product) throw new Error('missing product');
+  const v = await prisma.productVariant.create({
+    data: {
+      productId, title: overrides.selectedOptions?.length ? overrides.selectedOptions.map((o) => o.value).join(' / ') : 'Default Title',
+      sku: overrides.sku ?? `V-${nextId()}`, price: overrides.price ?? Number(product.price),
+      currencyCode: product.currencyCode, stock: overrides.stock ?? 10,
+      lowStockThreshold: overrides.lowStockThreshold ?? 5,
+      selectedOptions: JSON.stringify(overrides.selectedOptions ?? []),
+      availableForSale: (overrides.stock ?? 10) > 0,
+    },
+  });
+  scope.variantIds.push(v.id);
+  return v.id;
+}
+
+export async function seedCartWithItem(scope: TestScope, productId: number, quantity: number, variantId?: number): Promise<{ cartId: string; cartRowId: number }> {
   const cart = await prisma.cart.create({ data: { token: `cart-test-${nextId()}` } });
   scope.cartId = cart.id;
   scope.cartGid = `gid://db/Cart/${cart.id}`;
-  const variant = await prisma.productVariant.findFirst({ where: { productId } });
-  if (!variant) throw new Error(`seedCartWithItem: no variant found for product ${productId}`);
-  await prisma.cartItem.create({ data: { cartId: cart.id, productId, variantId: variant.id, quantity } });
+  const variant = variantId ?? (await prisma.productVariant.findFirstOrThrow({ where: { productId } })).id;
+  await prisma.cartItem.create({ data: { cartId: cart.id, productId, variantId: variant, quantity } });
   return { cartId: `gid://db/Cart/${cart.id}`, cartRowId: cart.id };
 }

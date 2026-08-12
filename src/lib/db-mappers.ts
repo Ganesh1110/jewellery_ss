@@ -1,5 +1,5 @@
-import type { Prisma, Product as DbProduct, Collection as DbCollection, Cart as DbCart, CartItem as DbCartItem, Article as DbArticle, Setting } from '@prisma/client';
-import type { Image, Product, ProductVariant, Cart, CartLine, Collection, Article, Shop, Menu, MenuItem } from '@/types/shopify';
+import type { Prisma, Product as DbProduct, ProductVariant as DbProductVariant, Collection as DbCollection, Cart as DbCart, CartItem as DbCartItem, Article as DbArticle, Setting } from '@prisma/client';
+import type { Image, Product, ProductVariant, SelectedOption, Cart, CartLine, Collection, Article, Shop, Menu, MenuItem } from '@/types/shopify';
 
 export const GID_PREFIX = 'gid://db';
 
@@ -27,25 +27,37 @@ export function toImage(json: Prisma.JsonValue | null): Image | null {
   };
 }
 
-function variantForProduct(p: DbProduct): ProductVariant {
-  const price = Number(p.price);
-  const compare = p.compareAtPrice != null ? Number(p.compareAtPrice) : null;
+export const variantsInclude = {
+  variants: { where: { deletedAt: null }, orderBy: { position: 'asc' as const } },
+};
+
+export function variantRecordToVariant(v: DbProductVariant): ProductVariant {
+  const price = Number(v.price);
+  const compare = v.compareAtPrice != null ? Number(v.compareAtPrice) : null;
+  const selectedOptions = (Array.isArray(v.selectedOptions) ? v.selectedOptions : []) as unknown as SelectedOption[];
   return {
-    id: `${GID_PREFIX}/ProductVariant/${p.id}`,
-    title: 'Default Title',
-    availableForSale: p.availableForSale,
-    quantityAvailable: p.totalInventory,
-    selectedOptions: [{ name: 'Default', value: 'Default Title' }],
-    price: { amount: price, currencyCode: p.currencyCode },
-    compareAtPrice: compare != null ? { amount: compare, currencyCode: p.currencyCode } : null,
-    image: toImage(p.featuredImage),
-    sku: null,
+    id: `${GID_PREFIX}/ProductVariant/${v.id}`,
+    title: v.title,
+    availableForSale: v.availableForSale,
+    quantityAvailable: v.stock,
+    selectedOptions,
+    price: { amount: price, currencyCode: v.currencyCode },
+    compareAtPrice: compare != null ? { amount: compare, currencyCode: v.currencyCode } : null,
+    image: toImage(v.image),
+    sku: v.sku,
+    barcode: v.barcode,
+    lowStockThreshold: v.lowStockThreshold,
   };
 }
 
-export function productRecordToProduct(p: DbProduct): Product {
-  const price = Number(p.price);
-  const compare = p.compareAtPrice != null ? Number(p.compareAtPrice) : null;
+export function productRecordToProduct(p: DbProduct & { variants?: DbProductVariant[] }): Product {
+  const variants = (p.variants ?? []).filter((v) => !v.deletedAt);
+  const edges = variants.map((node) => ({ node: variantRecordToVariant(node) }));
+  const prices = variants.map((v) => Number(v.price));
+  const min = prices.length ? Math.min(...prices) : Number(p.price);
+  const max = prices.length ? Math.max(...prices) : Number(p.price);
+  const totalInventory = variants.reduce((s, v) => s + v.stock, 0);
+  const currency = variants[0]?.currencyCode || p.currencyCode;
   const images = (Array.isArray(p.images) ? p.images : []) as Prisma.JsonValue[];
   const imageNodes = images.map((n) => toImage(n)).filter((n): n is Image => n !== null);
   const tags = (Array.isArray(p.tags) ? p.tags : []) as string[];
@@ -61,14 +73,14 @@ export function productRecordToProduct(p: DbProduct): Product {
     vendor: p.vendor,
     productType: p.productType,
     tags,
-    availableForSale: p.availableForSale,
-    totalInventory: p.totalInventory,
+    availableForSale: variants.some((v) => v.availableForSale && v.stock > 0),
+    totalInventory,
     images: { edges: imageNodes.map((node) => ({ node })), pageInfo: { hasNextPage: false } },
     featuredImage: toImage(p.featuredImage),
     options: options.map((o, i) => ({ id: o.id || `${GID_PREFIX}/ProductOption/${p.id}-${i}`, name: o.name, values: o.values })),
-    variants: { edges: [{ node: variantForProduct(p) }], pageInfo: { hasNextPage: false, hasPreviousPage: false } },
-    priceRange: { minVariantPrice: { amount: price, currencyCode: p.currencyCode }, maxVariantPrice: { amount: price, currencyCode: p.currencyCode } },
-    compareAtPriceRange: compare != null ? { minVariantPrice: { amount: compare, currencyCode: p.currencyCode }, maxVariantPrice: { amount: compare, currencyCode: p.currencyCode } } : null,
+    variants: { edges, pageInfo: { hasNextPage: false, hasPreviousPage: false } },
+    priceRange: { minVariantPrice: { amount: min, currencyCode: currency }, maxVariantPrice: { amount: max, currencyCode: currency } },
+    compareAtPriceRange: null,
     seo: { title: (seo.title as string) ?? null, description: (seo.description as string) ?? null },
     updatedAt: p.updatedAt.toISOString(),
     publishedAt: p.publishedAt ? p.publishedAt.toISOString() : null,
@@ -93,19 +105,18 @@ export function collectionRecordToCollection(c: DbCollection, products: Product[
   };
 }
 
-export function cartRecordToCart(cart: DbCart, items: Array<DbCartItem & { product: DbProduct }>): Cart {
+export function cartRecordToCart(cart: DbCart, items: Array<DbCartItem & { variant: DbProductVariant & { product: DbProduct } }>): Cart {
   const edges = items
     .filter((item) => item.quantity > 0)
     .map((item): { node: CartLine } => {
-      const p = item.product;
-      const price = Number(p.price);
-      const variant = variantForProduct(p);
+      const merchandise = variantRecordToVariant(item.variant);
+      const amount = Number(item.variant.price) * item.quantity;
       return {
         node: {
           id: `${GID_PREFIX}/CartLine/${item.id}`,
           quantity: item.quantity,
-          merchandise: variant,
-          cost: { totalAmount: { amount: price * item.quantity, currencyCode: p.currencyCode }, amountPerQuantity: { amount: price, currencyCode: p.currencyCode } },
+          merchandise,
+          cost: { totalAmount: { amount, currencyCode: merchandise.price.currencyCode }, amountPerQuantity: { amount: Number(item.variant.price), currencyCode: merchandise.price.currencyCode } },
           attributes: [],
           discounts: [],
         },
