@@ -39,7 +39,7 @@ function variantForProduct(p: DbProduct): ProductVariant {
     price: { amount: price, currencyCode: p.currencyCode },
     compareAtPrice: compare != null ? { amount: compare, currencyCode: p.currencyCode } : null,
     image: toImage(p.featuredImage),
-    sku: p.sku,
+    sku: null,
   };
 }
 

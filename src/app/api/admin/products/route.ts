@@ -49,7 +49,6 @@ export async function POST(req: Request) {
       options: input.options && input.options.length > 0 ? input.options : [{ id: 'opt-0', name: 'Title', values: ['Default Title'] }],
       seo: { title: input.title, description: input.description || '' },
       publishedAt: new Date(),
-      sku: `SSS-${handle.toUpperCase().replace(/-/g, '')}`,
     },
   });
 
@@ -57,7 +56,7 @@ export async function POST(req: Request) {
     const collection = await prisma.collection.upsert({
       where: { handle: input.collectionHandle },
       update: {},
-      create: { handle: input.collectionHandle, title: input.collectionHandle, description: '' },
+      create: { handle: input.collectionHandle, title: input.collectionHandle, description: '', descriptionHtml: '' },
     });
     await prisma.collectionItem.upsert({
       where: { collectionId_productId: { collectionId: collection.id, productId: product.id } },

@@ -17,6 +17,58 @@ interface ProductSeed {
   tags: string[];
   material: string;
   totalInventory?: number;
+  options?: Array<{ name: string; values: string[] }>;
+  variants?: Array<{ title: string; price: number; selectedOptions: Array<{ name: string; value: string }>; stock?: number }>;
+}
+
+const VARIANT_DEFAULT_STOCK = 25;
+
+async function upsertVariants(
+  productId: number,
+  skuBase: string,
+  specs: Array<{ title: string; price: number; selectedOptions: Array<{ name: string; value: string }>; stock?: number }>
+) {
+  // Keep variants that are referenced by orders/cart lines (RESTRICT FK) so we never
+  // drop order history; everything else for this product is regenerated below.
+  const referenced = await prisma.productVariant.findMany({
+    where: { productId, OR: [{ orderItems: { some: {} } }, { cartItems: { some: {} } }] },
+    select: { id: true },
+  });
+  const referencedIds = referenced.map((v) => v.id);
+  const baseWhere = referencedIds.length > 0
+    ? { productId, id: { notIn: referencedIds } }
+    : { productId };
+
+  await prisma.productVariant.deleteMany({ where: baseWhere });
+
+  for (const s of specs) {
+    const sku = `${skuBase}-${s.title.toUpperCase().replace(/[^A-Z0-9]+/g, '')}`;
+    const stock = s.stock ?? VARIANT_DEFAULT_STOCK;
+    const data = {
+      title: s.title,
+      sku,
+      price: s.price,
+      currencyCode: CURRENCY,
+      stock,
+      selectedOptions: JSON.stringify(s.selectedOptions),
+      availableForSale: stock > 0,
+    };
+    const existing = await prisma.productVariant.findFirst({ where: { productId, sku } });
+    if (existing) {
+      await prisma.productVariant.update({ where: { id: existing.id }, data });
+    } else {
+      const v = await prisma.productVariant.create({ data: { ...data, productId } });
+      await prisma.inventoryMovement.create({
+        data: { variantId: v.id, type: 'RESTOCK', quantity: v.stock, note: 'Initial stock', reference: 'seed' },
+      });
+    }
+  }
+
+  // Drop the backfilled "Default Title" placeholder variant if it is no longer wanted.
+  const cleanupWhere = referencedIds.length > 0
+    ? { productId, title: 'Default Title', id: { notIn: referencedIds } }
+    : { productId, title: 'Default Title' };
+  await prisma.productVariant.deleteMany({ where: cleanupWhere });
 }
 
 const products: ProductSeed[] = [
@@ -32,6 +84,25 @@ const products: ProductSeed[] = [
   { handle: 'diamond-love-band', title: 'Diamond Love Band', productType: 'Rings', vendor: 'Style Statement by Shakthi Atelier', price: 38900, description: 'A band of continuous diamonds that catches the light from every angle.', collection: 'bridal', tags: ['diamond', 'ring', 'bridal'], material: '18k White Gold' },
   { handle: 'rose-quartz-pendant', title: 'Rose Quartz Pendant', productType: 'Necklaces', vendor: 'Style Statement by Shakthi Atelier', price: 12600, description: 'A soft rose quartz heart on a delicate chain — a token of tenderness.', collection: 'new-arrivals', tags: ['rose-quartz', 'necklace', 'everyday'], material: '14k Rose Gold' },
   { handle: 'sapphire-halo-pendant', title: 'Sapphire Halo Pendant', productType: 'Necklaces', vendor: 'Style Statement by Shakthi Atelier', price: 31600, description: 'A deep blue sapphire encircled by tiny diamonds in warm gold settings.', collection: 'gemstones', tags: ['sapphire', 'necklace', 'statement'], material: '18k Yellow Gold' },
+  {
+    handle: 'heritage-chain-necklace',
+    title: 'Heritage Chain Necklace',
+    productType: 'Necklaces',
+    vendor: 'Style Statement by Shakthi Atelier',
+    price: 28900,
+    compareAtPrice: 32900,
+    description: 'A versatile chain necklace offered across lengths and finishes so it layers or stands alone.',
+    collection: 'gold',
+    tags: ['gold', 'necklace', 'layering'],
+    material: '18k Yellow Gold',
+    options: [{ name: 'Length', values: ['16"', '18"'] }, { name: 'Finish', values: ['Yellow Gold', 'Rose Gold'] }],
+    variants: [
+      { title: '16" / Yellow Gold', price: 28900, selectedOptions: [{ name: 'Length', value: '16"' }, { name: 'Finish', value: 'Yellow Gold' }], stock: 10 },
+      { title: '16" / Rose Gold', price: 28900, selectedOptions: [{ name: 'Length', value: '16"' }, { name: 'Finish', value: 'Rose Gold' }], stock: 8 },
+      { title: '18" / Yellow Gold', price: 30900, selectedOptions: [{ name: 'Length', value: '18"' }, { name: 'Finish', value: 'Yellow Gold' }], stock: 12 },
+      { title: '18" / Rose Gold', price: 30900, selectedOptions: [{ name: 'Length', value: '18"' }, { name: 'Finish', value: 'Rose Gold' }], stock: 6 },
+    ],
+  },
 ];
 
 const collections = [
@@ -120,7 +191,7 @@ async function main() {
     const row = await prisma.collection.upsert({
       where: { handle: c.handle },
       update: { title: c.title, description: c.description },
-      create: { handle: c.handle, title: c.title, description: c.description, image: image(`col-${c.handle}`, 1600, 1200), seo: { title: c.title, description: c.description } },
+      create: { handle: c.handle, title: c.title, description: c.description, descriptionHtml: `<p>${c.description}</p>`, image: image(`col-${c.handle}`, 1600, 1200), seo: { title: c.title, description: c.description } },
     });
     collectionMap.set(c.handle, row.id);
   }
@@ -142,10 +213,11 @@ async function main() {
         totalInventory: spec.totalInventory ?? 25,
         featuredImage: images[0],
         images,
-        options: [{ id: `gid://db/ProductOption/${spec.handle}-material`, name: 'Material', values: [spec.material] }],
+        options: spec.options
+          ? spec.options.map((o, i) => ({ id: `gid://db/ProductOption/${spec.handle}-${i}`, name: o.name, values: o.values }))
+          : [{ id: `gid://db/ProductOption/${spec.handle}-material`, name: 'Material', values: [spec.material] }],
         seo: { title: spec.title, description: spec.description },
         publishedAt: new Date('2024-06-01T00:00:00Z'),
-        sku: `SSS-${spec.handle.toUpperCase().replace(/-/g, '')}`,
       },
       create: {
         handle: spec.handle,
@@ -161,12 +233,21 @@ async function main() {
         totalInventory: spec.totalInventory ?? 25,
         featuredImage: images[0],
         images,
-        options: [{ id: `gid://db/ProductOption/${spec.handle}-material`, name: 'Material', values: [spec.material] }],
+        options: spec.options
+          ? spec.options.map((o, i) => ({ id: `gid://db/ProductOption/${spec.handle}-${i}`, name: o.name, values: o.values }))
+          : [{ id: `gid://db/ProductOption/${spec.handle}-material`, name: 'Material', values: [spec.material] }],
         seo: { title: spec.title, description: spec.description },
         publishedAt: new Date('2024-06-01T00:00:00Z'),
-        sku: `SSS-${spec.handle.toUpperCase().replace(/-/g, '')}`,
       },
     });
+
+    if (spec.variants) {
+      await upsertVariants(product.id, spec.handle, spec.variants);
+    } else {
+      await upsertVariants(product.id, spec.handle, [
+        { title: spec.material, price: spec.price, selectedOptions: [{ name: 'Material', value: spec.material }] },
+      ]);
+    }
 
     const collectionId = collectionMap.get(spec.collection);
     if (collectionId != null) {

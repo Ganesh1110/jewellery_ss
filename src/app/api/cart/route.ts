@@ -10,7 +10,9 @@ export async function POST(req: Request) {
     for (const line of body.lines) {
       const productId = gidToId(line.merchandiseId);
       if (productId == null) continue;
-      await prisma.cartItem.create({ data: { cartId: cart.id, productId, quantity: Math.max(1, line.quantity) } });
+      const variant = await prisma.productVariant.findFirst({ where: { productId } });
+      if (!variant) continue;
+      await prisma.cartItem.create({ data: { cartId: cart.id, productId, variantId: variant.id, quantity: Math.max(1, line.quantity) } });
     }
   }
   const full = await prisma.cart.findUnique({ where: { id: cart.id }, include: { items: { include: { product: true } } } });

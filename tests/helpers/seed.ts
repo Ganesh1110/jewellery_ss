@@ -80,7 +80,18 @@ export async function seedProduct(scope: TestScope, overrides: {
       tags: ['test'],
       seo: JSON.stringify({ title: 'Test', description: 'test' }),
       publishedAt: new Date(),
-      sku: `SSS-${handle.toUpperCase().replace(/-/g, '')}`,
+    },
+  });
+  await prisma.productVariant.create({
+    data: {
+      productId: product.id,
+      title: 'Default Title',
+      sku: `SSS-${handle.toUpperCase().replace(/-/g, '')}-DEFAULT`,
+      price,
+      currencyCode: 'INR',
+      stock: totalInventory,
+      selectedOptions: JSON.stringify([]),
+      availableForSale: totalInventory > 0,
     },
   });
   scope.productIds.push(product.id);
@@ -91,6 +102,8 @@ export async function seedCartWithItem(scope: TestScope, productId: number, quan
   const cart = await prisma.cart.create({ data: { token: `cart-test-${nextId()}` } });
   scope.cartId = cart.id;
   scope.cartGid = `gid://db/Cart/${cart.id}`;
-  await prisma.cartItem.create({ data: { cartId: cart.id, productId, quantity } });
+  const variant = await prisma.productVariant.findFirst({ where: { productId } });
+  if (!variant) throw new Error(`seedCartWithItem: no variant found for product ${productId}`);
+  await prisma.cartItem.create({ data: { cartId: cart.id, productId, variantId: variant.id, quantity } });
   return { cartId: `gid://db/Cart/${cart.id}`, cartRowId: cart.id };
 }

@@ -23,10 +23,12 @@ export async function POST(req: Request) {
   for (const line of body.lines) {
     const productId = gidToId(line.merchandiseId);
     if (productId == null) continue;
+    const variant = await prisma.productVariant.findFirst({ where: { productId } });
+    if (!variant) continue;
     await prisma.cartItem.upsert({
-      where: { cartId_productId: { cartId: id, productId } },
+      where: { cartId_variantId: { cartId: id, variantId: variant.id } },
       update: { quantity: { increment: Math.max(1, line.quantity) } },
-      create: { cartId: id, productId, quantity: Math.max(1, line.quantity) },
+      create: { cartId: id, productId, variantId: variant.id, quantity: Math.max(1, line.quantity) },
     });
   }
   const updated = await prisma.cart.findUnique({ where: { id }, include: { items: { include: { product: true } } } });

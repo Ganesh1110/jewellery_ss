@@ -28,6 +28,7 @@ export async function POST(req: Request) {
         paymentMethod: 'COD',
         items: {
           create: lines.map((l) => ({
+            variant: { connect: { id: l.variantId } },
             product: { connect: { id: l.productId } },
             title: l.product.title,
             handle: l.product.handle,
