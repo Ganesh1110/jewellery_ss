@@ -31,6 +31,7 @@ export default function AdminSettingsPage() {
   const { showToast } = useToast();
   const [config, setConfig] = useState<ConfigRow[]>(DEFAULT_CONFIG);
   const [alerts, setAlerts] = useState(DEFAULT_ALERTS);
+  const [theme, setTheme] = useState<'Light' | 'Dark' | 'System'>('Light');
   const [saved, setSaved] = useState(false);
 
   useEffect(() => {
@@ -173,12 +174,16 @@ export default function AdminSettingsPage() {
               <h2 className="font-heading text-heading-md text-neutral-950">Theme</h2>
             </div>
             <div className="flex flex-wrap gap-3">
-              {['Light', 'Dark', 'System'].map((mode) => (
+              {(['Light', 'Dark', 'System'] as const).map((mode) => (
                 <button
                   key={mode}
                   type="button"
-                  onClick={() => undefined}
-                  className="inline-flex items-center gap-2 h-10 px-4 rounded-lg border border-neutral-950/10 text-body-sm text-neutral-700 hover:bg-neutral-100 transition-colors min-h-10"
+                  onClick={() => setTheme(mode)}
+                  className={`inline-flex items-center gap-2 h-10 px-4 rounded-lg text-body-sm font-medium transition-all min-h-10 ${
+                    theme === mode
+                      ? 'bg-neutral-950 text-cream-50 ring-2 ring-gold-400/50'
+                      : 'border border-neutral-950/10 text-neutral-700 hover:bg-neutral-100'
+                  }`}
                 >
                   {mode}
                 </button>
@@ -186,11 +191,11 @@ export default function AdminSettingsPage() {
             </div>
           </div>
 
-          <div className="card p-6 flex items-center justify-between gap-4">
+          <div className="card p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
             <p className="text-body-sm text-neutral-500">
-              Changes are stored locally in this browser and applied to the storefront demo.
+              Changes are saved directly to your store&apos;s database and applied across your storefront.
             </p>
-            <button type="button" onClick={handleSave} className="btn btn-primary min-h-11 px-6">
+            <button type="button" onClick={handleSave} className="btn btn-primary min-h-11 px-6 w-full sm:w-auto">
               {saved ? (
                 <>
                   <Check className="h-4 w-4" /> Saved

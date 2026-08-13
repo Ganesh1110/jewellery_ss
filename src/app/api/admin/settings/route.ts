@@ -35,6 +35,13 @@ export async function PATCH(req: Request) {
         update: { value: String(row.value), label: row.label, hint: row.hint },
         create: { key: row.key, value: String(row.value), label: row.label, hint: row.hint },
       });
+      if (row.key === 'store_name') {
+        await prisma.setting.upsert({
+          where: { key: 'shop.name' },
+          update: { value: String(row.value) },
+          create: { key: 'shop.name', value: String(row.value), label: 'Shop Name', hint: '' },
+        });
+      }
     }
   }
   if (body.alerts) {
