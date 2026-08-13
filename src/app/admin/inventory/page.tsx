@@ -113,7 +113,7 @@ export default function InventoryDashboardPage() {
   };
 
   const archiveVariant = async (variant: ProductVariant) => {
-    const res = await fetch(`/api/admin/variants/${variant.id}`, {
+    const res = await fetch(`/api/admin/variants/${encodeURIComponent(variant.id)}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ archived: true }),
@@ -123,7 +123,7 @@ export default function InventoryDashboardPage() {
   };
 
   const restoreVariant = async (variant: ProductVariant) => {
-    const res = await fetch(`/api/admin/variants/${variant.id}/restore`, { method: 'PATCH' });
+    const res = await fetch(`/api/admin/variants/${encodeURIComponent(variant.id)}/restore`, { method: 'PATCH' });
     if (!res.ok) throw new Error('Failed to restore variant');
     return res.json();
   };
@@ -421,7 +421,7 @@ export default function InventoryDashboardPage() {
                                       setHistoryRows([]);
                                       setHistoryFor({ variant, product });
                                       setHistoryLoading(true);
-                                      fetch(`/api/admin/variants/${variant.id}/movements`)
+                                      fetch(`/api/admin/variants/${encodeURIComponent(variant.id)}/movements`)
                                         .then((r) => r.json())
                                         .then((rows: InventoryMovementView[]) => setHistoryRows(rows))
                                         .catch(() => showToast('Failed to load history'))
@@ -716,7 +716,7 @@ function EditDialog({ variant, product, onClose, onSaved, showToast }: {
     setSubmitting(true);
     setError(null);
     try {
-      const res = await fetch(`/api/admin/variants/${variant.id}`, {
+      const res = await fetch(`/api/admin/variants/${encodeURIComponent(variant.id)}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
