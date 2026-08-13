@@ -118,7 +118,10 @@ export default function AdminOrdersPage() {
                           <OptimizedImage src={item.image} alt={item.title} width={48} height={48} objectFit="cover" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-body-sm font-medium text-neutral-950 truncate">{item.title}</p>
+                          <p className="text-body-sm font-medium text-neutral-950 truncate">
+                            {item.title}
+                            {item.variantTitle && item.variantTitle !== 'Default Title' ? ` — ${item.variantTitle}` : ''}
+                          </p>
                           <p className="text-caption text-neutral-500">Qty: {item.quantity}</p>
                         </div>
                         <span className="text-body-sm text-neutral-500 tabular-nums">

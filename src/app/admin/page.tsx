@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Plus, Package, Trash2, ExternalLink, ShieldCheck, Tag, DollarSign, Layers } from 'lucide-react';
+import { Plus, Package, Archive, ExternalLink, ShieldCheck, Tag, DollarSign, Layers } from 'lucide-react';
 import { formatMoney } from '@/lib/utils';
 import type { Product } from '@/types/shopify';
 import { OptimizedImage } from '@/components/ui/Image';
@@ -21,8 +21,8 @@ export default function AdminDashboardPage() {
       .catch(() => setLoaded(true));
   }, []);
 
-  const handleDelete = async (id: string, title: string) => {
-    if (confirm(`Are you sure you want to delete "${title}"?`)) {
+  const handleArchive = async (id: string, title: string) => {
+    if (confirm(`Archive "${title}"? Archived products can be restored from the inventory dashboard.`)) {
       const res = await fetch(`/api/admin/products/${encodeURIComponent(id)}`, { method: 'DELETE' });
       if (res.ok) setCustomProducts((prev) => prev.filter((p) => p.id !== id));
     }
@@ -146,6 +146,9 @@ export default function AdminDashboardPage() {
                               <div>
                                 <p className="font-medium text-neutral-950">{product.title}</p>
                                 <p className="text-caption text-neutral-400">/{product.handle}</p>
+                                <p className="text-caption text-neutral-500">
+                                  {product.variants.edges.length} variant(s) · {product.totalInventory} units
+                                </p>
                               </div>
                             </div>
                           </td>
@@ -168,12 +171,12 @@ export default function AdminDashboardPage() {
                                 <ExternalLink className="h-4 w-4" />
                               </Link>
                               <button
-                                onClick={() => handleDelete(product.id, product.title)}
-                                className="h-10 w-10 inline-flex items-center justify-center rounded-md text-neutral-400 hover:text-red-600 hover:bg-red-50 transition-colors"
-                                title="Delete product"
-                                aria-label={`Delete ${product.title}`}
+                                onClick={() => handleArchive(product.id, product.title)}
+                                className="h-10 w-10 inline-flex items-center justify-center rounded-md text-neutral-400 hover:text-amber-600 hover:bg-amber-50 transition-colors"
+                                title="Archive product"
+                                aria-label={`Archive ${product.title}`}
                               >
-                                <Trash2 className="h-4 w-4" />
+                                <Archive className="h-4 w-4" />
                               </button>
                             </div>
                           </td>
@@ -203,6 +206,9 @@ export default function AdminDashboardPage() {
                             <span className="font-semibold text-neutral-950">{formatMoney(price, 'INR')}</span>
                             <span className="badge-gold">{product.productType}</span>
                           </div>
+                          <p className="text-caption text-neutral-500 mt-1">
+                            {product.variants.edges.length} variant(s) · {product.totalInventory} units
+                          </p>
                         </div>
                         <div className="flex flex-col gap-1.5 flex-shrink-0">
                           <Link
@@ -215,12 +221,12 @@ export default function AdminDashboardPage() {
                             <ExternalLink className="h-4 w-4" />
                           </Link>
                           <button
-                            onClick={() => handleDelete(product.id, product.title)}
-                            className="h-10 w-10 inline-flex items-center justify-center rounded-md border border-neutral-950/10 text-neutral-400 hover:text-red-600 transition-colors"
-                            title="Delete product"
-                            aria-label={`Delete ${product.title}`}
+                            onClick={() => handleArchive(product.id, product.title)}
+                            className="h-10 w-10 inline-flex items-center justify-center rounded-md border border-neutral-950/10 text-neutral-400 hover:text-amber-600 transition-colors"
+                            title="Archive product"
+                            aria-label={`Archive ${product.title}`}
                           >
-                            <Trash2 className="h-4 w-4" />
+                            <Archive className="h-4 w-4" />
                           </button>
                         </div>
                       </div>
