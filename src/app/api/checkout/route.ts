@@ -39,7 +39,7 @@ export async function POST(req: Request) {
             })),
           },
         },
-        include: { items: true },
+        include: { items: { include: { variant: true } } },
       });
 
       const orderNumber = `#${1000 + created.id}`;
@@ -59,7 +59,7 @@ export async function POST(req: Request) {
         id: order.id, orderNumber: `#${1000 + order.id}`, name: 'Walk-in Checkout', email: '',
         createdAt: order.createdAt.toISOString(), total: Number(order.total), currencyCode: order.currencyCode,
         status: order.status,
-        lineItems: order.items.map((i) => ({ title: i.title, image: (i.image as { url?: string } | null)?.url || '/placeholder.svg', quantity: i.quantity })),
+        lineItems: order.items.map((i) => ({ title: i.title, image: (i.image as { url?: string } | null)?.url || '/placeholder.svg', quantity: i.quantity, variantTitle: i.variant?.title ?? null })),
       },
     });
   } catch (e) {

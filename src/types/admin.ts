@@ -20,6 +20,43 @@ export interface InventoryUpdate {
   availableForSale?: boolean;
 }
 
+export interface VariantInput {
+  title?: string;
+  sku?: string | null;
+  barcode?: string | null;
+  price?: number;
+  compareAtPrice?: number | null;
+  stock?: number;
+  lowStockThreshold?: number;
+  selectedOptions?: Array<{ name: string; value: string }>;
+}
+
+export interface VariantUpdate {
+  sku?: string | null;
+  barcode?: string | null;
+  price?: number;
+  compareAtPrice?: number | null;
+  lowStockThreshold?: number;
+  archived?: boolean;
+}
+
+export interface MovementInput {
+  variantId: string; // gid://db/ProductVariant/{id}
+  type: 'RESTOCK' | 'ADJUSTMENT' | 'DAMAGE';
+  quantity: number;
+  note?: string;
+}
+
+export interface InventoryMovementView {
+  id: number;
+  variantId: number;
+  type: string;
+  quantity: number;
+  note: string;
+  reference: string | null;
+  createdAt: string;
+}
+
 export interface StoreConfigRow {
   key: string;
   label: string;
@@ -36,6 +73,7 @@ export interface StoredOrderItem {
   title: string;
   image: string;
   quantity: number;
+  variantTitle: string | null;
 }
 
 export interface StoredOrder {

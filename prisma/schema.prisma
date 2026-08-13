@@ -82,6 +82,8 @@ model Product {
   variants         ProductVariant[]
   cartItems        CartItem[]
   orderItems       OrderItem[]
+
+  @@index([deletedAt, createdAt])
 }
 
 model ProductVariant {

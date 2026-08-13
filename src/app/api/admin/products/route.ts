@@ -1,8 +1,11 @@
 import { NextResponse } from 'next/server';
+import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { productRecordToProduct, variantsInclude } from '@/lib/db-mappers';
 import { getSession } from '@/lib/auth';
-import type { CustomProductInput } from '@/types/admin';
+import { applyMovement } from '@/lib/inventory';
+import { assertBarcodeUnique, assertSkuUnique, SkuConflictError, BarcodeConflictError } from '@/lib/variant-uniqueness';
+import type { CustomProductInput, VariantInput } from '@/types/admin';
 
 export async function GET(req: Request) {
   if (!(await getSession())) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -24,47 +27,108 @@ function slugify(s: string): string {
 
 export async function POST(req: Request) {
   if (!(await getSession())) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  const input = await req.json().catch(() => ({})) as Partial<CustomProductInput>;
+  const input = await req.json().catch(() => ({})) as Partial<CustomProductInput> & { variants?: VariantInput[] };
   if (!input.title || typeof input.price !== 'number') return NextResponse.json({ error: 'title and price are required' }, { status: 400 });
 
   const handle = input.handle || slugify(input.title);
   const images = Array.isArray(input.images) && input.images.length > 0 ? input.images : ['/placeholder.svg'];
   const price = input.price;
+  const title = input.title;
+  const description = input.description || '';
+  const vendor = input.vendor || 'Style Statement by Shakthi Atelier';
+  const productType = input.productType || 'Jewelry';
+  const tags = input.tags || [];
+  const compareAtPrice = input.compareAtPrice ?? null;
 
-  const product = await prisma.product.create({
-    data: {
-      handle,
-      title: input.title,
-      description: input.description || '',
-      descriptionHtml: `<p>${input.description || ''}</p>`,
-      vendor: input.vendor || 'Style Statement by Shakthi Atelier',
-      productType: input.productType || 'Jewelry',
-      tags: input.tags || [],
-      price,
-      compareAtPrice: input.compareAtPrice ?? null,
-      currencyCode: 'INR',
-      totalInventory: input.totalInventory ?? 10,
-      featuredImage: images[0],
-      images,
-      options: input.options && input.options.length > 0 ? input.options : [{ id: 'opt-0', name: 'Title', values: ['Default Title'] }],
-      seo: { title: input.title, description: input.description || '' },
-      publishedAt: new Date(),
-    },
-    include: variantsInclude,
-  });
+  const variantSpecs: VariantInput[] = input.variants?.length
+    ? input.variants
+    : [{ title: 'Default Title', price, stock: input.totalInventory ?? 10 }];
 
-  if (input.collectionHandle) {
-    const collection = await prisma.collection.upsert({
-      where: { handle: input.collectionHandle },
-      update: {},
-      create: { handle: input.collectionHandle, title: input.collectionHandle, description: '', descriptionHtml: '' },
-    });
-    await prisma.collectionItem.upsert({
-      where: { collectionId_productId: { collectionId: collection.id, productId: product.id } },
-      update: {},
-      create: { collectionId: collection.id, productId: product.id, position: product.id },
-    });
+  try {
+    for (const v of variantSpecs) {
+      if (v.sku) await assertSkuUnique(v.sku, null, prisma);
+      if (v.barcode) await assertBarcodeUnique(v.barcode, null, prisma);
+    }
+  } catch (e) {
+    if (e instanceof SkuConflictError || e instanceof BarcodeConflictError) return NextResponse.json({ error: e.message }, { status: 409 });
+    throw e;
   }
 
-  return NextResponse.json(productRecordToProduct(product), { status: 201 });
+  const totalInventory = variantSpecs.reduce((sum, v) => sum + (v.stock ?? 0), 0);
+  const availableForSale = variantSpecs.some((v) => (v.stock ?? 0) > 0);
+
+  try {
+    const created = await prisma.$transaction(async (tx) => {
+      const product = await tx.product.create({
+        data: {
+          handle,
+          title,
+          description,
+          descriptionHtml: `<p>${description}</p>`,
+          vendor,
+          productType,
+          tags,
+          price,
+          compareAtPrice,
+          currencyCode: 'INR',
+          totalInventory,
+          availableForSale,
+          featuredImage: images[0],
+          images,
+          options: input.options && input.options.length > 0 ? input.options : [{ id: 'opt-0', name: 'Title', values: ['Default Title'] }],
+          seo: { title, description },
+          publishedAt: new Date(),
+        },
+      });
+
+      for (const v of variantSpecs) {
+        const variant = await tx.productVariant.create({
+          data: {
+            productId: product.id,
+            title: v.title || 'Default Title',
+            sku: v.sku || null,
+            barcode: v.barcode || null,
+            price: v.price ?? price,
+            compareAtPrice: v.compareAtPrice ?? null,
+            currencyCode: 'INR',
+            stock: v.stock ?? 0,
+            lowStockThreshold: v.lowStockThreshold ?? 5,
+            availableForSale: (v.stock ?? 0) > 0,
+            selectedOptions: JSON.stringify(v.selectedOptions ?? []),
+          },
+        });
+        if ((v.stock ?? 0) > 0) {
+          await tx.inventoryMovement.create({
+            data: { variantId: variant.id, type: 'RESTOCK', quantity: v.stock!, note: 'Initial stock', reference: 'admin' },
+          });
+        }
+      }
+
+      if (input.collectionHandle) {
+        const collection = await tx.collection.upsert({
+          where: { handle: input.collectionHandle },
+          update: {},
+          create: { handle: input.collectionHandle, title: input.collectionHandle, description: '', descriptionHtml: '' },
+        });
+        await tx.collectionItem.upsert({
+          where: { collectionId_productId: { collectionId: collection.id, productId: product.id } },
+          update: {},
+          create: { collectionId: collection.id, productId: product.id, position: product.id },
+        });
+      }
+
+      return product;
+    });
+
+    const product = await prisma.product.findUnique({
+      where: { id: created.id },
+      include: { variants: { where: { deletedAt: null }, orderBy: { position: 'asc' } } },
+    });
+    return NextResponse.json(productRecordToProduct(product!), { status: 201 });
+  } catch (e) {
+    if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2002') {
+      return NextResponse.json({ error: `Duplicate value: ${e.meta?.target}` }, { status: 409 });
+    }
+    throw e;
+  }
 }

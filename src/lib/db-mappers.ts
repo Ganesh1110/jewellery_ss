@@ -1,5 +1,6 @@
-import type { Prisma, Product as DbProduct, ProductVariant as DbProductVariant, Collection as DbCollection, Cart as DbCart, CartItem as DbCartItem, Article as DbArticle, Setting } from '@prisma/client';
+import type { Prisma, Product as DbProduct, ProductVariant as DbProductVariant, Collection as DbCollection, Cart as DbCart, CartItem as DbCartItem, Article as DbArticle, Setting, InventoryMovement as DbInventoryMovement } from '@prisma/client';
 import type { Image, Product, ProductVariant, SelectedOption, Cart, CartLine, Collection, Article, Shop, Menu, MenuItem } from '@/types/shopify';
+import type { InventoryMovementView } from '@/types/admin';
 
 export const GID_PREFIX = 'gid://db';
 
@@ -61,6 +62,10 @@ export function variantRecordToVariant(v: DbProductVariant): ProductVariant {
     barcode: v.barcode,
     lowStockThreshold: v.lowStockThreshold,
   };
+}
+
+export function movementRecordToMovement(m: DbInventoryMovement): InventoryMovementView {
+  return { id: m.id, variantId: m.variantId, type: m.type, quantity: m.quantity, note: m.note, reference: m.reference, createdAt: m.createdAt.toISOString() };
 }
 
 export function productRecordToProduct(p: DbProduct & { variants?: DbProductVariant[] }): Product {

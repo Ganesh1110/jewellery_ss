@@ -10,7 +10,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
   const body = await req.json().catch(() => ({})) as { status?: string };
   if (typeof body.status !== 'string') return NextResponse.json({ error: 'status is required' }, { status: 400 });
 
-  const order = await prisma.order.update({ where: { id }, data: { status: body.status }, include: { items: true } }).catch(() => null);
+  const order = await prisma.order.update({ where: { id }, data: { status: body.status }, include: { items: { include: { variant: true } } } }).catch(() => null);
   if (!order) return NextResponse.json({ error: 'Order not found' }, { status: 404 });
 
   return NextResponse.json({
@@ -22,6 +22,6 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     total: Number(order.total),
     currencyCode: order.currencyCode,
     status: order.status,
-    lineItems: order.items.map((i) => ({ title: i.title, image: (i.image as { url?: string } | null)?.url || '/placeholder.svg', quantity: i.quantity })),
+    lineItems: order.items.map((i) => ({ title: i.title, image: (i.image as { url?: string } | null)?.url || '/placeholder.svg', quantity: i.quantity, variantTitle: i.variant?.title ?? null })),
   } as StoredOrder);
 }
