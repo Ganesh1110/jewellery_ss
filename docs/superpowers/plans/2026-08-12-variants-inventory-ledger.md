@@ -36,7 +36,7 @@
 - Consumes: current schema (Product/CartItem/OrderItem as-is).
 - Produces: `ProductVariant` + `InventoryMovement` Prisma models; `CartItem.variantId`, `OrderItem.variantId`, `Product.deletedAt`; `Product.sku` removed. Seed creates one Default variant per product + initial RESTOCK movements.
 
-- [ ] **Step 1: Update `prisma/schema.prisma`**
+- [x] **Step 1: Update `prisma/schema.prisma`**
 
 Add the two new models and wire the relations:
 
@@ -83,7 +83,7 @@ model InventoryMovement {
 
 `OrderItem`: add `variantId Int` + relation (**`onDelete: Restrict`**).
 
-- [ ] **Step 2: Generate the migration**
+- [x] **Step 2: Generate the migration**
 
 ```bash
 npx prisma migrate dev --create-only --name variants_inventory_ledger
@@ -91,7 +91,7 @@ npx prisma migrate dev --create-only --name variants_inventory_ledger
 
 Expected: a new folder `prisma/migrations/<timestamp>_variants_inventory_ledger/migration.sql` containing CREATE TABLE for `ProductVariant`/`InventoryMovement`, `ALTER Product` (ADD `deletedAt`, DROP COLUMN `sku`), and `ALTER CartItem`/`OrderItem` (ADD COLUMN `variantId`, ADD CONSTRAINT FK). Do NOT apply yet.
 
-- [ ] **Step 3: Hand-edit the migration SQL for the backfill**
+- [x] **Step 3: Hand-edit the migration SQL for the backfill**
 
 Prisma will generate `ADD COLUMN variantId ... NOT NULL`, which fails on the existing rows. Edit `migration.sql` so the order is: tables → backfill → contract:
 
@@ -130,7 +130,7 @@ ALTER TABLE `OrderItem` ADD CONSTRAINT `OrderItem_variantId_fkey`
 
 (Check the exact column types/FK names against the generated SQL — MySQL may emit `INTEGER`.)
 
-- [ ] **Step 4: Apply the migration and regenerate the client**
+- [x] **Step 4: Apply the migration and regenerate the client**
 
 ```bash
 npx prisma migrate dev
@@ -138,7 +138,7 @@ npx prisma migrate dev
 
 Expected: migration applies; existing products now each have a Default variant; cart/order rows point at their default variant; `prisma generate` runs. If a step fails, drop the DB and re-run migrations + seed (dev only).
 
-- [ ] **Step 5: Update `prisma/seed.ts` to create variants + movements**
+- [x] **Step 5: Update `prisma/seed.ts` to create variants + movements**
 
 Add a helper and call it inside the product loop; **remove `sku` from the product create/update `data`** (fields at lines ~148/167):
 
@@ -183,11 +183,11 @@ await upsertVariants(product.id, spec.handle, [
 
 Add one matrix example — append to `products` array a new spec with a `variants` field, extend `ProductSeed` with `variants?: Array<{ title: string; price: number; selectedOptions: Array<{ name: string; value: string }>; stock?: number }>`, set its `options` to `[{ name: 'Length', values: ['16"', '18"'] }, { name: 'Finish', values: ['Yellow Gold', 'Rose Gold'] }]`, and in the loop branch: if `spec.variants` exists, call `upsertVariants` with it instead of the default Material variant.
 
-- [ ] **Step 6: Update `tests/helpers/seed.ts` (keep type-check green)**
+- [x] **Step 6: Update `tests/helpers/seed.ts` (keep type-check green)**
 
 Remove `sku: 'SSS-...'` from `seedProduct`'s create data. The variant-based seeding happens in Task 2.
 
-- [ ] **Step 7: Verify + commit**
+- [x] **Step 7: Verify + commit**
 
 ```bash
 npm run db:migrate && npm run db:seed && npm run type-check
@@ -221,7 +221,7 @@ git add prisma/ && git commit -m "feat(schema): add ProductVariant + InventoryMo
   - `ProductVariant` type gains `barcode: string | null` and `lowStockThreshold: number`.
   - `getVariantAvailability` respects `lowStockThreshold`.
 
-- [ ] **Step 1: Write the failing test** — `tests/api/db-mappers.test.ts`
+- [x] **Step 1: Write the failing test** — `tests/api/db-mappers.test.ts`
 
 ```ts
 import { prisma } from '@/lib/prisma';
@@ -275,7 +275,7 @@ describe('db-mappers with real variants', () => {
 
 `seedProduct`/`seedVariant`/`seedCartWithItem` from the updated helper (Step 2) create a Default variant automatically. `seedVariant` returns the new variant id and pushes it onto `scope.variantIds`.
 
-- [ ] **Step 2: Update `tests/helpers/seed.ts`**
+- [x] **Step 2: Update `tests/helpers/seed.ts`**
 
 Add `variantIds: number[]` to `TestScope` (and to every existing `TestScope` literal in the API tests — `tests/api/auth.test.ts:17`, `tests/api/checkout-route.test.ts:15`, `tests/api/checkout-order.test.ts` has no scope). Add to `cleanupScoped` (orderItems→orders first, cartItems by cartId, then products cascade variants/movements — existing cleanup already handles order/cart; verify `product.deleteMany` still works now that `ProductVariant` cascades and `InventoryMovement` cascades from variant; `OrderItem.variant` is Restrict but orderItems are deleted with the order first). Rewrite:
 
@@ -331,12 +331,12 @@ export async function seedCartWithItem(scope: TestScope, productId: number, quan
 
 Remove `totalInventory`/`availableForSale`/`sku` from `seedProduct` data accordingly. Update the two existing `TestScope` literals in `auth.test.ts` and `checkout-route.test.ts` to include `variantIds: []`.
 
-- [ ] **Step 3: Run the test to verify it fails**
+- [x] **Step 3: Run the test to verify it fails**
 
 Run: `npm test -- tests/api/db-mappers.test.ts`
 Expected: FAIL — `variantRecordToVariant` / `seedVariant` not defined; type-check fails.
 
-- [ ] **Step 4: Implement `src/types/shopify.ts`, `src/lib/db-mappers.ts`, `src/lib/shopify.ts`, `src/lib/utils.ts`**
+- [x] **Step 4: Implement `src/types/shopify.ts`, `src/lib/db-mappers.ts`, `src/lib/shopify.ts`, `src/lib/utils.ts`**
 
 `src/types/shopify.ts` — extend `ProductVariant`:
 
@@ -458,12 +458,12 @@ export function getVariantAvailability(variant: { availableForSale: boolean; qua
 }
 ```
 
-- [ ] **Step 5: Run the test to verify it passes**
+- [x] **Step 5: Run the test to verify it passes**
 
 Run: `npm test -- tests/api/db-mappers.test.ts`
 Expected: PASS.
 
-- [ ] **Step 6: Full check + commit**
+- [x] **Step 6: Full check + commit**
 
 ```bash
 npm run type-check && npm test
@@ -492,7 +492,7 @@ git commit -m "feat(data): map real variants through mappers; variant-aware read
   - `export class InsufficientStockError extends Error`
   - `export async function applyMovement(input: { variantId: number; type: MovementType; quantity: number; note?: string; reference?: string }, tx?: Prisma.TransactionClient): Promise<void>`
 
-- [ ] **Step 1: Write the failing test** — `tests/api/inventory.test.ts`
+- [x] **Step 1: Write the failing test** — `tests/api/inventory.test.ts`
 
 ```ts
 import { prisma } from '@/lib/prisma';
@@ -565,12 +565,12 @@ describe('applyMovement (inventory ledger)', () => {
 
 Remove the placeholder "guards oversell" test (replace with the guarded-sale test below it).
 
-- [ ] **Step 2: Run to verify it fails**
+- [x] **Step 2: Run to verify it fails**
 
 Run: `npm test -- tests/api/inventory.test.ts`
 Expected: FAIL — `applyMovement` not exported.
 
-- [ ] **Step 3: Implement `src/lib/inventory.ts`**
+- [x] **Step 3: Implement `src/lib/inventory.ts`**
 
 ```ts
 import { prisma } from './prisma';
@@ -630,12 +630,12 @@ export async function applyMovement(
 }
 ```
 
-- [ ] **Step 4: Run to verify it passes**
+- [x] **Step 4: Run to verify it passes**
 
 Run: `npm test -- tests/api/inventory.test.ts`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/lib/inventory.ts tests/api/inventory.test.ts
@@ -659,7 +659,7 @@ git commit -m "feat(inventory): applyMovement ledger service with guarded atomic
 - Consumes: `applyMovement`, `variantRecordToVariant`, `cartRecordToCart` (variant-keyed), updated `seedCartWithItem`.
 - Produces: cart lines keyed by variant `merchandiseId`; checkout decrements variant stock via `applyMovement('SALE', reference=orderNumber)` and stores `variantId` on `OrderItem`.
 
-- [ ] **Step 1: Write failing tests**
+- [x] **Step 1: Write failing tests**
 
 `tests/api/cart.test.ts`:
 
@@ -741,12 +741,12 @@ const product = await prisma.product.findUnique({ where: { id: scope.productIds[
 expect(Number(product!.totalInventory)).toBe(8);
 ```
 
-- [ ] **Step 2: Run to verify they fail**
+- [x] **Step 2: Run to verify they fail**
 
 Run: `npm test -- tests/api/cart.test.ts tests/api/checkout-route.test.ts`
 Expected: FAIL — cart routes still key off `productId`, checkout still uses `product.totalInventory`.
 
-- [ ] **Step 3: Implement cart routes**
+- [x] **Step 3: Implement cart routes**
 
 `src/app/api/cart/route.ts` — resolve variant gids:
 
@@ -785,7 +785,7 @@ const itemsInclude = { items: { include: { variant: { include: { product: true }
 
 `src/app/api/cart/note/route.ts` — update the cart fetch to use `itemsInclude` (it currently returns `cartRecordToCart(cart, cart.items)`; read the file and add the same include).
 
-- [ ] **Step 4: Implement checkout**
+- [x] **Step 4: Implement checkout**
 
 `src/app/api/checkout/route.ts` — full rewrite of the POST body:
 
@@ -861,12 +861,12 @@ export async function POST(req: Request) {
 }
 ```
 
-- [ ] **Step 5: Run tests to verify they pass**
+- [x] **Step 5: Run tests to verify they pass**
 
 Run: `npm test -- tests/api/cart.test.ts tests/api/checkout-route.test.ts`
 Expected: PASS.
 
-- [ ] **Step 6: Full check + commit**
+- [x] **Step 6: Full check + commit**
 
 ```bash
 npm run type-check && npm test
@@ -903,7 +903,7 @@ git commit -m "feat(cart): variant-keyed cart and checkout with SALE ledger move
   - `GET /api/admin/variants/[id]/movements` returns `InventoryMovementView[]`.
   - `DELETE /api/admin/products/[id]` archives (sets `deletedAt`), `GET /api/admin/products` filters archived and includes variants.
 
-- [ ] **Step 1: Write failing tests** — `tests/api/admin-variants.test.ts`
+- [x] **Step 1: Write failing tests** — `tests/api/admin-variants.test.ts`
 
 ```ts
 import { POST as createProduct, GET as listProducts } from '@/app/api/admin/products/route';
@@ -1026,12 +1026,12 @@ describe('admin variant + movement APIs', () => {
 
 (Import `gidToId` in the test. The `patchVariantRoute` on an archived variant's `archived: true` re-archive is fine.)
 
-- [ ] **Step 2: Run to verify they fail**
+- [x] **Step 2: Run to verify they fail**
 
 Run: `npm test -- tests/api/admin-variants.test.ts`
 Expected: FAIL — routes missing.
 
-- [ ] **Step 3: Implement `src/types/admin.ts` additions**
+- [x] **Step 3: Implement `src/types/admin.ts` additions**
 
 ```ts
 export interface VariantInput {
@@ -1081,7 +1081,7 @@ export interface StoredOrderLineItem {
 
 Also replace `InventoryUpdate` usage in `products/[id]` with a slimmer shape (see Step 5) — leave `InventoryUpdate` exported but unused is fine; better: remove it and use inline.
 
-- [ ] **Step 4: Implement `src/lib/variant-uniqueness.ts`**
+- [x] **Step 4: Implement `src/lib/variant-uniqueness.ts`**
 
 ```ts
 import type { Prisma, PrismaClient } from '@prisma/client';
@@ -1110,7 +1110,7 @@ export async function assertBarcodeUnique(barcode: string, excludeVariantId: num
 
 (Import `Prisma` and `PrismaClient` from `@prisma/client`; `ClientLike` accepts both the singleton and a transaction client.)
 
-- [ ] **Step 5: Implement admin routes**
+- [x] **Step 5: Implement admin routes**
 
 `src/app/api/admin/products/route.ts`:
 
@@ -1234,12 +1234,12 @@ export function movementRecordToMovement(m: DbInventoryMovement): InventoryMovem
 }
 ```
 
-- [ ] **Step 6: Run tests to verify they pass**
+- [x] **Step 6: Run tests to verify they pass**
 
 Run: `npm test -- tests/api/admin-variants.test.ts`
 Expected: PASS.
 
-- [ ] **Step 7: Full check + commit**
+- [x] **Step 7: Full check + commit**
 
 ```bash
 npm run type-check && npm test
@@ -1264,7 +1264,7 @@ git commit -m "feat(admin): variant matrix create, variant update/restore, movem
 - Consumes: `POST /api/admin/products` variant-matrix contract (Task 5).
 - Produces: `generateVariantMatrix(dimensions): VariantMatrixCell[]` (pure, unit-tested); the new-product form submits `{ ...CustomProductInput, variants }`.
 
-- [ ] **Step 1: Write failing test** — `tests/api/variant-matrix.test.ts`
+- [x] **Step 1: Write failing test** — `tests/api/variant-matrix.test.ts`
 
 ```ts
 import { generateVariantMatrix } from '@/lib/variant-matrix';
@@ -1290,12 +1290,12 @@ describe('generateVariantMatrix', () => {
 });
 ```
 
-- [ ] **Step 2: Run to verify it fails**
+- [x] **Step 2: Run to verify it fails**
 
 Run: `npm test -- tests/api/variant-matrix.test.ts`
 Expected: FAIL — module missing.
 
-- [ ] **Step 3: Implement `src/lib/variant-matrix.ts`**
+- [x] **Step 3: Implement `src/lib/variant-matrix.ts`**
 
 ```ts
 export interface VariantDimension { name: string; values: string[] }
@@ -1327,12 +1327,12 @@ export function generateVariantMatrix(dimensions: VariantDimension[]): VariantMa
 }
 ```
 
-- [ ] **Step 4: Run to verify it passes**
+- [x] **Step 4: Run to verify it passes**
 
 Run: `npm test -- tests/api/variant-matrix.test.ts`
 Expected: PASS.
 
-- [ ] **Step 5: Rework `src/app/admin/products/new/page.tsx`**
+- [x] **Step 5: Rework `src/app/admin/products/new/page.tsx`**
 
 Keep the existing product fields (title, handle, type, vendor, description, tags, images, base price/compare-at, collection). Add:
 
@@ -1342,7 +1342,7 @@ Keep the existing product fields (title, handle, type, vendor, description, tags
 4. **Submit**: build `variants = matrix.filter(cell.enabled).map((cell, i) => ({ title: cell.title, sku: cells[i].sku || undefined, barcode: cells[i].barcode || undefined, price: Number(cells[i].price) || basePrice, compareAtPrice: cells[i].compareAtPrice ? Number(cells[i].compareAtPrice) : undefined, stock: Number(cells[i].stock) || 0, lowStockThreshold: Number(cells[i].lowStockThreshold) || 5, selectedOptions: cell.selectedOptions }))`; POST the existing payload plus `variants`, and `options: dimensions.map((d) => ({ id: `opt-${d.name}`, name: d.name, values: d.values }))` (empty dimensions → omit so the API defaults to a single Default variant). On 409, surface `body.error`.
 5. Remove the old `totalInventory` state field and its single-number input; keep the preview panel (update it to summarize `variants.length` variants).
 
-- [ ] **Step 6: Verify + commit**
+- [x] **Step 6: Verify + commit**
 
 ```bash
 npm run type-check && npm run build
@@ -1366,13 +1366,13 @@ git commit -m "feat(admin): variant-matrix editor in the new-product form"
 - Consumes: `GET /api/admin/products` (now includes variants), `POST /api/admin/inventory/movements`, `PATCH /api/admin/variants/[id]`, `PATCH /api/admin/variants/[id]/restore`, `GET /api/admin/variants/[id]/movements`.
 - Produces: variant-level inventory screen.
 
-- [ ] **Step 1: Delete the legacy route**
+- [x] **Step 1: Delete the legacy route**
 
 ```bash
 git rm "src/app/api/admin/inventory/[handle]/route.ts"
 ```
 
-- [ ] **Step 2: Rework `src/app/admin/inventory/page.tsx`**
+- [x] **Step 2: Rework `src/app/admin/inventory/page.tsx`**
 
 Replace the product-level rows with variant-level rows, keeping the header, metrics cards, tabs, and search from the current file:
 
@@ -1398,7 +1398,7 @@ function variantStatus(v: { availableForSale: boolean; quantityAvailable: number
 5. **Movement dialog submit** → `POST /api/admin/inventory/movements` with `{ variantId, type, quantity, note }`; on 400 show `error`; on success reload + toast.
 6. **Archived section**: after the active list, render products/variants that have been archived — fetched via `GET /api/admin/products?archived=1` (the archived branch on the GET route is added in Step 3). Each archived row shows a **Restore** action. Remove the old inline price/quantity math handlers (`handleQuantityChange`/`handleDirectQuantitySet`/`handleToggleStockAvailability`) — stock changes go through the movement dialog.
 
-- [ ] **Step 3: Extend `GET /api/admin/products` for archived listing**
+- [x] **Step 3: Extend `GET /api/admin/products` for archived listing**
 
 In `src/app/api/admin/products/route.ts` `GET`, branch on `archived`:
 
@@ -1411,7 +1411,7 @@ const rows = await prisma.product.findMany({
 });
 ```
 
-- [ ] **Step 4: Verify + commit**
+- [x] **Step 4: Verify + commit**
 
 ```bash
 npm run type-check && npm run build && npm test
@@ -1436,12 +1436,12 @@ git commit -m "feat(admin): variant-level inventory ledger UI with restock/adjus
 - Consumes: `DELETE /api/admin/products/[id]` (archive), variant-aware product list, `StoredOrderLineItem.variantTitle`.
 - Produces: dashboard shows variant count + total stock and archives via DELETE; orders list shows variant title.
 
-- [ ] **Step 1: Dashboard (`src/app/admin/page.tsx`)**
+- [x] **Step 1: Dashboard (`src/app/admin/page.tsx`)**
 
 - Product rows: replace the current "delete" confirm with "Archive" (same `handleDelete` → `DELETE /api/admin/products/{gid}`); after success, remove from local state.
 - Under each product title show `{product.variants.edges.length} variant(s) · {product.totalInventory} units` (data already available since `GET /api/admin/products` now includes variants).
 
-- [ ] **Step 2: Orders API (`src/app/api/admin/orders/route.ts`)**
+- [x] **Step 2: Orders API (`src/app/api/admin/orders/route.ts`)**
 
 ```ts
 const orders = await prisma.order.findMany({ orderBy: { createdAt: 'desc' }, include: { items: { include: { variant: true } } } });
@@ -1457,15 +1457,15 @@ const mapped: StoredOrder[] = orders.map((o) => ({
 }));
 ```
 
-- [ ] **Step 3: Orders page (`src/app/admin/orders/page.tsx`)**
+- [x] **Step 3: Orders page (`src/app/admin/orders/page.tsx`)**
 
 Where a line item title is rendered, append the variant when present: `{item.variantTitle && item.variantTitle !== 'Default Title' ? ` — ${item.variantTitle}` : ''}`. Update the `StoredOrder` lineItem type usage to include `variantTitle` (via `types/admin.ts`).
 
-- [ ] **Step 4: Add a small orders mapping test**
+- [x] **Step 4: Add a small orders mapping test**
 
 Append to `tests/api/admin-orders.test.ts` (create if missing): seed a product + variant, seed a cart with the variant, call checkout POST, then `GET /api/admin/orders` with a session and assert the line item `variantTitle` equals the variant title.
 
-- [ ] **Step 5: Verify + commit**
+- [x] **Step 5: Verify + commit**
 
 ```bash
 npm run type-check && npm test && npm run build
@@ -1483,7 +1483,7 @@ git commit -m "feat(admin): dashboard archive + variant summaries; orders show p
 **Files:**
 - None (verification only).
 
-- [ ] **Step 1: Fresh migrate + seed**
+- [x] **Step 1: Fresh migrate + seed**
 
 ```bash
 npm run db:migrate && npm run db:seed
@@ -1491,7 +1491,7 @@ npm run db:migrate && npm run db:seed
 
 Expected: clean apply; 13+ products each with variants; matrix product has 4 variants; every variant has a RESTOCK movement.
 
-- [ ] **Step 2: Static + test gates**
+- [x] **Step 2: Static + test gates**
 
 ```bash
 npm run type-check && npm run lint && npm test && npm run build
@@ -1499,7 +1499,7 @@ npm run type-check && npm run lint && npm test && npm run build
 
 Expected: all green.
 
-- [ ] **Step 3: Manual smoke (admin + storefront)**
+- [x] **Step 3: Manual smoke (admin + storefront)**
 
 1. `npm run dev`; open `/admin/login`, sign in.
 2. `/admin/products/new` — add Size + Finish dimensions, verify matrix generates, set a few SKUs/prices/stocks, submit; verify the PDP at `/products/{handle}` shows the variant selector and the price updates per variant.
@@ -1507,7 +1507,7 @@ Expected: all green.
 4. Storefront — add a specific variant to the cart, check the drawer shows the variant title, check out, verify the order confirmation and that admin `/admin/orders` shows the variant.
 5. Confirm `sku`/`barcode` reuse: archive a variant with SKU `X`, then create a new variant with SKU `X` (succeeds).
 
-- [ ] **Step 4: Final commit**
+- [x] **Step 4: Final commit**
 
 ```bash
 git add -A && git commit -m "chore: final verification for variants + inventory ledger"
