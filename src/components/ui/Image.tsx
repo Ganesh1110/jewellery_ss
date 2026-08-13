@@ -109,8 +109,8 @@ export function ProductImage({
     ? [selectedVariantImage, ...images.filter((img) => img.url !== selectedVariantImage?.url)]
     : images;
 
-  const primaryImage = displayImages[0];
-  const hoverImage = displayImages[1] || displayImages[0];
+  const primaryImage = displayImages[0] ?? { url: '/placeholder.svg', altText: null };
+  const hoverImage = displayImages[1] || primaryImage;
 
   const aspectClasses = {
     '4:5': 'aspect-4-5',
