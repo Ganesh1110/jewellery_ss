@@ -2,6 +2,12 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { cartRecordToCart, gidToId } from '@/lib/db-mappers';
 
+async function resolveVariant(merchandiseId: string) {
+  const id = gidToId(merchandiseId);
+  if (id == null) return null;
+  return prisma.productVariant.findUnique({ where: { id }, include: { product: true } });
+}
+
 async function getCart(cartId: string) {
   const id = gidToId(cartId);
   if (id == null) return null;
@@ -21,14 +27,12 @@ export async function POST(req: Request) {
   const { id } = found;
 
   for (const line of body.lines) {
-    const productId = gidToId(line.merchandiseId);
-    if (productId == null) continue;
-    const variant = await prisma.productVariant.findFirst({ where: { productId } });
-    if (!variant) continue;
+    const variant = await resolveVariant(line.merchandiseId);
+    if (!variant || variant.deletedAt || !variant.availableForSale) continue;
     await prisma.cartItem.upsert({
       where: { cartId_variantId: { cartId: id, variantId: variant.id } },
       update: { quantity: { increment: Math.max(1, line.quantity) } },
-      create: { cartId: id, productId, variantId: variant.id, quantity: Math.max(1, line.quantity) },
+      create: { cartId: id, productId: variant.productId, variantId: variant.id, quantity: Math.max(1, line.quantity) },
     });
   }
   const updated = await prisma.cart.findUnique({ where: { id }, include: { items: { include: { variant: { include: { product: true } } } } } });

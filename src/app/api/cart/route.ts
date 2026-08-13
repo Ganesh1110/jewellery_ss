@@ -3,16 +3,20 @@ import { prisma } from '@/lib/prisma';
 import { cartRecordToCart, gidToId } from '@/lib/db-mappers';
 import type { Cart } from '@/types/shopify';
 
+async function resolveVariant(merchandiseId: string) {
+  const id = gidToId(merchandiseId);
+  if (id == null) return null;
+  return prisma.productVariant.findUnique({ where: { id }, include: { product: true } });
+}
+
 export async function POST(req: Request) {
   const body = await req.json().catch(() => ({})) as { lines?: Array<{ merchandiseId: string; quantity: number }> };
   const cart = await prisma.cart.create({ data: { token: crypto.randomUUID() } });
   if (Array.isArray(body.lines)) {
     for (const line of body.lines) {
-      const productId = gidToId(line.merchandiseId);
-      if (productId == null) continue;
-      const variant = await prisma.productVariant.findFirst({ where: { productId } });
-      if (!variant) continue;
-      await prisma.cartItem.create({ data: { cartId: cart.id, productId, variantId: variant.id, quantity: Math.max(1, line.quantity) } });
+      const variant = await resolveVariant(line.merchandiseId);
+      if (!variant || variant.deletedAt || !variant.availableForSale) continue;
+      await prisma.cartItem.create({ data: { cartId: cart.id, productId: variant.productId, variantId: variant.id, quantity: Math.max(1, line.quantity) } });
     }
   }
   const full = await prisma.cart.findUnique({ where: { id: cart.id }, include: { items: { include: { variant: { include: { product: true } } } } } });

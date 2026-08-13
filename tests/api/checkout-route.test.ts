@@ -51,9 +51,16 @@ describe('POST /api/checkout (DB-backed order creation)', () => {
     expect(order!.items[0].quantity).toBe(2);
     expect(Number(order!.total)).toBe(25000);
     expect(order!.status).toBe('Processing');
+    expect(order!.items[0].variantId).toBe(scope.variantIds[0]);
+
+    const variant = await prisma.productVariant.findUniqueOrThrow({ where: { id: scope.variantIds[0] } });
+    expect(variant.stock).toBe(8);
+    const movement = await prisma.inventoryMovement.findFirstOrThrow({ where: { variantId: variant.id, type: 'SALE' } });
+    expect(movement.quantity).toBe(-2);
+    expect(movement.reference).toBe(body.order.orderNumber);
 
     const product = await prisma.product.findUnique({ where: { id: scope.productIds[0] } });
-    expect(product!.totalInventory).toBe(8);
+    expect(Number(product!.totalInventory)).toBe(8);
     expect(product!.availableForSale).toBe(true);
 
     const cartIdNum = Number(cartId.split('/').pop());

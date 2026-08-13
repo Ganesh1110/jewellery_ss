@@ -8,6 +8,18 @@ export function gidToId(gid: string): number | null {
   return Number.isNaN(n) ? null : n;
 }
 
+export function parseJson<T>(value: Prisma.JsonValue | null | undefined, fallback: T): T {
+  if (value == null) return fallback;
+  if (typeof value === 'string') {
+    try {
+      return JSON.parse(value) as T;
+    } catch {
+      return fallback;
+    }
+  }
+  return value as T;
+}
+
 export function parseAfter(after?: string): number {
   if (!after) return 0;
   const n = Number(after);
@@ -15,8 +27,9 @@ export function parseAfter(after?: string): number {
 }
 
 export function toImage(json: Prisma.JsonValue | null): Image | null {
-  if (!json || typeof json !== 'object' || Array.isArray(json)) return null;
-  const o = json as Record<string, unknown>;
+  const parsed = parseJson<Record<string, unknown> | null>(json, null);
+  if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return null;
+  const o = parsed;
   if (typeof o.url !== 'string') return null;
   return {
     id: typeof o.id === 'string' ? o.id : '',
@@ -34,7 +47,7 @@ export const variantsInclude = {
 export function variantRecordToVariant(v: DbProductVariant): ProductVariant {
   const price = Number(v.price);
   const compare = v.compareAtPrice != null ? Number(v.compareAtPrice) : null;
-  const selectedOptions = (Array.isArray(v.selectedOptions) ? v.selectedOptions : []) as unknown as SelectedOption[];
+  const selectedOptions = parseJson<SelectedOption[]>(v.selectedOptions, []);
   return {
     id: `${GID_PREFIX}/ProductVariant/${v.id}`,
     title: v.title,
@@ -58,10 +71,10 @@ export function productRecordToProduct(p: DbProduct & { variants?: DbProductVari
   const max = prices.length ? Math.max(...prices) : Number(p.price);
   const totalInventory = variants.reduce((s, v) => s + v.stock, 0);
   const currency = variants[0]?.currencyCode || p.currencyCode;
-  const images = (Array.isArray(p.images) ? p.images : []) as Prisma.JsonValue[];
+  const images = parseJson<Prisma.JsonValue[]>(p.images, []);
   const imageNodes = images.map((n) => toImage(n)).filter((n): n is Image => n !== null);
-  const tags = (Array.isArray(p.tags) ? p.tags : []) as string[];
-  const options = (Array.isArray(p.options) ? p.options : []) as Array<{ id?: string; name: string; values: string[] }>;
+  const tags = parseJson<string[]>(p.tags, []);
+  const options = parseJson<Array<{ id?: string; name: string; values: string[] }>>(p.options, []);
   const seo = (p.seo && typeof p.seo === 'object' ? p.seo : {}) as Record<string, unknown>;
 
   return {
