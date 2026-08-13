@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { productRecordToProduct, gidToId } from '@/lib/db-mappers';
+import { productRecordToProduct, gidToId, variantsInclude } from '@/lib/db-mappers';
 import { getSession } from '@/lib/auth';
 
 interface ProductBaseUpdate {
@@ -23,7 +23,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
       price: body.price !== undefined ? body.price : existing.price,
       compareAtPrice: body.compareAtPrice !== undefined ? body.compareAtPrice : existing.compareAtPrice,
     },
-    include: { variants: { where: { deletedAt: null }, orderBy: { position: 'asc' } } },
+    include: variantsInclude,
   });
   return NextResponse.json(productRecordToProduct(updated));
 }

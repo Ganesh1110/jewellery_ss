@@ -3,7 +3,6 @@ import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { productRecordToProduct, variantsInclude } from '@/lib/db-mappers';
 import { getSession } from '@/lib/auth';
-import { applyMovement } from '@/lib/inventory';
 import { assertBarcodeUnique, assertSkuUnique, SkuConflictError, BarcodeConflictError } from '@/lib/variant-uniqueness';
 import type { CustomProductInput, VariantInput } from '@/types/admin';
 
@@ -122,7 +121,7 @@ export async function POST(req: Request) {
 
     const product = await prisma.product.findUnique({
       where: { id: created.id },
-      include: { variants: { where: { deletedAt: null }, orderBy: { position: 'asc' } } },
+      include: variantsInclude,
     });
     return NextResponse.json(productRecordToProduct(product!), { status: 201 });
   } catch (e) {
