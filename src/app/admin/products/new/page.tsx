@@ -1,14 +1,15 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, CheckCircle2, Upload, Plus, Trash2, Eye, Star, Layers, Sparkles } from 'lucide-react';
-import type { CustomProductInput } from '@/types/admin';
+import { ArrowLeft, CheckCircle2, Upload, Plus, Trash2, Eye, Star, Layers, Sparkles, AlertCircle } from 'lucide-react';
+import type { CustomProductInput, VariantInput } from '@/types/admin';
 import { ProductCard } from '@/components/product/ProductCard';
 import { OptimizedImage } from '@/components/ui/Image';
-import type { Product } from '@/types/shopify';
+import type { Product, ProductVariant } from '@/types/shopify';
 import { Button } from '@/components/ui/Button';
+import { generateVariantMatrix } from '@/lib/variant-matrix';
 
 const SAMPLE_IMAGE_PRESETS = [
   { label: 'Gold Ring 1', url: '/images/Image1.jpeg' },
@@ -17,6 +18,20 @@ const SAMPLE_IMAGE_PRESETS = [
   { label: 'Atelier Piece 4', url: '/images/Image6.jpeg' },
   { label: 'Modelled 5', url: '/images/Image9.jpeg' },
 ];
+
+export interface CellData {
+  sku: string;
+  barcode: string;
+  price: string;
+  compareAtPrice: string;
+  stock: string;
+  lowStockThreshold: string;
+  enabled: boolean;
+}
+
+function defaultCell(size: number): CellData {
+  return { sku: '', barcode: '', price: size ? String(size) : '', compareAtPrice: '', stock: '10', lowStockThreshold: '5', enabled: true };
+}
 
 export default function NewProductPage() {
   const router = useRouter();
@@ -34,9 +49,10 @@ export default function NewProductPage() {
   const [compareAtPrice, setCompareAtPrice] = useState<number | ''>(15000);
   const [collectionHandle, setCollectionHandle] = useState('bestsellers');
   const [tagsInput, setTagsInput] = useState('bestsellers, new-arrivals, handcrafted');
-  const [totalInventory, setTotalInventory] = useState(10);
   const [images, setImages] = useState<string[]>(['/images/Image1.jpeg']);
   const [isDragOver, setIsDragOver] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [cellOverrides, setCellOverrides] = useState<Record<number, Partial<CellData>>>({});
 
   // Custom Variant Options State
   const [optionName, setOptionName] = useState('Size');
@@ -98,6 +114,21 @@ export default function NewProductPage() {
     setOptionsList((prev) => prev.filter((_, i) => i !== index));
   };
 
+  const matrix = useMemo(() => generateVariantMatrix(optionsList), [optionsList]);
+
+  const cellFor = (i: number): CellData => ({
+    ...defaultCell(price === '' ? 0 : Number(price)),
+    ...(cellOverrides[i] ?? {}),
+  });
+
+  const setCell = (i: number, patch: Partial<CellData>) => {
+    setCellOverrides((prev) => ({ ...prev, [i]: { ...(prev[i] ?? {}), ...patch } }));
+  };
+
+  const enabledCells = matrix
+    .map((cell, i) => ({ cell, data: cellFor(i), i }))
+    .filter(({ data }) => data.enabled);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim() || !price) return;
@@ -108,7 +139,21 @@ export default function NewProductPage() {
     const tags = tagsInput.split(',').map((t) => t.trim().toLowerCase()).filter(Boolean);
     if (!tags.includes(collectionHandle)) tags.push(collectionHandle);
 
-    const inputData: CustomProductInput = {
+    const variants: VariantInput[] = matrix
+      .map((cell, i) => ({ cell, data: cellFor(i) }))
+      .filter(({ data }) => data.enabled)
+      .map(({ cell, data }) => ({
+        title: cell.title === 'Default Title' ? 'Default Title' : cell.title,
+        sku: data.sku.trim() || undefined,
+        barcode: data.barcode.trim() || undefined,
+        price: Number(data.price) || Number(price) || 0,
+        compareAtPrice: data.compareAtPrice ? Number(data.compareAtPrice) : undefined,
+        stock: Number(data.stock) || 0,
+        lowStockThreshold: Number(data.lowStockThreshold) || 5,
+        selectedOptions: cell.selectedOptions,
+      }));
+
+    const inputData: CustomProductInput & { variants: VariantInput[] } = {
       title: title.trim(),
       description: description.trim(),
       productType: finalProductType,
@@ -118,11 +163,12 @@ export default function NewProductPage() {
       collectionHandle,
       tags,
       images: images.length > 0 ? images : ['/placeholder.svg'],
-      totalInventory: Number(totalInventory) || 10,
       options: optionsList.length > 0 ? optionsList : undefined,
+      variants,
     };
 
     try {
+      setError(null);
       const res = await fetch('/api/admin/products', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -136,7 +182,8 @@ export default function NewProductPage() {
       setTimeout(() => {
         router.push('/admin');
       }, 1200);
-    } finally {
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to save product');
       setSaving(false);
     }
   };
@@ -145,6 +192,27 @@ export default function NewProductPage() {
   const autoHandle = title
     ? title.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
     : 'custom-product-preview';
+
+  const previewVariants: ProductVariant[] = (enabledCells.length > 0
+    ? enabledCells
+    : [{ cell: { title: 'Default Title', selectedOptions: [] }, data: defaultCell(Number(price) || 0), i: 0 }]
+  ).map(({ cell, data, i }, idx) => ({
+    id: `variant-${idx}`,
+    title: cell.title,
+    availableForSale: Number(data.stock) > 0,
+    quantityAvailable: Number(data.stock) || 0,
+    selectedOptions: cell.selectedOptions,
+    price: { amount: Number(data.price) || Number(price) || 0, currencyCode: 'INR' },
+    compareAtPrice: data.compareAtPrice
+      ? { amount: Number(data.compareAtPrice), currencyCode: 'INR' }
+      : null,
+    image: null,
+    sku: data.sku || null,
+    barcode: data.barcode || null,
+    lowStockThreshold: Number(data.lowStockThreshold) || 5,
+  }));
+
+  const previewTotalInventory = previewVariants.reduce((s, v) => s + (v.quantityAvailable ?? 0), 0);
 
   const previewProduct: Product = {
     id: 'gid://shopify/Product/preview',
@@ -155,8 +223,8 @@ export default function NewProductPage() {
     vendor: vendor || 'Style Statement by Shakthi',
     productType: productType === 'Other' ? customProductType || 'Jewelry' : productType,
     tags: tagsInput.split(',').map((t) => t.trim()),
-    availableForSale: Number(totalInventory) > 0,
-    totalInventory: Number(totalInventory) || 10,
+    availableForSale: previewTotalInventory > 0,
+    totalInventory: previewTotalInventory,
     images: {
       edges: (images.length > 0 ? images : ['/placeholder.svg']).map((url, i) => ({
         node: { id: `img-${i}`, url, altText: title, width: 1200, height: 1500 },
@@ -174,28 +242,12 @@ export default function NewProductPage() {
       ? optionsList.map((opt, i) => ({ id: `opt-${i}`, name: opt.name, values: opt.values }))
       : [{ id: 'opt-0', name: 'Title', values: ['Default Title'] }],
     variants: {
-      edges: [
-        {
-          node: {
-            id: 'variant-0',
-            title: 'Default Title',
-            availableForSale: true,
-            quantityAvailable: Number(totalInventory) || 10,
-            selectedOptions: [{ name: 'Title', value: 'Default Title' }],
-            price: { amount: Number(price) || 0, currencyCode: 'INR' },
-            compareAtPrice: compareAtPrice ? { amount: Number(compareAtPrice), currencyCode: 'INR' } : null,
-            image: null,
-            sku: `SKU-${autoHandle}`,
-            barcode: null,
-            lowStockThreshold: 5,
-          },
-        },
-      ],
+      edges: previewVariants.map((node) => ({ node })),
       pageInfo: { hasNextPage: false, hasPreviousPage: false },
     },
     priceRange: {
-      minVariantPrice: { amount: Number(price) || 0, currencyCode: 'INR' },
-      maxVariantPrice: { amount: Number(price) || 0, currencyCode: 'INR' },
+      minVariantPrice: { amount: Math.min(...previewVariants.map((v) => v.price.amount), Number(price) || 0), currencyCode: 'INR' },
+      maxVariantPrice: { amount: Math.max(...previewVariants.map((v) => v.price.amount), Number(price) || 0), currencyCode: 'INR' },
     },
     compareAtPriceRange: compareAtPrice
       ? {
@@ -469,18 +521,117 @@ export default function NewProductPage() {
                         <option value="all">All Products</option>
                       </select>
                     </div>
-
                     <div className="space-y-2">
-                      <label htmlFor="inventory" className="label">Available Quantity</label>
-                      <input
-                        id="inventory"
-                        type="number"
-                        min="0"
-                        value={totalInventory}
-                        onChange={(e) => setTotalInventory(Number(e.target.value))}
-                        className="input"
-                        placeholder="10"
-                      />
+                      <label className="label">Variant Count</label>
+                      <div className="input flex items-center justify-between">
+                        <span className="font-semibold text-neutral-950">{enabledCells.length}</span>
+                        <span className="text-caption text-neutral-500">
+                          {matrix.length > 0 ? `of ${matrix.length} generated` : 'default'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3 pt-2">
+                    <div className="flex items-center justify-between">
+                      <h3 className="font-heading text-heading-sm text-neutral-950">Variant Matrix</h3>
+                      {matrix.length === 0 && (
+                        <span className="text-caption text-neutral-500">Add options in section 4 to generate variants.</span>
+                      )}
+                    </div>
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-body-sm border-collapse">
+                        <thead>
+                          <tr className="text-left text-caption uppercase text-neutral-500">
+                            <th className="py-2 pr-3 font-medium">Variant</th>
+                            <th className="py-2 pr-3 font-medium">SKU</th>
+                            <th className="py-2 pr-3 font-medium">Barcode</th>
+                            <th className="py-2 pr-3 font-medium">Price (₹)</th>
+                            <th className="py-2 pr-3 font-medium">Compare-At</th>
+                            <th className="py-2 pr-3 font-medium">Stock</th>
+                            <th className="py-2 pr-3 font-medium">Low Stock</th>
+                            <th className="py-2 font-medium">Enable</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {matrix.map((cell, i) => {
+                            const data = cellFor(i);
+                            return (
+                              <tr key={`${cell.title}-${i}`} className={`border-t border-neutral-200 ${data.enabled ? '' : 'opacity-50'}`}>
+                                <td className="py-2 pr-3">
+                                  <span className="font-semibold text-neutral-950 whitespace-nowrap">{cell.title}</span>
+                                </td>
+                                <td className="py-2 pr-3">
+                                  <input
+                                    type="text"
+                                    value={data.sku}
+                                    onChange={(e) => setCell(i, { sku: e.target.value })}
+                                    className="input !py-1.5 !px-2 min-w-[90px]"
+                                    placeholder="SKU"
+                                  />
+                                </td>
+                                <td className="py-2 pr-3">
+                                  <input
+                                    type="text"
+                                    value={data.barcode}
+                                    onChange={(e) => setCell(i, { barcode: e.target.value })}
+                                    className="input !py-1.5 !px-2 min-w-[90px]"
+                                    placeholder="Barcode"
+                                  />
+                                </td>
+                                <td className="py-2 pr-3">
+                                  <input
+                                    type="number"
+                                    min="0"
+                                    value={data.price}
+                                    onChange={(e) => setCell(i, { price: e.target.value })}
+                                    className="input !py-1.5 !px-2 w-[90px]"
+                                    placeholder={price ? String(price) : '0'}
+                                  />
+                                </td>
+                                <td className="py-2 pr-3">
+                                  <input
+                                    type="number"
+                                    min="0"
+                                    value={data.compareAtPrice}
+                                    onChange={(e) => setCell(i, { compareAtPrice: e.target.value })}
+                                    className="input !py-1.5 !px-2 w-[90px]"
+                                    placeholder="—"
+                                  />
+                                </td>
+                                <td className="py-2 pr-3">
+                                  <input
+                                    type="number"
+                                    min="0"
+                                    value={data.stock}
+                                    onChange={(e) => setCell(i, { stock: e.target.value })}
+                                    className="input !py-1.5 !px-2 w-[80px]"
+                                    placeholder="10"
+                                  />
+                                </td>
+                                <td className="py-2 pr-3">
+                                  <input
+                                    type="number"
+                                    min="0"
+                                    value={data.lowStockThreshold}
+                                    onChange={(e) => setCell(i, { lowStockThreshold: e.target.value })}
+                                    className="input !py-1.5 !px-2 w-[80px]"
+                                    placeholder="5"
+                                  />
+                                </td>
+                                <td className="py-2">
+                                  <input
+                                    type="checkbox"
+                                    checked={data.enabled}
+                                    onChange={(e) => setCell(i, { enabled: e.target.checked })}
+                                    className="h-4 w-4 accent-gold-600"
+                                  />
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
                     </div>
                   </div>
 
@@ -559,6 +710,12 @@ export default function NewProductPage() {
                 </div>
 
                 {/* Form Actions */}
+                {error && (
+                  <div className="flex items-start gap-2 px-4 py-3 rounded-lg bg-red-50 border border-red-200 text-body-sm text-red-700">
+                    <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
+                    <span>{error}</span>
+                  </div>
+                )}
                 <div className="flex gap-4 pt-2">
                   <Button type="submit" disabled={saving} className="flex-1 py-4 text-body font-medium">
                     {saving ? 'Publishing Product...' : 'Publish Product to Storefront'}
@@ -589,6 +746,7 @@ export default function NewProductPage() {
                     {compareAtPrice && <li><strong className="text-neutral-950">Sale Compare Price:</strong> ₹{Number(compareAtPrice).toLocaleString('en-IN')}</li>}
                     <li><strong className="text-neutral-950">Collection:</strong> {collectionHandle}</li>
                     <li><strong className="text-neutral-950">Options:</strong> {optionsList.map((o) => `${o.name} (${o.values.join(', ')})`).join(' | ') || 'Default'}</li>
+                    <li><strong className="text-neutral-950">Variants:</strong> {enabledCells.length} enabled · {previewTotalInventory} total units</li>
                   </ul>
                 </div>
               </div>
