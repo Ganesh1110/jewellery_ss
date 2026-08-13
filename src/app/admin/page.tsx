@@ -5,11 +5,16 @@ import Link from 'next/link';
 import { Plus, Package, Archive, ExternalLink, ShieldCheck, Tag, DollarSign, Layers } from 'lucide-react';
 import { formatMoney } from '@/lib/utils';
 import type { Product } from '@/types/shopify';
+import { ConfirmModal } from '@/components/ui/ConfirmModal';
+import { useToast } from '@/context/ToastContext';
 import { OptimizedImage } from '@/components/ui/Image';
 
 export default function AdminDashboardPage() {
+  const { showToast } = useToast();
   const [customProducts, setCustomProducts] = useState<Product[]>([]);
   const [loaded, setLoaded] = useState(false);
+  const [archiveTarget, setArchiveTarget] = useState<{ id: string; title: string } | null>(null);
+  const [archiving, setArchiving] = useState(false);
 
   useEffect(() => {
     fetch('/api/admin/products?first=100')
@@ -21,10 +26,22 @@ export default function AdminDashboardPage() {
       .catch(() => setLoaded(true));
   }, []);
 
-  const handleArchive = async (id: string, title: string) => {
-    if (confirm(`Archive "${title}"? Archived products can be restored from the inventory dashboard.`)) {
-      const res = await fetch(`/api/admin/products/${encodeURIComponent(id)}`, { method: 'DELETE' });
-      if (res.ok) setCustomProducts((prev) => prev.filter((p) => p.id !== id));
+  const confirmArchive = async () => {
+    if (!archiveTarget) return;
+    setArchiving(true);
+    try {
+      const res = await fetch(`/api/admin/products/${encodeURIComponent(archiveTarget.id)}`, { method: 'DELETE' });
+      if (res.ok) {
+        setCustomProducts((prev) => prev.filter((p) => p.id !== archiveTarget.id));
+        showToast(`Product "${archiveTarget.title}" has been archived.`, 'success');
+      } else {
+        showToast('Failed to archive product. Please try again.', 'error');
+      }
+    } catch {
+      showToast('An error occurred while archiving product.', 'error');
+    } finally {
+      setArchiving(false);
+      setArchiveTarget(null);
     }
   };
 
@@ -171,7 +188,7 @@ export default function AdminDashboardPage() {
                                 <ExternalLink className="h-4 w-4" />
                               </Link>
                               <button
-                                onClick={() => handleArchive(product.id, product.title)}
+                                onClick={() => setArchiveTarget({ id: product.id, title: product.title })}
                                 className="h-10 w-10 inline-flex items-center justify-center rounded-md text-neutral-400 hover:text-amber-600 hover:bg-amber-50 transition-colors"
                                 title="Archive product"
                                 aria-label={`Archive ${product.title}`}
@@ -221,7 +238,7 @@ export default function AdminDashboardPage() {
                             <ExternalLink className="h-4 w-4" />
                           </Link>
                           <button
-                            onClick={() => handleArchive(product.id, product.title)}
+                            onClick={() => setArchiveTarget({ id: product.id, title: product.title })}
                             className="h-10 w-10 inline-flex items-center justify-center rounded-md border border-neutral-950/10 text-neutral-400 hover:text-amber-600 transition-colors"
                             title="Archive product"
                             aria-label={`Archive ${product.title}`}
@@ -238,6 +255,18 @@ export default function AdminDashboardPage() {
           )}
         </div>
       </section>
+
+      <ConfirmModal
+        isOpen={Boolean(archiveTarget)}
+        title="Archive Product"
+        description={`Are you sure you want to archive "${archiveTarget?.title}"? Archived products can be restored anytime from the inventory dashboard.`}
+        confirmText="Archive Product"
+        cancelText="Keep Active"
+        variant="warning"
+        loading={archiving}
+        onConfirm={confirmArchive}
+        onClose={() => !archiving && setArchiveTarget(null)}
+      />
     </div>
   );
 }

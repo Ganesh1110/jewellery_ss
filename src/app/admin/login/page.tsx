@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Lock, ShieldCheck, ArrowRight, KeyRound, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+import { Alert } from '@/components/ui/Alert';
 
 function AdminLoginForm() {
   const router = useRouter();
@@ -53,10 +54,9 @@ function AdminLoginForm() {
       </div>
 
       {error && (
-        <div className="p-3 bg-red-50 border border-red-200 rounded text-red-700 text-body-sm flex items-center gap-2">
-          <AlertCircle className="h-4 w-4 flex-shrink-0" />
-          <span>{error}</span>
-        </div>
+        <Alert variant="error" title="Access Denied" dismissible onClose={() => setError('')}>
+          {error}
+        </Alert>
       )}
 
       <form onSubmit={handleLogin} className="space-y-5">

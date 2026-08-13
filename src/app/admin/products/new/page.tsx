@@ -9,6 +9,8 @@ import { ProductCard } from '@/components/product/ProductCard';
 import { OptimizedImage } from '@/components/ui/Image';
 import type { Product, ProductVariant } from '@/types/shopify';
 import { Button } from '@/components/ui/Button';
+import { Alert } from '@/components/ui/Alert';
+import { useToast } from '@/context/ToastContext';
 import { generateVariantMatrix } from '@/lib/variant-matrix';
 
 const SAMPLE_IMAGE_PRESETS = [
@@ -35,6 +37,7 @@ function defaultCell(size: number): CellData {
 
 export default function NewProductPage() {
   const router = useRouter();
+  const { showToast } = useToast();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -179,11 +182,14 @@ export default function NewProductPage() {
         throw new Error(data.error || 'Failed to save product');
       }
       setSuccess(true);
+      showToast('Product published successfully to storefront catalog!', 'success');
       setTimeout(() => {
         router.push('/admin');
       }, 1200);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to save product');
+      const msg = err instanceof Error ? err.message : 'Failed to save product';
+      setError(msg);
+      showToast(msg, 'error');
       setSaving(false);
     }
   };
@@ -712,10 +718,9 @@ export default function NewProductPage() {
 
                 {/* Form Actions */}
                 {error && (
-                  <div className="flex items-start gap-2 px-4 py-3 rounded-lg bg-red-50 border border-red-200 text-body-sm text-red-700">
-                    <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
-                    <span>{error}</span>
-                  </div>
+                  <Alert variant="error" title="Form Error" dismissible onClose={() => setError(null)}>
+                    {error}
+                  </Alert>
                 )}
                 <div className="flex gap-4 pt-2">
                   <Button type="submit" disabled={saving} className="flex-1 py-4 text-body font-medium">

@@ -6,6 +6,7 @@ import { Heart, Share2, Truck, RotateCcw, Shield, Check } from 'lucide-react';
 import { ProductGallery, VariantSelector, QuantitySelector, AddToCartButton } from '@/components/product/ProductDetail';
 import { ProductGrid } from '@/components/product/ProductGrid';
 import { useCart } from '@/context/CartContext';
+import { useToast } from '@/context/ToastContext';
 import { formatMoney, getSelectedVariant, getVariantAvailability, cn } from '@/lib/utils';
 import type { Product } from '@/types/shopify';
 
@@ -17,6 +18,7 @@ export function ProductDetailsClient({
   recommendations: Product[];
 }) {
   const { addToCart, isLoading: cartLoading } = useCart();
+  const { showToast } = useToast();
   const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>({});
   const [quantity, setQuantity] = useState(1);
   const [addedToCart, setAddedToCart] = useState(false);
@@ -54,9 +56,14 @@ export function ProductDetailsClient({
   const handleAddToCart = async () => {
     if (!selectedVariant?.id || availability.status === 'out_of_stock') return;
 
-    await addToCart(selectedVariant.id, quantity);
-    setAddedToCart(true);
-    setTimeout(() => setAddedToCart(false), 3000);
+    try {
+      await addToCart(selectedVariant.id, quantity);
+      setAddedToCart(true);
+      showToast(`Added ${quantity} × "${product.title}" to cart`, 'success');
+      setTimeout(() => setAddedToCart(false), 3000);
+    } catch {
+      showToast('Could not add item to cart', 'error');
+    }
   };
 
   return (

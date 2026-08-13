@@ -7,6 +7,7 @@ import { Footer } from '@/components/layout/Footer';
 import { CartDrawer } from '@/components/cart/CartDrawer';
 import { CookieConsent } from '@/components/ui/CookieConsent';
 import { CartProvider } from '@/context/CartContext';
+import { ToastProvider } from '@/context/ToastContext';
 import { fetchShop, fetchMenus } from '@/lib/shopify';
 import { StorefrontLayoutWrapper } from '@/components/layout/StorefrontLayoutWrapper';
 
@@ -120,13 +121,15 @@ export default async function RootLayout({
             </Script>
           </>
         )}
-        <CartProvider>
-          <StorefrontLayoutWrapper menus={menus} policies={shop.policies} shopName={shop.name}>
-            {children}
-          </StorefrontLayoutWrapper>
-          <CartDrawer />
-          <CookieConsent />
-        </CartProvider>
+        <ToastProvider>
+          <CartProvider>
+            <StorefrontLayoutWrapper menus={menus} policies={shop.policies} shopName={shop.name}>
+              {children}
+            </StorefrontLayoutWrapper>
+            <CartDrawer />
+            <CookieConsent />
+          </CartProvider>
+        </ToastProvider>
       </body>
     </html>
   );

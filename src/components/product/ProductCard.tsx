@@ -7,6 +7,7 @@ import { ShoppingBag } from 'lucide-react';
 import { formatMoney } from '@/lib/utils';
 import type { Product, ProductVariant } from '@/types/shopify';
 import { useCart } from '@/context/CartContext';
+import { useToast } from '@/context/ToastContext';
 
 interface ProductCardProps {
   product: Product;
@@ -17,6 +18,7 @@ interface ProductCardProps {
 
 export function ProductCard({ product, variant, priority = false, showQuickAdd = true }: ProductCardProps) {
   const { addToCart, isLoading: cartLoading } = useCart();
+  const { showToast } = useToast();
   const [quickAddLoading, setQuickAddLoading] = useState<string | null>(null);
 
   const primaryVariant = variant || product.variants.edges[0]?.node;
@@ -35,6 +37,9 @@ export function ProductCard({ product, variant, priority = false, showQuickAdd =
     setQuickAddLoading(primaryVariant.id);
     try {
       await addToCart(primaryVariant.id, 1);
+      showToast(`Added "${product.title}" to cart`, 'success');
+    } catch {
+      showToast('Could not add item to cart', 'error');
     } finally {
       setQuickAddLoading(null);
     }

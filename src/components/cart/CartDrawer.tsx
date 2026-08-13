@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { X, Plus, Minus, Gift, Truck, CheckCircle2 } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 import { Button } from '@/components/ui/Button';
+import { Alert } from '@/components/ui/Alert';
 import { OptimizedImage } from '@/components/ui/Image';
 import { formatMoney } from '@/lib/utils';
 import { checkoutOrder, type CheckoutOrderSuccess } from '@/lib/cart-api';
@@ -200,9 +201,9 @@ export function CartDrawer() {
             </Button>
 
             {checkoutError && (
-              <p role="alert" aria-live="assertive" className="text-center text-body-sm text-red-600">
+              <Alert variant="error" dismissible onClose={() => setCheckoutError(null)}>
                 {checkoutError}
-              </p>
+              </Alert>
             )}
 
             <Button

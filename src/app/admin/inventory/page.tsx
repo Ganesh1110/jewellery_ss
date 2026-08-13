@@ -7,6 +7,7 @@ import { formatMoney } from '@/lib/utils';
 import type { Product, ProductVariant } from '@/types/shopify';
 import type { InventoryMovementView } from '@/types/admin';
 import { OptimizedImage } from '@/components/ui/Image';
+import { useToast } from '@/context/ToastContext';
 
 type StockTab = 'all' | 'instock' | 'lowstock' | 'outofstock';
 type MovementType = 'RESTOCK' | 'ADJUSTMENT' | 'DAMAGE';
@@ -52,14 +53,9 @@ export default function InventoryDashboardPage() {
   const [movementDialog, setMovementDialog] = useState<{ variant: ProductVariant; product: Product; type: MovementType } | null>(null);
   const [editDialog, setEditDialog] = useState<{ variant: ProductVariant; product: Product } | null>(null);
   const [historyFor, setHistoryFor] = useState<{ variant: ProductVariant; product: Product } | null>(null);
+  const { showToast } = useToast();
   const [historyRows, setHistoryRows] = useState<InventoryMovementView[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
-  const [toast, setToast] = useState<string | null>(null);
-
-  const showToast = useCallback((msg: string) => {
-    setToast(msg);
-    window.setTimeout(() => setToast(null), 3000);
-  }, []);
 
   const loadInventory = useCallback(async () => {
     setLoading(true);
@@ -128,12 +124,58 @@ export default function InventoryDashboardPage() {
     return res.json();
   };
 
-  // Metrics (live variants only)
-  const allLiveVariants = products.flatMap((p) => p.variants.edges.map((e) => ({ variant: e.node, product: p })));
-  const totalUnits = products.reduce((acc, p) => acc + p.totalInventory, 0);
-  const lowStockCount = allLiveVariants.filter(({ variant }) => (variant.quantityAvailable ?? 0) > 0 && (variant.quantityAvailable ?? 0) <= variant.lowStockThreshold).length;
-  const outOfStockCount = allLiveVariants.filter(({ variant }) => (variant.quantityAvailable ?? 0) === 0 || !variant.availableForSale).length;
-  const totalValuation = allLiveVariants.reduce((acc, { variant }) => acc + variant.price.amount * (variant.quantityAvailable ?? 0), 0);
+  const restoreProduct = async (product: Product) => {
+    const res = await fetch(`/api/admin/products/${encodeURIComponent(product.id)}/restore`, { method: 'PATCH' });
+    if (!res.ok) throw new Error('Failed to restore product');
+    return res.json();
+  };
+
+  const handleRestoreProduct = async (product: Product) => {
+    try {
+      await restoreProduct(product);
+      await Promise.all([loadArchived(), loadInventory()]);
+      showToast(`Restored product "${product.title}" to active inventory`, 'success');
+    } catch (e) {
+      showToast(e instanceof Error ? e.message : 'Failed to restore product', 'error');
+    }
+  };
+
+  const handleRestoreVariant = async (variant: ProductVariant, productTitle: string) => {
+    try {
+      await restoreVariant(variant);
+      await Promise.all([loadArchived(), loadInventory()]);
+      showToast(`Restored variant "${variantTitle(variant)}" (${productTitle}) to active inventory`, 'success');
+    } catch (e) {
+      showToast(e instanceof Error ? e.message : 'Failed to restore variant', 'error');
+    }
+  };
+
+  // Metrics (active, non-archived variants only)
+  const allLiveVariants = products
+    .flatMap((p) => p.variants.edges.map((e) => ({ variant: e.node, product: p })))
+    .filter(({ variant }) => !variant.archived);
+
+  const totalUnits = allLiveVariants.reduce((acc, { variant }) => acc + (variant.quantityAvailable ?? 0), 0);
+
+  const inStockCount = allLiveVariants.filter(({ variant }) => {
+    const qty = variant.quantityAvailable ?? 0;
+    return variant.availableForSale && qty > variant.lowStockThreshold;
+  }).length;
+
+  const lowStockCount = allLiveVariants.filter(({ variant }) => {
+    const qty = variant.quantityAvailable ?? 0;
+    return variant.availableForSale && qty > 0 && qty <= variant.lowStockThreshold;
+  }).length;
+
+  const outOfStockCount = allLiveVariants.filter(({ variant }) => {
+    const qty = variant.quantityAvailable ?? 0;
+    return !variant.availableForSale || qty === 0;
+  }).length;
+
+  const totalValuation = allLiveVariants.reduce(
+    (acc, { variant }) => acc + variant.price.amount * (variant.quantityAvailable ?? 0),
+    0
+  );
 
   // Filtering at variant level
   const q = searchQuery.trim().toLowerCase();
@@ -162,7 +204,7 @@ export default function InventoryDashboardPage() {
 
   const tabCounts: Record<StockTab, number> = {
     all: allLiveVariants.length,
-    instock: Math.max(0, allLiveVariants.length - lowStockCount - outOfStockCount),
+    instock: inStockCount,
     lowstock: lowStockCount,
     outofstock: outOfStockCount,
   };
@@ -495,19 +537,32 @@ export default function InventoryDashboardPage() {
                   const variants = product.variants.edges.map((e) => e.node);
                   return (
                     <div key={product.id} className="card overflow-hidden opacity-90">
-                      <div className="p-4 sm:p-5 flex items-center gap-3.5">
-                        <div className="w-14 h-14 rounded bg-neutral-100 overflow-hidden flex-shrink-0 border border-neutral-950/10">
-                          <OptimizedImage src={product.featuredImage?.url || '/placeholder.svg'} alt={product.title} width={56} height={56} objectFit="cover" />
+                      <div className="p-4 sm:p-5 flex flex-wrap items-center justify-between gap-3.5">
+                        <div className="flex items-center gap-3.5 min-w-0">
+                          <div className="w-14 h-14 rounded bg-neutral-100 overflow-hidden flex-shrink-0 border border-neutral-950/10">
+                            <OptimizedImage src={product.featuredImage?.url || '/placeholder.svg'} alt={product.title} width={56} height={56} objectFit="cover" />
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <p className="font-medium text-neutral-950 line-clamp-1">{product.title}</p>
+                            <p className="text-caption text-neutral-400 uppercase tracking-wider">
+                              {variants.length} variant(s)
+                            </p>
+                          </div>
                         </div>
-                        <div className="min-w-0 flex-1">
-                          <p className="font-medium text-neutral-950 line-clamp-1">{product.title}</p>
-                          <p className="text-caption text-neutral-400 uppercase tracking-wider">
-                            {variants.filter((v) => v.archived).length} archived variant(s)
-                          </p>
+
+                        <div className="flex items-center gap-2.5">
+                          <span className="inline-flex items-center gap-1 px-3 h-9 rounded-full text-caption font-semibold bg-neutral-200 text-neutral-600 uppercase tracking-wider">
+                            <Archive className="h-3.5 w-3.5" /> Archived
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => handleRestoreProduct(product)}
+                            className="inline-flex items-center gap-1.5 px-4 h-9 text-caption font-semibold rounded-lg border border-emerald-600 bg-emerald-600 text-white hover:bg-emerald-700 transition-colors shadow-sm"
+                            title="Restore entire product to active inventory"
+                          >
+                            <RotateCcw className="h-3.5 w-3.5" /> Restore Product
+                          </button>
                         </div>
-                        <span className="inline-flex items-center gap-1 px-3 h-9 rounded-full text-caption font-semibold bg-neutral-200 text-neutral-600 uppercase tracking-wider">
-                          <Archive className="h-3.5 w-3.5" /> Archived
-                        </span>
                       </div>
                       {variants.length > 0 && (
                         <div className="border-t border-neutral-950/10">
@@ -519,14 +574,10 @@ export default function InventoryDashboardPage() {
                               </div>
                               <button
                                 type="button"
-                                onClick={() =>
-                                  restoreVariant(variant)
-                                    .then(() => { loadArchived(); loadInventory(); showToast(`Restored ${variantTitle(variant)}`); })
-                                    .catch((e) => showToast(e.message))
-                                }
+                                onClick={() => handleRestoreVariant(variant, product.title)}
                                 className="inline-flex items-center gap-1.5 px-3 h-9 text-caption font-medium rounded-lg border border-emerald-600 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition-colors"
                               >
-                                <RotateCcw className="h-3.5 w-3.5" /> Restore
+                                <RotateCcw className="h-3.5 w-3.5" /> Restore Variant
                               </button>
                             </div>
                           ))}
@@ -576,15 +627,6 @@ export default function InventoryDashboardPage() {
           loading={historyLoading}
           onClose={() => setHistoryFor(null)}
         />
-      )}
-
-      {/* Toast */}
-      {toast && (
-        <div className="fixed bottom-6 right-6 z-[70]">
-          <div className="inline-flex items-center gap-2 px-4 py-3 rounded-xl bg-neutral-950 text-cream-50 text-body-sm shadow-lg">
-            <CheckCircle2 className="h-4 w-4 text-emerald-400" /> {toast}
-          </div>
-        </div>
       )}
     </div>
   );

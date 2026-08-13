@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useToast } from '@/context/ToastContext';
 import { ArrowLeft, Store, KeyRound, Palette, Bell, Info, Check } from 'lucide-react';
 
 interface ConfigRow {
@@ -27,6 +28,7 @@ interface SavedSettings {
 }
 
 export default function AdminSettingsPage() {
+  const { showToast } = useToast();
   const [config, setConfig] = useState<ConfigRow[]>(DEFAULT_CONFIG);
   const [alerts, setAlerts] = useState(DEFAULT_ALERTS);
   const [saved, setSaved] = useState(false);
@@ -56,8 +58,10 @@ export default function AdminSettingsPage() {
       });
       if (!res.ok) throw new Error('Failed to save settings');
       setSaved(true);
+      showToast('Store configuration saved successfully!', 'success');
       setTimeout(() => setSaved(false), 2500);
     } catch (err) {
+      showToast('Failed to save store settings.', 'error');
       console.error('Failed to save store settings:', err);
     }
   };
