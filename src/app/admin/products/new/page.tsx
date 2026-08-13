@@ -52,7 +52,7 @@ export default function NewProductPage() {
   const [images, setImages] = useState<string[]>(['/images/Image1.jpeg']);
   const [isDragOver, setIsDragOver] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [cellOverrides, setCellOverrides] = useState<Record<number, Partial<CellData>>>({});
+  const [cellOverrides, setCellOverrides] = useState<Record<string, Partial<CellData>>>({});
 
   // Custom Variant Options State
   const [optionName, setOptionName] = useState('Size');
@@ -118,11 +118,11 @@ export default function NewProductPage() {
 
   const cellFor = (i: number): CellData => ({
     ...defaultCell(price === '' ? 0 : Number(price)),
-    ...(cellOverrides[i] ?? {}),
+    ...(cellOverrides[matrix[i].title] ?? {}),
   });
 
   const setCell = (i: number, patch: Partial<CellData>) => {
-    setCellOverrides((prev) => ({ ...prev, [i]: { ...(prev[i] ?? {}), ...patch } }));
+    setCellOverrides((prev) => ({ ...prev, [matrix[i].title]: { ...(prev[matrix[i].title] ?? {}), ...patch } }));
   };
 
   const enabledCells = matrix
