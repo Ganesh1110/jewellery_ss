@@ -7,6 +7,8 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
   if (!(await getSession())) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   const id = gidToId(params.id);
   if (id == null) return NextResponse.json({ error: 'Invalid variant id' }, { status: 400 });
-  const updated = await prisma.productVariant.update({ where: { id }, data: { deletedAt: null } });
+  const existing = await prisma.productVariant.findUnique({ where: { id } });
+  if (!existing) return NextResponse.json({ error: 'Variant not found' }, { status: 404 });
+  const updated = await prisma.productVariant.update({ where: { id }, data: { deletedAt: null, availableForSale: existing.stock > 0 } });
   return NextResponse.json(variantRecordToVariant(updated));
 }

@@ -57,7 +57,7 @@ export async function fetchProducts(
 ): Promise<ProductConnection> {
   const skip = parseAfter(after);
   const rows = await prisma.product.findMany({ where: { deletedAt: null }, orderBy: sortOrder(sortKey, reverse), take: skip + first + 1, include: variantsInclude });
-  let products = rows.map(productRecordToProduct);
+  let products = rows.map((p) => productRecordToProduct(p));
   if (query) products = products.filter((p) => matchesQuery(p, query));
   const hasNextPage = products.length > skip + first;
   products = products.slice(skip, skip + first);
@@ -81,7 +81,7 @@ export async function fetchProduct(handle: string): Promise<Product | null> {
 export async function fetchProductRecommendations(productId: string): Promise<Product[]> {
   const id = Number(productId.split('/').pop());
   const rows = await prisma.product.findMany({ where: { id: { not: id }, deletedAt: null }, orderBy: { createdAt: 'desc' }, take: 4, include: variantsInclude });
-  return rows.map(productRecordToProduct);
+  return rows.map((p) => productRecordToProduct(p));
 }
 
 export async function fetchCollections(first = 20, after?: string): Promise<CollectionConnection> {
@@ -101,7 +101,7 @@ export async function fetchCollection(handle: string, first = 12, after?: string
   if (handle === 'all') {
     const rows = await prisma.product.findMany({ where: { deletedAt: null }, orderBy: { createdAt: 'desc' }, skip, take: first + 1, include: variantsInclude });
     const hasNextPage = rows.length > first;
-    const products = rows.slice(0, first).map(productRecordToProduct);
+    const products = rows.slice(0, first).map((p) => productRecordToProduct(p));
     return {
       id: 'gid://db/Collection/all',
       handle: 'all',
@@ -118,7 +118,7 @@ export async function fetchCollection(handle: string, first = 12, after?: string
   if (handle === 'bestsellers') {
     const rows = await prisma.product.findMany({ where: { compareAtPrice: { not: null }, deletedAt: null }, orderBy: { createdAt: 'desc' }, skip, take: first + 1, include: variantsInclude });
     const hasNextPage = rows.length > first;
-    const products = rows.slice(0, first).map(productRecordToProduct);
+    const products = rows.slice(0, first).map((p) => productRecordToProduct(p));
     return {
       id: 'gid://db/Collection/bestsellers',
       handle: 'bestsellers',
@@ -141,7 +141,7 @@ export async function fetchCollection(handle: string, first = 12, after?: string
   const allProducts = collection.items.map((item) => item.product);
   const paginated = allProducts.slice(skip, skip + first);
   const hasNextPage = allProducts.length > skip + first;
-  const products = paginated.map(productRecordToProduct);
+  const products = paginated.map((p) => productRecordToProduct(p));
   return collectionRecordToCollection(collection, products);
 }
 

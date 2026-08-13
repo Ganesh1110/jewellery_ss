@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
-import { productRecordToProduct, variantsInclude } from '@/lib/db-mappers';
+import { productRecordToProduct, variantsInclude, allVariantsInclude } from '@/lib/db-mappers';
 import { getSession } from '@/lib/auth';
 import { assertBarcodeUnique, assertSkuUnique, SkuConflictError, BarcodeConflictError } from '@/lib/variant-uniqueness';
 import type { CustomProductInput, VariantInput } from '@/types/admin';
@@ -11,11 +11,15 @@ export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const first = Math.min(Number(searchParams.get('first')) || 12, 100);
   const after = Number(searchParams.get('after')) || 0;
-  const rows = await prisma.product.findMany({ where: { deletedAt: null }, orderBy: { createdAt: 'desc' }, skip: after, take: first + 1, include: variantsInclude });
+  const archived = searchParams.get('archived') === '1';
+  const includeArchived = searchParams.get('includeArchived') === '1';
+  const where = archived ? { deletedAt: { not: null } } : { deletedAt: null };
+  const include = archived || includeArchived ? allVariantsInclude : variantsInclude;
+  const rows = await prisma.product.findMany({ where, orderBy: { createdAt: 'desc' }, skip: after, take: first + 1, include });
   const hasNextPage = rows.length > first;
   const pageRows = rows.slice(0, first);
   return NextResponse.json({
-    edges: pageRows.map((node) => ({ node: productRecordToProduct(node), cursor: node.id.toString() })),
+    edges: pageRows.map((node) => ({ node: productRecordToProduct(node, { includeArchived: archived || includeArchived }), cursor: node.id.toString() })),
     pageInfo: { hasNextPage, hasPreviousPage: after > 0, startCursor: pageRows[0]?.id.toString() ?? null, endCursor: pageRows.length > 0 ? pageRows[pageRows.length - 1].id.toString() : null },
   });
 }

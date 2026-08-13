@@ -36,6 +36,7 @@ export interface ProductVariant {
   sku: string | null;
   barcode: string | null;
   lowStockThreshold: number;
+  archived: boolean;
 }
 
 export interface ProductVariantConnection {

@@ -45,6 +45,10 @@ export const variantsInclude = {
   variants: { where: { deletedAt: null }, orderBy: { position: 'asc' as const } },
 };
 
+export const allVariantsInclude = {
+  variants: { orderBy: { position: 'asc' as const } },
+};
+
 export function variantRecordToVariant(v: DbProductVariant): ProductVariant {
   const price = Number(v.price);
   const compare = v.compareAtPrice != null ? Number(v.compareAtPrice) : null;
@@ -61,6 +65,7 @@ export function variantRecordToVariant(v: DbProductVariant): ProductVariant {
     sku: v.sku,
     barcode: v.barcode,
     lowStockThreshold: v.lowStockThreshold,
+    archived: v.deletedAt != null,
   };
 }
 
@@ -68,14 +73,16 @@ export function movementRecordToMovement(m: DbInventoryMovement): InventoryMovem
   return { id: m.id, variantId: m.variantId, type: m.type, quantity: m.quantity, note: m.note, reference: m.reference, createdAt: m.createdAt.toISOString() };
 }
 
-export function productRecordToProduct(p: DbProduct & { variants?: DbProductVariant[] }): Product {
-  const variants = (p.variants ?? []).filter((v) => !v.deletedAt);
+export function productRecordToProduct(p: DbProduct & { variants?: DbProductVariant[] }, opts?: { includeArchived?: boolean }): Product {
+  const allVariants = p.variants ?? [];
+  const liveVariants = allVariants.filter((v) => !v.deletedAt);
+  const variants = opts?.includeArchived ? allVariants : liveVariants;
   const edges = variants.map((node) => ({ node: variantRecordToVariant(node) }));
-  const prices = variants.map((v) => Number(v.price));
+  const prices = liveVariants.map((v) => Number(v.price));
   const min = prices.length ? Math.min(...prices) : Number(p.price);
   const max = prices.length ? Math.max(...prices) : Number(p.price);
-  const totalInventory = variants.reduce((s, v) => s + v.stock, 0);
-  const currency = variants[0]?.currencyCode || p.currencyCode;
+  const totalInventory = liveVariants.reduce((s, v) => s + v.stock, 0);
+  const currency = liveVariants[0]?.currencyCode || p.currencyCode;
   const images = parseJson<Prisma.JsonValue[]>(p.images, []);
   const imageNodes = images.map((n) => toImage(n)).filter((n): n is Image => n !== null);
   const tags = parseJson<string[]>(p.tags, []);
@@ -91,7 +98,7 @@ export function productRecordToProduct(p: DbProduct & { variants?: DbProductVari
     vendor: p.vendor,
     productType: p.productType,
     tags,
-    availableForSale: variants.some((v) => v.availableForSale && v.stock > 0),
+    availableForSale: liveVariants.some((v) => v.availableForSale && v.stock > 0),
     totalInventory,
     images: { edges: imageNodes.map((node) => ({ node })), pageInfo: { hasNextPage: false } },
     featuredImage: toImage(p.featuredImage),

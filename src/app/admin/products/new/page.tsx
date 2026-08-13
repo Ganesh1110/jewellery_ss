@@ -210,6 +210,7 @@ export default function NewProductPage() {
     sku: data.sku || null,
     barcode: data.barcode || null,
     lowStockThreshold: Number(data.lowStockThreshold) || 5,
+    archived: false,
   }));
 
   const previewTotalInventory = previewVariants.reduce((s, v) => s + (v.quantityAvailable ?? 0), 0);
