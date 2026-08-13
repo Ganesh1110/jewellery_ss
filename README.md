@@ -1,42 +1,48 @@
-# SSS E-Commerce — Style Statement by Shakthi (Next.js)
+# Style Statement by Shakthi (SSS) — Headless E-Commerce & Admin Suite
 
-A full-stack headless e-commerce storefront **and admin panel** for a jewellery brand, built on **Next.js 14 (App Router)**, **Prisma** and **MySQL**. The storefront ships with a complete catalog, cart, checkout, journal/blog, and store policies — and the included admin dashboard lets the store owner manage products, inventory, orders, and store settings without touching code.
+A full-stack, luxury e-commerce platform and administrative store console built for **Style Statement by Shakthi Atelier**. Built on **Next.js 14 (App Router)**, **Prisma ORM**, and **MySQL**, this project features a high-performance customer storefront alongside a rich store owner console for managing multi-variant product catalogs, inventory movements, customer orders, and store settings.
 
 ---
 
-## ✨ Features
+## ✨ Features & Modules
 
-### Storefront
-- **Next.js 14 App Router** — file-based routing, React Server Components, streaming.
-- **Catalog & Collections** — cursor-paginated product grids, sorting, search, "All Jewelry" and "Bestsellers" smart collections.
-- **Product Detail Pages** — description, price (incl. compare-at), materials/options, tags, inventory status, and product recommendations.
-- **Cart Drawer** — add/update/remove lines, quantities, and order notes with a persistent, DB-backed cart.
-- **Checkout** — DB-backed order creation with **Cash on Delivery**, automatic inventory decrement, and an order confirmation screen.
-- **Journal / Blog** — blog list and article pages with rich content and SEO metadata.
-- **Shop Policies** — privacy, refund, terms, and shipping policy pages.
-- **Account, About, Contact** — static + storefront pages.
-- **SEO & Performance** — metadata API, `robots.ts` / `sitemap.ts`, security headers, optimized images, typed Tailwind styling.
+### 🛍️ Storefront (Customer Experience)
+- **Next.js 14 App Router** — React Server Components (RSC), file-based routing, streaming SSR, and edge optimizations.
+- **Dynamic Catalog & Collections** — Cursor-paginated grids, sorting (Price, Title, Newest), and smart collections (`/collections/all`, `/collections/bestsellers`, `/collections/new-arrivals`).
+- **Product Detail Pages (PDP)** — Multi-variant option selector (Material, Size, Length, Finish), real-time pricing and compare-at prices, live inventory stock indicators, GIA certification specs, and product recommendations.
+- **Variant-Aware Cart Drawer** — Persistent, database-backed shopping cart. Add/update/remove line items by variant ID, set custom order notes, and compute cart subtotal in real time.
+- **Direct COD Checkout & Handoff** — Automated order placement with Cash on Delivery (COD), inventory deduction, automatic out-of-stock availability updates, and order confirmation summary.
+- **Editorial Journal / Blog** — Articles on diamond buying (4Cs), gold jewelry care, Akoya pearl provenance, and layering guides with rich content.
+- **Store Policies & Brand Pages** — Static and dynamic policy pages (Privacy, Terms of Service, Shipping Policy, Refund Policy, About Atelier, Contact).
+- **SEO & Performance** — Metadata API, automated `sitemap.xml` and `robots.txt` routes, security headers, optimized Next.js image pipeline, and responsive Tailwind styling.
 
-### Admin Panel (`/admin`)
-- **Authentication** — password login with bcrypt-hashed credentials, DB-backed session cookies (7-day expiry), and middleware-gated routes.
-- **Dashboard** — product list with quick actions and delete.
-- **Products** — create new products (title, handle, price, compare-at, type, vendor, tags, images, inventory, options) via the admin API.
-- **Inventory** — search/filter by title or SKU, adjust price / compare-at price, and bump or reduce stock with availability updates.
-- **Orders** — view placed orders with line items and status.
-- **Settings** — edit store configuration (name, email, currency, free-shipping threshold, return window, alerts) stored in the database.
+### 🛡️ Admin Console (`/admin`)
+- **Authentication & Security** — Passcode protection, bcrypt-hashed credentials, DB-backed session management (`Session` table) with 7-day token cookies and Next.js middleware route guarding.
+- **Product Catalog Management** — Publish and edit products with custom handles, descriptions, vendors, categories, tags, images, price ranges, compare-at prices, and custom option sets.
+- **Variant Matrix Generator** — Automatically generate option combinations (e.g. Length × Finish) with automated SKU/barcode uniqueness validation.
+- **Stock Control & Inventory Center (`/admin/inventory`)** — Real-time metrics (Total In Stock, Low Stock Warning, Out of Stock, Inventory Valuation). Perform restocks, manual stock adjustments, or write off damaged inventory with movement audit logs (`InventoryMovement`).
+- **Product & Variant Archiving / Restoration** — Archive items or specific variants from the active catalog. Restore single variants or entire products back to active inventory with a single click.
+- **Order Management Console (`/admin/orders`)** — Search and filter orders by status (`All`, `Processing`, `Shipped`, `Fulfilled`) or customer query. Interactive **Order Management Modal** for inspecting customer details, line items, and changing fulfillment status with real-time DB persistence.
+- **Store Settings (`/admin/settings`)** — Manage general store details (Name, Email, Currency, Free Shipping threshold, Return Window), notification alert switches, and theme preference.
+
+### 🎨 Theme & UI Alert System
+- **Theme Engine (Light, Dark, System)** — Reactive `ThemeContext` supporting Light, Dark, and OS System preference (`prefers-color-scheme`) with `localStorage` persistence and custom dark mode surface palettes.
+- **Luxury UI Alert Component ([`Alert.tsx`](file:///Users/ganeshjayaprakash/WorkSpace/Mine/jewellery_ss/src/components/ui/Alert.tsx))** — Reusable alert banner with 4 status tones (`success`, `error`, `warning`, `info`), icons, title/body layout, and dismiss buttons.
+- **Custom Confirmation Modal ([`ConfirmModal.tsx`](file:///Users/ganeshjayaprakash/WorkSpace/Mine/jewellery_ss/src/components/ui/ConfirmModal.tsx))** — Animated modal dialog with backdrop blur, replacing native browser `confirm()` popups.
+- **Global Toast System ([`ToastContext.tsx`](file:///Users/ganeshjayaprakash/WorkSpace/Mine/jewellery_ss/src/context/ToastContext.tsx))** — Floating status toasts with auto-dismissal and enter/exit animations.
 
 ---
 
 ## 🧰 Tech Stack
 
-- [Next.js 14.2](https://nextjs.org) — App Router, RSC
-- [React 18](https://react.dev)
-- [Prisma ORM 5](https://www.prisma.io) + **MySQL**
-- [bcryptjs](https://www.npmjs.com/package/bcryptjs) — password hashing
-- [Tailwind CSS](https://tailwindcss.com) with `clsx` + `tailwind-merge`
-- [lucide-react](https://lucide.dev) — icons
-- [Vitest](https://vitest.dev) + happy-dom — unit/integration tests
-- [TypeScript](https://www.typescriptlang.org)
+- **Framework**: [Next.js 14.2](https://nextjs.org) (App Router, Server Actions, RSC)
+- **Library**: [React 18.3](https://react.dev)
+- **Database & ORM**: [Prisma ORM 5.22](https://www.prisma.io) + **MySQL 8+**
+- **Authentication**: [bcryptjs](https://www.npmjs.com/package/bcryptjs) + Cookie-based sessions
+- **Styling**: [Tailwind CSS 3.4](https://tailwindcss.com) + `clsx` + `tailwind-merge`
+- **Icons**: [lucide-react](https://lucide.dev)
+- **Testing**: [Vitest 2.1](https://vitest.dev) + `happy-dom`
+- **Language**: [TypeScript 5.4](https://www.typescriptlang.org)
 
 ---
 
@@ -44,250 +50,201 @@ A full-stack headless e-commerce storefront **and admin panel** for a jewellery 
 
 ### Prerequisites
 
-- **Node.js** 18.17+ (20.x recommended)
-- **MySQL** 8+ running locally (the app connects via `DATABASE_URL`)
+- **Node.js**: `v18.17+` (v20.x recommended)
+- **MySQL**: `8.0+` running locally or accessible via network connection.
 
-### 1. Install dependencies
+### 1. Clone & Install Dependencies
 
 ```bash
 npm install
 ```
 
-### 2. Configure environment variables
+### 2. Configure Environment Variables
 
-Copy the example environment file and fill in your database credentials:
+Create a `.env.local` file from the example:
 
 ```bash
 cp .env.example .env.local
 ```
 
-```dotenv
-# MySQL Database (required)
-DATABASE_URL="mysql://USER:PASSWORD@localhost:3306/sss_ecommerce"
+Example configuration (`.env.local`):
 
-# Site
+```dotenv
+# MySQL Database Connection (Required)
+DATABASE_URL="mysql://root:password@localhost:3306/jewellery_ss"
+
+# Site URL
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
 
-# Cart & Checkout
+# Feature Flags
 NEXT_PUBLIC_CART_DRAWER_ENABLED=true
 
-# Admin (defaults used by the seed script)
+# Admin Credentials (Used by seed script)
 ADMIN_EMAIL="admin@sss.com"
 ADMIN_PASSWORD="admin123"
 
-# Analytics (optional)
+# Analytics (Optional)
 NEXT_PUBLIC_GA_ID=
 ```
 
-### 3. Create the database and run migrations
+### 3. Run Database Migrations
 
-Create the database (or point `DATABASE_URL` at an existing one), then apply the Prisma schema:
+Apply the Prisma schema to set up your MySQL database:
 
 ```bash
 npm run db:migrate
 ```
 
-### 4. Seed demo data
+### 4. Seed Initial Data
 
-Seeds an admin user, 12 products, 5 collections, 4 journal articles, and store settings:
+Populate default admin credentials, collections, products, variants, journal articles, and store settings:
 
 ```bash
 npm run db:seed
 ```
 
-> **Admin login:** email `admin@sss.com` / password `admin123` by default (overridable via `ADMIN_EMAIL` / `ADMIN_PASSWORD`).
+> **Default Admin Login**:
+> - **Email**: `admin@sss.com`
+> - **Password**: `admin123`
 
-### 5. Run the development server
+### 5. Start Development Server
 
 ```bash
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000). The admin panel lives at [http://localhost:3000/admin](http://localhost:3000/admin).
+Open [http://localhost:3000](http://localhost:3000) for the storefront or [http://localhost:3000/admin](http://localhost:3000/admin) for the store owner console.
 
 ---
 
-## 📜 Available Scripts
+## 🗄️ Database Architecture (`prisma/schema.prisma`)
 
-| Script               | Description                                       |
-| -------------------- | ------------------------------------------------- |
-| `npm run dev`        | Start the development server                      |
-| `npm run build`      | Create a production build                         |
-| `npm run start`      | Start the production server                       |
-| `npm run lint`       | Run ESLint                                        |
-| `npm run type-check` | Run the TypeScript type checker (`tsc --noEmit`)  |
-| `npm run test`       | Run the Vitest test suite                         |
-| `npm run db:migrate` | Run Prisma migrations (`prisma migrate dev`)      |
-| `npm run db:seed`    | Seed the database (`prisma db seed`)              |
-| `npm run db:studio`  | Open the Prisma Studio data browser               |
+| Model | Description |
+| :--- | :--- |
+| `User` | Admin store owner account with email and bcrypt `passwordHash`. |
+| `Session` | Database-backed admin login session tokens with 7-day expiration. |
+| `Setting` | Key-value store configuration settings (Store Name, Email, Currency, Shipping Threshold, Return Window, Alert Toggles). |
+| `Collection` | Categorized product groupings (handle, title, description, image, SEO metadata). |
+| `CollectionItem` | Join model mapping products to collections with position ordering. |
+| `Product` | Main product catalog record (handle, title, description, vendor, type, tags, price, compareAtPrice, images, options, inventory summary). |
+| `ProductVariant` | Individual product SKU variant (title, price, compareAtPrice, stock, lowStockThreshold, selectedOptions, SKU, barcode, archived status). |
+| `InventoryMovement` | Inventory audit trail tracking restocks, manual stock adjustments, and damage write-offs. |
+| `Order` | Placed customer orders (order number, status, customer details, address, subtotal, shipping, total, payment method). |
+| `OrderItem` | Snapshot of purchased line items inside an order. |
+| `Cart` | Customer shopping cart identified by a unique session token. |
+| `CartItem` | Line item in a cart linked to a specific `ProductVariant` and `Product`. |
+| `Blog` / `Article` | Editorial journal articles and content. |
 
 ---
 
-## 🗂️ Project Structure
+## 🔌 API Route Reference (`src/app/api/`)
+
+### Authentication
+- `POST /api/auth/login` — Authenticate admin credentials and issue session token cookie.
+- `POST /api/auth/logout` — Invalidate admin session cookie.
+- `GET /api/auth/me` — Return current active admin session user.
+
+### Storefront & Cart
+- `GET /api/cart` — Retrieve active cart by token.
+- `POST /api/cart` — Create a new shopping cart.
+- `POST /api/cart/items` — Add a product variant line item to cart.
+- `PATCH /api/cart/items` — Update line item quantity.
+- `DELETE /api/cart/items` — Remove a line item from cart.
+- `POST /api/cart/note` — Set cart order note.
+- `POST /api/checkout` — Place an order (COD), deduct stock, and update variant availability.
+
+### Admin Operations
+- `GET /api/admin/products` — List active or archived products.
+- `POST /api/admin/products` — Create a new product with variants.
+- `PATCH /api/admin/products/[id]` — Update basic product fields.
+- `DELETE /api/admin/products/[id]` — Archive a product and its child variants.
+- `PATCH /api/admin/products/[id]/restore` — Restore an archived product and all of its variants.
+- `PATCH /api/admin/variants/[id]` — Update variant SKU, barcode, price, stock, or threshold.
+- `PATCH /api/admin/variants/[id]/restore` — Restore a single variant (and un-archive parent product if archived).
+- `POST /api/admin/inventory/movements` — Record a restock, stock adjustment, or damage write-off.
+- `GET /api/admin/orders` — List customer orders.
+- `PATCH /api/admin/orders/[id]` — Update order status (`Processing`, `Shipped`, `Fulfilled`).
+- `GET /api/admin/settings` — Read store configuration settings.
+- `PATCH /api/admin/settings` — Save updated store configurations and notification switches.
+
+---
+
+## 📜 Available NPM Scripts
+
+| Script | Command | Purpose |
+| :--- | :--- | :--- |
+| `npm run dev` | `next dev` | Start development server on port 3000. |
+| `npm run build` | `next build` | Build production bundle. |
+| `npm run start` | `next start` | Launch production server. |
+| `npm run lint` | `next lint` | Run ESLint validation. |
+| `npm run type-check` | `tsc --noEmit` | Run full TypeScript type check. |
+| `npm run test` | `vitest run` | Run Vitest unit & integration test suite. |
+| `npm run db:migrate` | `prisma migrate dev` | Apply Prisma schema migrations to MySQL. |
+| `npm run db:seed` | `prisma db seed` | Seed database with initial catalog & settings. |
+| `npm run db:studio` | `prisma studio` | Open Prisma Studio GUI data browser. |
+
+---
+
+## 📂 Project Structure
 
 ```
 .
 ├── prisma/
-│   ├── schema.prisma           # Database schema (MySQL)
-│   ├── seed.ts                 # Demo catalog, admin user, settings
-│   └── migrations/             # Prisma migration history
-├── public/                     # Static assets (favicons, SVGs, images)
+│   ├── schema.prisma                  # Prisma ORM MySQL schema
+│   ├── seed.ts                        # Seed script for products, variants & settings
+│   └── migrations/                    # SQL migration history
+├── public/                            # Favicons, static SVG icons, imagery
 ├── src/
-│   ├── app/                    # Next.js App Router pages & routes
-│   │   ├── page.tsx            # Home / landing page
-│   │   ├── products/[handle]/  # Product detail page
-│   │   ├── collections/        # Collections index & detail pages
-│   │   ├── journal/            # Blog list & article pages
-│   │   ├── search/             # Search results
-│   │   ├── checkout/           # Checkout & order confirmation
-│   │   ├── account/            # Account page
-│   │   ├── admin/              # Admin panel (dashboard, products, inventory, orders, settings, login)
-│   │   ├── about/ contact/     # Static pages
-│   │   ├── *-policy/           # Policy pages (privacy, terms, shipping, refund)
-│   │   ├── api/                # Route handlers (auth, cart, checkout, admin)
-│   │   ├── robots.ts sitemap.ts# SEO routes
-│   │   └── error.tsx not-found.tsx
-│   ├── components/             # Reusable UI components
-│   │   ├── cart/               # CartDrawer & cart UI
-│   │   ├── layout/             # Header, Footer, navigation
-│   │   ├── product/            # ProductCard, ProductGrid, ProductDetail
-│   │   ├── home/ account/ contact/  # Feature-specific components
-│   │   └── ui/                 # Button, Image, Input primitives
-│   ├── context/                # CartContext (global cart state)
-│   ├── hooks/                  # Shared React hooks
-│   ├── lib/                    # Core application layer
-│   │   ├── prisma.ts           # Prisma client singleton
-│   │   ├── auth.ts             # Login, sessions, session cookie helpers
-│   │   ├── shopify.ts          # Data access functions (Shopify-shaped API over the DB)
-│   │   ├── db-mappers.ts       # DB records → Shopify-shaped TypeScript models
-│   │   ├── cart-api.ts         # Client-side cart API helpers
-│   │   └── utils.ts            # Shared utilities
-│   ├── middleware.ts           # /admin route protection
-│   └── types/                  # shopify.ts & admin.ts TypeScript definitions
-├── tests/                      # Vitest test suite (api, helpers, setup)
-├── .env.example                # Example environment variables
-├── next.config.js              # Next.js configuration (security headers, images)
-├── tailwind.config.ts          # Tailwind CSS configuration
-└── vitest.config.ts            # Vitest configuration
+│   ├── app/                           # Next.js App Router structure
+│   │   ├── page.tsx                   # Storefront Homepage
+│   │   ├── products/[handle]/         # Product Detail Page (PDP)
+│   │   ├── collections/               # Collections Index & Detail Pages
+│   │   ├── journal/                   # Journal / Blog pages
+│   │   ├── checkout/                  # Checkout & Confirmation
+│   │   ├── admin/                     # Store Console Admin Portal
+│   │   │   ├── page.tsx               # Admin Dashboard
+│   │   │   ├── inventory/             # Stock Control & Movement History
+│   │   │   ├── orders/                # Order Management Console & Status Modal
+│   │   │   ├── products/new/          # Product Creator & Variant Matrix Generator
+│   │   │   ├── settings/              # Store Configuration & Theme Settings
+│   │   │   └── login/                 # Admin Passcode Authentication
+│   │   ├── api/                       # REST Route Handlers (Auth, Cart, Checkout, Admin)
+│   │   ├── layout.tsx                 # Root Layout with Theme & Toast Providers
+│   │   └── globals.css                # Global CSS & Tailwind Dark Theme Overrides
+│   ├── components/                    # Reusable React Components
+│   │   ├── cart/                      # Cart Drawer & Line Item controls
+│   │   ├── layout/                    # Storefront Header, Footer, Mobile Navigation
+│   │   ├── product/                   # ProductCard, ProductGrid, VariantSelector
+│   │   └── ui/                        # Alert, Button, ConfirmModal, Input, Image
+│   ├── context/                       # Global Context Providers (Cart, Toast, Theme)
+│   ├── lib/                           # Domain Services & Utilities
+│   │   ├── prisma.ts                  # Prisma Client Instance
+│   │   ├── auth.ts                    # Password Hashing & Session Cookie Helpers
+│   │   ├── shopify.ts                 # Data Access Layer over Prisma
+│   │   ├── db-mappers.ts              # Data Mappers (DB records -> UI models)
+│   │   ├── variant-matrix.ts          # Matrix Generator for Product Variants
+│   │   └── variant-uniqueness.ts      # SKU & Barcode Validation Helpers
+│   └── types/                         # TypeScript Type Definitions (`shopify.ts`, `admin.ts`)
+├── tests/                             # Vitest Integration Test Suites
+├── next.config.js                     # Next.js Security & Optimization Config
+├── tailwind.config.ts                 # Tailwind Design System & Dark Mode Config
+└── vitest.config.ts                   # Vitest Test Environment Setup
 ```
-
----
-
-## 🗄️ Database (Prisma + MySQL)
-
-The schema (`prisma/schema.prisma`) models the entire commerce domain:
-
-| Model              | Purpose                                        |
-| ------------------ | ---------------------------------------------- |
-| `User`             | Admin credentials (email + bcrypt password hash) |
-| `Session`          | Auth sessions (token, email, expiry)           |
-| `Setting`          | Key/value store settings for the storefront    |
-| `Collection`       | Product collections                            |
-| `CollectionItem`   | Join table linking products to collections     |
-| `Product`          | Catalog products (price, inventory, images, options, tags) |
-| `Order`            | Placed orders (subtotal, total, COD, status)   |
-| `OrderItem`        | Line items within an order                     |
-| `Cart`             | Persistent carts keyed by a unique token       |
-| `CartItem`         | Cart line items                                |
-| `Blog` / `Article` | Journal content                                |
-
-Product, collection, image, and SEO data is stored as JSON columns and mapped into a **Shopify-shaped object graph** by `src/lib/db-mappers.ts` (IDs are exposed as `gid://db/...`). This keeps the storefront components cleanly separated from the storage layer.
-
-### Seed data (`prisma/seed.ts`)
-
-- **Admin user** — `admin@sss.com` / `admin123` (bcrypt hashed).
-- **12 products** — pendants, rings, earrings, bracelets, necklaces priced in INR.
-- **5 collections** — New Arrivals, Gold Collection, Diamonds, Gemstones, Bridal.
-- **4 journal articles** — diamond buying guide, gold care, pearl story, jewelry layering.
-- **Store settings** — name, email, currency, free-shipping threshold, return window, alert toggles.
-
----
-
-## 🔌 Architecture
-
-### Data access layer (`src/lib/shopify.ts`)
-
-All storefront reads go through a single typed data-access module that mirrors the shape of the old Shopify Storefront API client:
-
-| Function                     | Purpose                                  |
-| ---------------------------- | ---------------------------------------- |
-| `fetchProducts`              | Products (cursor pagination + sorting + query) |
-| `fetchProduct(handle)`       | Single product by handle                 |
-| `fetchProductRecommendations`| Recommended products                     |
-| `fetchCollections()`         | All collections                          |
-| `fetchCollection(handle)`    | Collection + its products (incl. `all` / `bestsellers`) |
-| `fetchMenus()` / `fetchMenu()` | Navigation menus                       |
-| `fetchShop()`                | Store / brand / settings / policies      |
-| `fetchBlogs()` / `fetchArticles()` / `fetchArticle()` | Journal content |
-
-### API routes (`src/app/api/`)
-
-| Route                         | Methods              | Purpose                                    |
-| ----------------------------- | -------------------- | ------------------------------------------ |
-| `/api/auth/login`             | POST                 | Admin login (bcrypt check + session cookie) |
-| `/api/auth/logout`            | POST                 | Destroy admin session                      |
-| `/api/auth/me`                | GET                  | Current admin session                      |
-| `/api/cart`                   | POST / GET           | Create / fetch a cart by ID                |
-| `/api/cart/items`             | POST / PATCH / DELETE | Add, update, or remove cart lines          |
-| `/api/cart/note`              | POST                 | Set cart order note                        |
-| `/api/checkout`               | POST                 | Convert cart → order (COD, decrement stock) |
-| `/api/admin/products`         | GET / POST           | List / create products                     |
-| `/api/admin/products/[id]`    | PATCH / DELETE       | Update / delete a product                  |
-| `/api/admin/orders`           | GET                  | List orders                                |
-| `/api/admin/orders/[id]`      | PATCH / DELETE       | Update / delete an order                   |
-| `/api/admin/inventory/[handle]` | PATCH               | Update price / stock / availability        |
-| `/api/admin/settings`         | GET / PATCH          | Read / update store settings               |
-
-### Authentication
-
-Admin auth lives in `src/lib/auth.ts`:
-- Passwords are hashed with **bcrypt** (seed generates the hash at 10 rounds).
-- Successful login issues a random 64-char token stored in a `sss_admin_session` cookie backed by a `Session` row with a **7-day expiry**.
-- `src/middleware.ts` redirects any unauthenticated `/admin` request (except `/admin/login`) to the login page, preserving the `?from=` return path. The authoritative session check (DB lookup + expiry) runs server-side in `getSession()`.
-
----
-
-## 🛍️ How Cart, Checkout & Orders Work
-
-1. Product detail pages let users add items to the cart; the cart is persisted in the DB and managed by `CartContext`, rendered in the **Cart Drawer** (`src/components/cart/CartDrawer.tsx`).
-2. Users can change quantities, remove lines, and add an order note.
-3. At checkout, `/api/checkout` creates an `Order` (status `Processing`, payment **COD**), decrements product inventory, marks products unavailable when stock hits zero, and clears the cart.
-4. The user is shown an **order confirmation** with the order number, totals, and line items.
 
 ---
 
 ## 🧪 Testing
 
-Tests run with [Vitest](https://vitest.dev) against a local seeded MySQL database. Tests only touch data scoped to `test-<uuid>` / `@test.*` identifiers and clean up after themselves.
+Run the test suite using Vitest:
 
 ```bash
 npm run test
 ```
 
-Current suites (`tests/api/`):
-- `auth.test.ts` — login, session creation, and logout.
-- `checkout-order.test.ts` — cart → order conversion, stock decrement, order numbers.
-- `checkout-route.test.ts` — checkout API validation and error paths.
-- `middleware.test.ts` — `/admin` route protection and redirects.
-
----
-
-## 🤝 Contributing
-
-1. Fork the repository.
-2. Create a feature branch (`git checkout -b feature/your-feature`).
-3. Commit your changes (`git commit -m 'Add some feature'`).
-4. Push to the branch (`git push origin feature/your-feature`).
-5. Open a Pull Request.
-
-Please keep code clean, typed, and linted (`npm run lint` / `npm run type-check`), and add tests for new API behaviour.
+Test coverage includes API authentication, cart calculations, checkout stock deductions, middleware route guarding, and database mapping contracts.
 
 ---
 
 ## 📄 License
 
-This project is private / licensed for the SSS jewellery business. Contact the repository owner for permission before redistribution.
-
----
-
-*Built for headless e-commerce. Powered by Next.js App Router + Prisma & MySQL.*
+This repository is private and proprietary to **Style Statement by Shakthi**. All rights reserved.

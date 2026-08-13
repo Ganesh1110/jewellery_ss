@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useToast } from '@/context/ToastContext';
+import { useTheme, type Theme } from '@/context/ThemeContext';
 import { ArrowLeft, Store, KeyRound, Palette, Bell, Info, Check } from 'lucide-react';
 
 interface ConfigRow {
@@ -29,9 +30,9 @@ interface SavedSettings {
 
 export default function AdminSettingsPage() {
   const { showToast } = useToast();
+  const { theme, setTheme } = useTheme();
   const [config, setConfig] = useState<ConfigRow[]>(DEFAULT_CONFIG);
   const [alerts, setAlerts] = useState(DEFAULT_ALERTS);
-  const [theme, setTheme] = useState<'Light' | 'Dark' | 'System'>('Light');
   const [saved, setSaved] = useState(false);
 
   useEffect(() => {
@@ -174,18 +175,25 @@ export default function AdminSettingsPage() {
               <h2 className="font-heading text-heading-md text-neutral-950">Theme</h2>
             </div>
             <div className="flex flex-wrap gap-3">
-              {(['Light', 'Dark', 'System'] as const).map((mode) => (
+              {([
+                { label: 'Light', value: 'light' as Theme },
+                { label: 'Dark', value: 'dark' as Theme },
+                { label: 'System', value: 'system' as Theme },
+              ]).map((mode) => (
                 <button
-                  key={mode}
+                  key={mode.value}
                   type="button"
-                  onClick={() => setTheme(mode)}
+                  onClick={() => {
+                    setTheme(mode.value);
+                    showToast(`Theme set to ${mode.label} Mode`, 'info');
+                  }}
                   className={`inline-flex items-center gap-2 h-10 px-4 rounded-lg text-body-sm font-medium transition-all min-h-10 ${
-                    theme === mode
+                    theme === mode.value
                       ? 'bg-neutral-950 text-cream-50 ring-2 ring-gold-400/50'
                       : 'border border-neutral-950/10 text-neutral-700 hover:bg-neutral-100'
                   }`}
                 >
-                  {mode}
+                  {mode.label}
                 </button>
               ))}
             </div>

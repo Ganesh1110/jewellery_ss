@@ -51,6 +51,65 @@
   ::selection {
     @apply bg-neutral-950 text-cream-50;
   }
+
+  html.dark {
+    color-scheme: dark;
+  }
+
+  html.dark body {
+    @apply bg-neutral-950 text-cream-50;
+  }
+
+  html.dark .bg-cream-50 {
+    background-color: #11100E !important;
+  }
+
+  html.dark .bg-white {
+    background-color: #1A1815 !important;
+    color: #FAF8F5;
+  }
+
+  html.dark .bg-neutral-50 {
+    background-color: #211E1A !important;
+  }
+
+  html.dark .card,
+  html.dark .admin-card {
+    background-color: #1A1815 !important;
+    border-color: rgba(255, 255, 255, 0.12) !important;
+  }
+
+  html.dark .text-neutral-950,
+  html.dark .text-neutral-900,
+  html.dark .text-neutral-800 {
+    color: #FAF8F5 !important;
+  }
+
+  html.dark .text-neutral-700,
+  html.dark .text-neutral-600 {
+    color: #D6D0C7 !important;
+  }
+
+  html.dark .text-neutral-500,
+  html.dark .text-neutral-400 {
+    color: #A8A095 !important;
+  }
+
+  html.dark .border-neutral-200,
+  html.dark .border-neutral-950\/10,
+  html.dark .border-neutral-950\/5,
+  html.dark .border-neutral-950\/15,
+  html.dark .border-neutral-950\/20 {
+    border-color: rgba(255, 255, 255, 0.12) !important;
+  }
+
+  html.dark input.input,
+  html.dark select,
+  html.dark textarea {
+    background-color: #141210 !important;
+    color: #FAF8F5 !important;
+    border-color: rgba(255, 255, 255, 0.18) !important;
+  }
 }
 
 @layer components {
