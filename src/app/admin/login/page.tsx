@@ -54,7 +54,7 @@ function AdminLoginForm() {
       </div>
 
       {error && (
-        <Alert variant="error" title="Access Denied" dismissible onClose={() => setError('')}>
+        <Alert variant="error" title="Access Denied" dismissible onClose={() => setError('')} data-testid="login-error-alert">
           {error}
         </Alert>
       )}
@@ -63,7 +63,9 @@ function AdminLoginForm() {
         <div className="space-y-2">
           <label htmlFor="admin-passcode" className="label flex items-center justify-between">
             <span>Store Admin Passcode</span>
-            <span className="text-caption text-neutral-400 font-normal">Default: admin123</span>
+            {process.env.NODE_ENV !== 'production' && (
+              <span className="text-caption text-neutral-400 font-normal">Default: admin123</span>
+            )}
           </label>
           <div className="relative">
             <KeyRound className="h-4 w-4 text-neutral-400 absolute left-3.5 top-1/2 -translate-y-1/2" />

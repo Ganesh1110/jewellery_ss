@@ -95,11 +95,11 @@ export async function fetchCollections(first = 20, after?: string): Promise<Coll
   };
 }
 
-export async function fetchCollection(handle: string, first = 12, after?: string): Promise<Collection | null> {
+export async function fetchCollection(handle: string, first = 12, after?: string, sortKey?: string): Promise<Collection | null> {
   const skip = parseAfter(after);
 
   if (handle === 'all') {
-    const rows = await prisma.product.findMany({ where: { deletedAt: null }, orderBy: { createdAt: 'desc' }, skip, take: first + 1, include: variantsInclude });
+    const rows = await prisma.product.findMany({ where: { deletedAt: null }, orderBy: sortOrder(sortKey), skip, take: first + 1, include: variantsInclude });
     const hasNextPage = rows.length > first;
     const products = rows.slice(0, first).map((p) => productRecordToProduct(p));
     return {
@@ -116,7 +116,7 @@ export async function fetchCollection(handle: string, first = 12, after?: string
   }
 
   if (handle === 'bestsellers') {
-    const rows = await prisma.product.findMany({ where: { compareAtPrice: { not: null }, deletedAt: null }, orderBy: { createdAt: 'desc' }, skip, take: first + 1, include: variantsInclude });
+    const rows = await prisma.product.findMany({ where: { compareAtPrice: { not: null }, deletedAt: null }, orderBy: sortOrder(sortKey), skip, take: first + 1, include: variantsInclude });
     const hasNextPage = rows.length > first;
     const products = rows.slice(0, first).map((p) => productRecordToProduct(p));
     return {

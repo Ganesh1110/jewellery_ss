@@ -38,9 +38,11 @@ function sortProducts(products: Product[], sortKey?: string): Product[] {
 async function getCollectionData(handle: string, searchParams: { page?: string; sort?: string; min?: string; max?: string; tag?: string }) {
   const page = parseInt(searchParams.page || '1');
   const first = 24;
+  // Pass the sort key so virtual collections (all, bestsellers) sort at DB level.
+  const sortKey = searchParams.sort;
   
   const [collection, allCollections, shop] = await Promise.all([
-    fetchCollection(handle, first),
+    fetchCollection(handle, first, undefined, sortKey),
     fetchCollections(20),
     fetchShop(),
   ]);

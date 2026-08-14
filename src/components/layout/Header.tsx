@@ -119,13 +119,14 @@ export function Header() {
               <span className="hidden sm:inline-flex items-center gap-2 text-body-sm font-medium uppercase tracking-[0.14em]">
                 Bag
                 {totalQuantity > 0 && (
-                  <span className="text-neutral-950 font-medium">({totalQuantity})</span>
+                  <span className="text-neutral-950 font-medium" data-cart-count>({totalQuantity})</span>
                 )}
               </span>
               {totalQuantity > 0 && (
                 <span
                   className="sm:hidden absolute top-0.5 right-0.5 flex h-4 w-4 items-center justify-center text-[9px] font-bold text-cream-50 bg-neutral-950 rounded-full"
                   aria-live="polite"
+                  data-cart-count
                 >
                   {totalQuantity > 99 ? '99+' : totalQuantity}
                 </span>

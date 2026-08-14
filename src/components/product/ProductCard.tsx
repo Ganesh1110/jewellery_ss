@@ -54,6 +54,7 @@ export function ProductCard({ product, variant, priority = false, showQuickAdd =
         <Link
           href={`/products/${product.handle}`}
           aria-label={`${product.title}${onSale ? ' - Sale' : ''}`}
+          data-testid="product-card-link"
         >
           <ProductImage
             images={images}
@@ -96,6 +97,7 @@ export function ProductCard({ product, variant, priority = false, showQuickAdd =
       <Link
         href={`/products/${product.handle}`}
         className="block pt-4 space-y-1.5"
+        data-testid="product-card-link"
       >
         <h3 className="font-heading text-body-lg font-medium tracking-tight text-neutral-950 line-clamp-1">
           {product.title}

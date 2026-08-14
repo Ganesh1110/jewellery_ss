@@ -52,7 +52,7 @@ export default async function JournalPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-12">
               {articles.map((article) => (
                 <article key={article.id} className="group">
-                  <Link href={`/journal/${article.handle}`} className="block" aria-label={article.title}>
+                  <Link href={`/journal/${article.handle}`} className="block" aria-label={article.title} data-testid="journal-article-link">
                     <div className="relative aspect-16-9 overflow-hidden bg-cream-100">
                       {article.image ? (
                         <OptimizedImage
