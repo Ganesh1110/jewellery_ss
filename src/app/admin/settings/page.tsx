@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useToast } from '@/context/ToastContext';
 import { useTheme, type Theme } from '@/context/ThemeContext';
 import { ArrowLeft, Store, KeyRound, Palette, Bell, Info, Check } from 'lucide-react';
+import { SUPPORTED_CURRENCIES } from '@/lib/currencies';
 
 interface ConfigRow {
   key: string;
@@ -16,7 +17,7 @@ interface ConfigRow {
 const DEFAULT_CONFIG: ConfigRow[] = [
   { key: 'store_name', label: 'Store Name', value: 'Style Statement by Shakthi', hint: 'Shown in the storefront header and metadata' },
   { key: 'store_email', label: 'Store Email', value: 'hello@sss.com', hint: 'Used for order notifications and contact form' },
-  { key: 'currency', label: 'Currency', value: 'INR (₹)', hint: 'Currency for pricing and inventory valuation' },
+  { key: 'currency', label: 'Currency', value: 'INR (₹) - India', hint: 'Currency for pricing and inventory valuation' },
   { key: 'free_shipping_threshold', label: 'Free Shipping Above', value: '₹15,000', hint: 'Complimentary shipping above this cart value' },
   { key: 'return_window', label: 'Return Window', value: '14 days', hint: 'Return period shown on the PDP and checkout' },
   { key: 'hero_subtitle', label: 'Hero Subtitle', value: 'Handcrafted in Mumbai', hint: 'Small text above the main headline' },
@@ -96,13 +97,28 @@ export default function AdminSettingsPage() {
                 return (
                   <li key={row.key} className="py-4">
                     <label className="label" htmlFor={`config-${row.key}`}>{row.label}</label>
-                    <input
-                      id={`config-${row.key}`}
-                      type="text"
-                      value={row.value}
-                      onChange={(e) => updateValue(configIdx, e.target.value)}
-                      className="input text-body font-medium mt-2"
-                    />
+                    {row.key === 'currency' ? (
+                      <select
+                        id={`config-${row.key}`}
+                        value={row.value}
+                        onChange={(e) => updateValue(configIdx, e.target.value)}
+                        className="input text-body font-medium mt-2 cursor-pointer"
+                      >
+                        {SUPPORTED_CURRENCIES.map((curr) => (
+                          <option key={curr.code} value={curr.label}>
+                            {curr.label}
+                          </option>
+                        ))}
+                      </select>
+                    ) : (
+                      <input
+                        id={`config-${row.key}`}
+                        type="text"
+                        value={row.value}
+                        onChange={(e) => updateValue(configIdx, e.target.value)}
+                        className="input text-body font-medium mt-2"
+                      />
+                    )}
                     <p className="text-caption text-neutral-500 mt-1.5">{row.hint}</p>
                   </li>
                 );

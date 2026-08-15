@@ -42,6 +42,7 @@ export async function POST(req: Request) {
   const productType = input.productType || 'Jewelry';
   const tags = input.tags || [];
   const compareAtPrice = input.compareAtPrice ?? null;
+  const currencyCode = input.currencyCode || 'INR';
 
   const variantSpecs: VariantInput[] = input.variants?.length
     ? input.variants
@@ -73,7 +74,7 @@ export async function POST(req: Request) {
           tags,
           price,
           compareAtPrice,
-          currencyCode: 'INR',
+          currencyCode,
           totalInventory,
           availableForSale,
           featuredImage: images[0],
@@ -93,7 +94,7 @@ export async function POST(req: Request) {
             barcode: v.barcode || null,
             price: v.price ?? price,
             compareAtPrice: v.compareAtPrice ?? null,
-            currencyCode: 'INR',
+            currencyCode: v.currencyCode || currencyCode,
             stock: v.stock ?? 0,
             lowStockThreshold: v.lowStockThreshold ?? 5,
             availableForSale: (v.stock ?? 0) > 0,

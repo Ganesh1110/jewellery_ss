@@ -6,6 +6,7 @@ export interface CustomProductInput {
   vendor: string;
   price: number;
   compareAtPrice?: number;
+  currencyCode?: string;
   collectionHandle: string;
   tags: string[];
   images: string[];
@@ -26,6 +27,7 @@ export interface VariantInput {
   barcode?: string | null;
   price?: number;
   compareAtPrice?: number | null;
+  currencyCode?: string;
   stock?: number;
   lowStockThreshold?: number;
   selectedOptions?: Array<{ name: string; value: string }>;

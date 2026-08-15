@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { ArrowLeft, AlertTriangle, CheckCircle2, XCircle, Search, RefreshCw, ExternalLink, Package, DollarSign, Plus, Layers, History, Pencil, Archive, RotateCcw, ChevronDown, ChevronRight, X } from 'lucide-react';
 import { formatMoney } from '@/lib/utils';
 import type { Product, ProductVariant } from '@/types/shopify';
@@ -9,14 +10,15 @@ import type { InventoryMovementView } from '@/types/admin';
 import { OptimizedImage } from '@/components/ui/Image';
 import { useToast } from '@/context/ToastContext';
 
-type StockTab = 'all' | 'instock' | 'lowstock' | 'outofstock';
+type StockTab = 'all' | 'instock' | 'lowstock' | 'outofstock' | 'archived';
 type MovementType = 'RESTOCK' | 'ADJUSTMENT' | 'DAMAGE';
 
 const STOCK_TABS: { key: StockTab; label: string }[] = [
-  { key: 'all', label: 'All' },
+  { key: 'all', label: 'All Active' },
   { key: 'instock', label: 'In Stock' },
   { key: 'lowstock', label: 'Low Stock' },
   { key: 'outofstock', label: 'Out of Stock' },
+  { key: 'archived', label: 'Archived' },
 ];
 
 const MOVEMENT_META: Record<MovementType, { label: string; hint: string }> = {
@@ -43,6 +45,7 @@ const STATUS_TONE_CLASS = {
 };
 
 export default function InventoryDashboardPage() {
+  const router = useRouter();
   const [products, setProducts] = useState<Product[]>([]);
   const [archivedProducts, setArchivedProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -61,27 +64,48 @@ export default function InventoryDashboardPage() {
     setLoading(true);
     try {
       const res = await fetch('/api/admin/products?first=100&includeArchived=1');
-      if (!res.ok) throw new Error('Failed to load inventory');
+      if (!res.ok) {
+        if (res.status === 401) {
+          router.replace('/admin/login');
+          return;
+        }
+        setProducts([]);
+        return;
+      }
       const data = await res.json();
-      const list = data.edges.map((e: { node: Product }) => e.node) as Product[];
+      const list = (data.edges || []).map((e: { node: Product }) => e.node) as Product[];
       setProducts(list);
       setExpanded(new Set(list.map((p) => p.id)));
+    } catch (err) {
+      console.error('Failed to load inventory:', err);
+      setProducts([]);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [router]);
 
   const loadArchived = useCallback(async () => {
     setArchivedLoading(true);
     try {
       const res = await fetch('/api/admin/products?archived=1&first=100');
-      if (!res.ok) throw new Error('Failed to load archived products');
+      if (!res.ok) {
+        if (res.status === 401) {
+          router.replace('/admin/login');
+          return;
+        }
+        setArchivedProducts([]);
+        return;
+      }
       const data = await res.json();
-      setArchivedProducts(data.edges.map((e: { node: Product }) => e.node) as Product[]);
+      const list = (data.edges || []).map((e: { node: Product }) => e.node) as Product[];
+      setArchivedProducts(list);
+    } catch (err) {
+      console.error('Failed to load archived products:', err);
+      setArchivedProducts([]);
     } finally {
       setArchivedLoading(false);
     }
-  }, []);
+  }, [router]);
 
   useEffect(() => {
     loadInventory();
@@ -202,11 +226,43 @@ export default function InventoryDashboardPage() {
     })
     .filter(({ variants }) => variants.length > 0);
 
+  const activeProductsWithArchivedVariants = products
+    .map((p) => {
+      const archivedVariants = p.variants.edges
+        .map((e) => e.node)
+        .filter((v) => v.archived);
+      return { product: p, archivedVariants };
+    })
+    .filter(({ archivedVariants }) => archivedVariants.length > 0);
+
+  const filteredActiveProductsWithArchivedVariants = activeProductsWithArchivedVariants
+    .map(({ product, archivedVariants }) => {
+      if (!q) return { product, archivedVariants };
+      const productMatch = `${product.title} ${product.handle} ${product.productType}`.toLowerCase().includes(q);
+      const matchingVariants = archivedVariants.filter((v) =>
+        `${variantTitle(v)} ${v.sku ?? ''} ${v.barcode ?? ''}`.toLowerCase().includes(q)
+      );
+      if (productMatch) return { product, archivedVariants };
+      return { product, archivedVariants: matchingVariants };
+    })
+    .filter(({ archivedVariants }) => archivedVariants.length > 0);
+
+  const filteredArchivedProducts = archivedProducts.filter((p) => {
+    if (!q) return true;
+    const variants = p.variants.edges.map((e) => e.node);
+    const variantsMatch = variants.some((v) => `${variantTitle(v)} ${v.sku ?? ''} ${v.barcode ?? ''}`.toLowerCase().includes(q));
+    const productMatch = `${p.title} ${p.handle} ${p.productType}`.toLowerCase().includes(q);
+    return productMatch || variantsMatch;
+  });
+
+  const totalArchivedCount = archivedProducts.length + activeProductsWithArchivedVariants.reduce((sum, item) => sum + item.archivedVariants.length, 0);
+
   const tabCounts: Record<StockTab, number> = {
     all: allLiveVariants.length,
     instock: inStockCount,
     lowstock: lowStockCount,
     outofstock: outOfStockCount,
+    archived: totalArchivedCount,
   };
 
   return (
@@ -326,8 +382,163 @@ export default function InventoryDashboardPage() {
             </div>
           </div>
 
-          {/* Inventory Table */}
-          {loading ? (
+          {/* Inventory Table & Archived Tab View */}
+          {activeTab === 'archived' ? (
+            archivedLoading ? (
+              <div className="py-16 text-center text-neutral-500">Loading archived items...</div>
+            ) : filteredArchivedProducts.length === 0 && filteredActiveProductsWithArchivedVariants.length === 0 ? (
+              <div className="card p-12 text-center space-y-3 max-w-md mx-auto">
+                <Archive className="h-10 w-10 text-neutral-300 mx-auto" />
+                <h3 className="font-heading text-heading-md text-neutral-950">No Archived Items Found</h3>
+                <p className="text-body-sm text-neutral-500">
+                  {searchQuery ? 'No archived products or variants match your search criteria.' : 'You currently have no archived products or variants.'}
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-6">
+                {/* Archived Variants in Active Products */}
+                {filteredActiveProductsWithArchivedVariants.length > 0 && (
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2">
+                      <h2 className="font-heading text-heading-sm text-neutral-950">Archived Variants (Active Products)</h2>
+                      <span className="badge-gold text-[10px] tabular-nums">
+                        {filteredActiveProductsWithArchivedVariants.reduce((sum, item) => sum + item.archivedVariants.length, 0)} variant(s)
+                      </span>
+                    </div>
+                    {filteredActiveProductsWithArchivedVariants.map(({ product, archivedVariants }) => {
+                      const image = product.featuredImage?.url || '/placeholder.svg';
+                      const isOpen = expanded.has(`active-archived-${product.id}`);
+                      return (
+                        <div key={`active-archived-${product.id}`} className="card overflow-hidden">
+                          <div
+                            className="p-4 sm:p-5 flex items-center gap-3.5 cursor-pointer select-none bg-neutral-50/50"
+                            onClick={() => toggleExpanded(`active-archived-${product.id}`)}
+                          >
+                            <button
+                              type="button"
+                              className="h-9 w-9 flex-shrink-0 rounded-lg border border-neutral-950/10 flex items-center justify-center text-neutral-600 hover:bg-neutral-100 transition-colors"
+                              aria-label={isOpen ? `Collapse ${product.title}` : `Expand ${product.title}`}
+                            >
+                              {isOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                            </button>
+                            <div className="w-14 h-14 rounded bg-neutral-100 overflow-hidden flex-shrink-0 border border-neutral-950/10">
+                              <OptimizedImage src={image} alt={product.title} width={56} height={56} objectFit="cover" />
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <p className="font-medium text-neutral-950 line-clamp-1">{product.title}</p>
+                              <p className="text-caption text-neutral-500 font-sans">
+                                {archivedVariants.length} archived variant(s)
+                              </p>
+                            </div>
+                          </div>
+
+                          {isOpen && (
+                            <div className="border-t border-neutral-950/10 divide-y divide-neutral-950/5">
+                              {archivedVariants.map((variant) => (
+                                <div key={variant.id} className="px-4 sm:px-5 py-3 flex flex-wrap items-center justify-between gap-2 sm:gap-3 bg-white">
+                                  <div className="min-w-0 flex-1">
+                                    <div className="flex items-center gap-2">
+                                      <p className="font-medium text-neutral-950 text-body-sm line-clamp-1">{variantTitle(variant)}</p>
+                                      <span className="badge-neutral text-[10px]">Archived Variant</span>
+                                    </div>
+                                    <p className="text-caption text-neutral-400">
+                                      SKU: {variant.sku || '—'} · {formatMoney(variant.price.amount, variant.price.currencyCode || 'INR')}
+                                    </p>
+                                  </div>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleRestoreVariant(variant, product.title)}
+                                    className="inline-flex items-center gap-1.5 px-3.5 h-9 text-caption font-semibold rounded-lg border border-emerald-600 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition-colors"
+                                  >
+                                    <RotateCcw className="h-3.5 w-3.5" /> Restore Variant
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* Fully Archived Products */}
+                {filteredArchivedProducts.length > 0 && (
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2">
+                      <h2 className="font-heading text-heading-sm text-neutral-950">Archived Products</h2>
+                      <span className="badge-gold text-[10px] tabular-nums">{filteredArchivedProducts.length} product(s)</span>
+                    </div>
+                    {filteredArchivedProducts.map((product) => {
+                      const variants = product.variants.edges.map((e) => e.node);
+                      const image = product.featuredImage?.url || '/placeholder.svg';
+                      const isOpen = expanded.has(`archived-prod-${product.id}`);
+                      return (
+                        <div key={`archived-prod-${product.id}`} className="card overflow-hidden opacity-95">
+                          <div
+                            className="p-4 sm:p-5 flex items-center gap-3.5 cursor-pointer select-none bg-neutral-50/50"
+                            onClick={() => toggleExpanded(`archived-prod-${product.id}`)}
+                          >
+                            <button
+                              type="button"
+                              className="h-9 w-9 flex-shrink-0 rounded-lg border border-neutral-950/10 flex items-center justify-center text-neutral-600 hover:bg-neutral-100 transition-colors"
+                              aria-label={isOpen ? `Collapse ${product.title}` : `Expand ${product.title}`}
+                            >
+                              {isOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                            </button>
+                            <div className="w-14 h-14 rounded bg-neutral-100 overflow-hidden flex-shrink-0 border border-neutral-950/10">
+                              <OptimizedImage src={image} alt={product.title} width={56} height={56} objectFit="cover" />
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-center gap-2">
+                                <p className="font-medium text-neutral-950 line-clamp-1">{product.title}</p>
+                                <span className="badge-neutral text-[10px]">Archived Product</span>
+                              </div>
+                              <p className="text-caption text-neutral-500 font-sans">
+                                {variants.length} variant(s) · {product.productType}
+                              </p>
+                            </div>
+                            <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                              <button
+                                type="button"
+                                onClick={() => handleRestoreProduct(product)}
+                                className="inline-flex items-center gap-1.5 px-4 h-9 text-caption font-semibold rounded-lg border border-emerald-600 bg-emerald-600 text-white hover:bg-emerald-700 transition-colors shadow-sm"
+                                title="Restore entire product to active inventory"
+                              >
+                                <RotateCcw className="h-3.5 w-3.5" /> Restore Product
+                              </button>
+                            </div>
+                          </div>
+
+                          {isOpen && variants.length > 0 && (
+                            <div className="border-t border-neutral-950/10 divide-y divide-neutral-950/5">
+                              {variants.map((variant) => (
+                                <div key={variant.id} className="px-4 sm:px-5 py-3 flex flex-wrap items-center justify-between gap-2 sm:gap-3 bg-white">
+                                  <div className="min-w-0 flex-1">
+                                    <p className="font-medium text-neutral-950 text-body-sm line-clamp-1">{variantTitle(variant)}</p>
+                                    <p className="text-caption text-neutral-400">
+                                      SKU: {variant.sku || '—'} · {formatMoney(variant.price.amount, variant.price.currencyCode || 'INR')}
+                                    </p>
+                                  </div>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleRestoreVariant(variant, product.title)}
+                                    className="inline-flex items-center gap-1.5 px-3 h-9 text-caption font-medium rounded-lg border border-emerald-600 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition-colors"
+                                  >
+                                    <RotateCcw className="h-3.5 w-3.5" /> Restore Variant
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )
+          ) : loading ? (
             <div className="py-16 text-center text-neutral-500">Loading stock levels...</div>
           ) : filteredProducts.length === 0 ? (
             <div className="card p-12 text-center space-y-3 max-w-md mx-auto">
@@ -397,9 +608,9 @@ export default function InventoryDashboardPage() {
                               <p className="text-caption text-neutral-400">{variant.barcode || '—'}</p>
                             </div>
                             <div className="md:col-span-2">
-                              <p className="text-body-sm font-semibold text-neutral-950 tabular-nums">{formatMoney(variant.price.amount, 'INR')}</p>
+                              <p className="text-body-sm font-semibold text-neutral-950 tabular-nums">{formatMoney(variant.price.amount, variant.price.currencyCode || 'INR')}</p>
                               {variant.compareAtPrice && (
-                                <p className="text-caption text-neutral-400 line-through tabular-nums">{formatMoney(variant.compareAtPrice.amount, 'INR')}</p>
+                                <p className="text-caption text-neutral-400 line-through tabular-nums">{formatMoney(variant.compareAtPrice.amount, variant.price.currencyCode || 'INR')}</p>
                               )}
                             </div>
                             <div className="md:col-span-2">
@@ -506,89 +717,6 @@ export default function InventoryDashboardPage() {
               })}
             </div>
           )}
-
-          {/* Archived products section */}
-          <div className="pt-4">
-            <div className="flex items-center justify-between gap-4 mb-4">
-              <div>
-                <h2 className="font-heading text-heading-md text-neutral-950">Archived Products</h2>
-                <p className="text-body-sm text-neutral-500">Products you have archived. Restore them to make them available again.</p>
-              </div>
-              <button
-                type="button"
-                onClick={loadArchived}
-                className="btn-secondary text-body-sm inline-flex items-center gap-2"
-                title="Refresh archived products"
-              >
-                <RefreshCw className={`h-4 w-4 ${archivedLoading ? 'animate-spin' : ''}`} /> Refresh
-              </button>
-            </div>
-
-            {archivedLoading ? (
-              <div className="py-8 text-center text-neutral-500">Loading archived products...</div>
-            ) : archivedProducts.length === 0 ? (
-              <div className="card p-8 text-center space-y-2">
-                <Archive className="h-8 w-8 text-neutral-300 mx-auto" />
-                <p className="text-body-sm text-neutral-500">No archived products.</p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {archivedProducts.map((product) => {
-                  const variants = product.variants.edges.map((e) => e.node);
-                  return (
-                    <div key={product.id} className="card overflow-hidden opacity-90">
-                      <div className="p-4 sm:p-5 flex flex-wrap items-center justify-between gap-3.5">
-                        <div className="flex items-center gap-3.5 min-w-0">
-                          <div className="w-14 h-14 rounded bg-neutral-100 overflow-hidden flex-shrink-0 border border-neutral-950/10">
-                            <OptimizedImage src={product.featuredImage?.url || '/placeholder.svg'} alt={product.title} width={56} height={56} objectFit="cover" />
-                          </div>
-                          <div className="min-w-0 flex-1">
-                            <p className="font-medium text-neutral-950 line-clamp-1">{product.title}</p>
-                            <p className="text-caption text-neutral-400 uppercase tracking-wider">
-                              {variants.length} variant(s)
-                            </p>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center gap-2.5">
-                          <span className="inline-flex items-center gap-1 px-3 h-9 rounded-full text-caption font-semibold bg-neutral-200 text-neutral-600 uppercase tracking-wider">
-                            <Archive className="h-3.5 w-3.5" /> Archived
-                          </span>
-                          <button
-                            type="button"
-                            onClick={() => handleRestoreProduct(product)}
-                            className="inline-flex items-center gap-1.5 px-4 h-9 text-caption font-semibold rounded-lg border border-emerald-600 bg-emerald-600 text-white hover:bg-emerald-700 transition-colors shadow-sm"
-                            title="Restore entire product to active inventory"
-                          >
-                            <RotateCcw className="h-3.5 w-3.5" /> Restore Product
-                          </button>
-                        </div>
-                      </div>
-                      {variants.length > 0 && (
-                        <div className="border-t border-neutral-950/10">
-                          {variants.map((variant) => (
-                            <div key={variant.id} className="px-4 sm:px-5 py-3 border-t border-neutral-950/5 flex flex-wrap items-center gap-2 sm:gap-3">
-                              <div className="min-w-0 flex-1">
-                                <p className="font-medium text-neutral-950 text-body-sm line-clamp-1">{variantTitle(variant)}</p>
-                                <p className="text-caption text-neutral-400">{variant.sku || '—'} · {formatMoney(variant.price.amount, 'INR')}</p>
-                              </div>
-                              <button
-                                type="button"
-                                onClick={() => handleRestoreVariant(variant, product.title)}
-                                className="inline-flex items-center gap-1.5 px-3 h-9 text-caption font-medium rounded-lg border border-emerald-600 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition-colors"
-                              >
-                                <RotateCcw className="h-3.5 w-3.5" /> Restore Variant
-                              </button>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
         </div>
       </section>
 

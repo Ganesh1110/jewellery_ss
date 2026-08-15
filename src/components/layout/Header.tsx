@@ -11,7 +11,10 @@ import {
   ShoppingBag,
   Search,
   User,
+  LayoutGrid,
+  ChevronDown,
 } from 'lucide-react';
+import { BrowseCategoriesDesktopMenu, BrowseCategoriesMobileAccordion } from '@/components/layout/BrowseCategoriesMenu';
 
 const navigation = [
   { name: 'Collections', href: '/collections' },
@@ -30,6 +33,7 @@ export function Header({ shopName = 'Style Statement by Shakthi', freeShippingTh
   const { totalQuantity, openCart } = useCart();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [megaMenuOpen, setMegaMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [mounted, setMounted] = useState(false);
 
@@ -46,6 +50,7 @@ export function Header({ shopName = 'Style Statement by Shakthi', freeShippingTh
     if (e.key === 'Escape') {
       setMobileMenuOpen(false);
       setSearchOpen(false);
+      setMegaMenuOpen(false);
     }
   }, []);
 
@@ -142,20 +147,41 @@ export function Header({ shopName = 'Style Statement by Shakthi', freeShippingTh
 
         {/* Desktop Navigation */}
         <nav className="hidden lg:block border-t border-neutral-950/10" aria-label="Main navigation">
-          <ul className="flex justify-center gap-12 py-3.5 text-body-sm font-medium tracking-[0.14em] uppercase text-neutral-700">
-            {navigation.map((item) => (
-              <li key={item.name}>
-                <Link
-                  href={item.href}
-                  className="hover:text-neutral-950 transition-colors duration-fast relative py-1 after:absolute after:bottom-0 after:left-0 after:right-0 after:h-px after:bg-neutral-950 after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:duration-300"
-                >
-                  {item.name}
-                </Link>
-              </li>
-            ))}
-          </ul>
+          <div className="flex items-center justify-between py-2.5">
+            <button
+              type="button"
+              onClick={() => setMegaMenuOpen((prev) => !prev)}
+              className="flex items-center gap-2 px-3.5 py-1.5 rounded-md bg-neutral-950 text-cream-50 text-caption font-medium uppercase tracking-[0.14em] hover:bg-neutral-800 transition-colors shadow-subtle"
+              aria-expanded={megaMenuOpen}
+              aria-label="Browse all categories"
+            >
+              <LayoutGrid className="h-4 w-4 text-gold-400" />
+              <span>Browse All Categories</span>
+              <ChevronDown className={`h-3.5 w-3.5 transition-transform duration-200 ${megaMenuOpen ? 'rotate-180 text-gold-400' : ''}`} />
+            </button>
+
+            <ul className="flex items-center gap-10 text-body-sm font-medium tracking-[0.14em] uppercase text-neutral-700">
+              {navigation.map((item) => (
+                <li key={item.name}>
+                  <Link
+                    href={item.href}
+                    className="hover:text-neutral-950 transition-colors duration-fast relative py-1 after:absolute after:bottom-0 after:left-0 after:right-0 after:h-px after:bg-neutral-950 after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:duration-300"
+                  >
+                    {item.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
         </nav>
       </div>
+
+      {/* Desktop Mega Menu Overlay */}
+      {megaMenuOpen && (
+        <div className="hidden lg:block relative z-40">
+          <BrowseCategoriesDesktopMenu onClose={() => setMegaMenuOpen(false)} />
+        </div>
+      )}
 
       {/* Mobile Menu Portal */}
       {mobileMenuOpen && mounted && createPortal(
@@ -178,6 +204,9 @@ export function Header({ shopName = 'Style Statement by Shakthi', freeShippingTh
                   <X className="h-6 w-6" />
                 </button>
               </div>
+
+              {/* Mobile Browse Categories Accordion */}
+              <BrowseCategoriesMobileAccordion onClose={() => setMobileMenuOpen(false)} />
 
               {/* Mobile Quick Search Input */}
               <form

@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useRef, useMemo } from 'react';
+import { useState, useRef, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, CheckCircle2, Upload, Plus, Trash2, Eye, Star, Layers, Sparkles, AlertCircle } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, Upload, Plus, Trash2, Eye, Star, Layers, Sparkles, AlertCircle, Globe } from 'lucide-react';
 import type { CustomProductInput, VariantInput } from '@/types/admin';
 import { ProductCard } from '@/components/product/ProductCard';
 import { OptimizedImage } from '@/components/ui/Image';
@@ -12,6 +12,8 @@ import { Button } from '@/components/ui/Button';
 import { Alert } from '@/components/ui/Alert';
 import { useToast } from '@/context/ToastContext';
 import { generateVariantMatrix } from '@/lib/variant-matrix';
+import { SUPPORTED_CURRENCIES, parseCurrencyCode, getCurrencyOption } from '@/lib/currencies';
+import { formatMoney } from '@/lib/utils';
 
 const SAMPLE_IMAGE_PRESETS = [
   { label: 'Gold Ring 1', url: '/images/Image1.jpeg' },
@@ -45,17 +47,55 @@ export default function NewProductPage() {
   // Form State
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [productType, setProductType] = useState('Ring');
+  const [productType, setProductType] = useState('Necklace');
   const [customProductType, setCustomProductType] = useState('');
+  const [subcategory, setSubcategory] = useState('');
   const [vendor, setVendor] = useState('Style Statement by Shakthi');
   const [price, setPrice] = useState<number | ''>(12500);
   const [compareAtPrice, setCompareAtPrice] = useState<number | ''>(15000);
+  const [currencyCode, setCurrencyCode] = useState<string>('INR');
+  const [defaultStoreCurrency, setDefaultStoreCurrency] = useState<string>('INR');
   const [collectionHandle, setCollectionHandle] = useState('bestsellers');
   const [tagsInput, setTagsInput] = useState('bestsellers, new-arrivals, handcrafted');
   const [images, setImages] = useState<string[]>(['/images/Image1.jpeg']);
   const [isDragOver, setIsDragOver] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [cellOverrides, setCellOverrides] = useState<Record<string, Partial<CellData>>>({});
+
+  const getSubcategoryPlaceholder = (type: string) => {
+    switch (type.toLowerCase()) {
+      case 'necklace':
+        return 'e.g. Choker, Long Chain, Layered, Collar, Lariat';
+      case 'ring':
+        return 'e.g. Solitaire, Cocktail, Statement, Eternity Band';
+      case 'earrings':
+        return 'e.g. Studs, Jhumkas, Drops, Hoops, Chandelier';
+      case 'bracelet':
+      case 'bangles':
+        return 'e.g. Tennis Bracelet, Kada, Stackable Bangles';
+      case 'pendant':
+        return 'e.g. Locket, Religious, Gemstone, Solitaire';
+      default:
+        return 'e.g. Enter subcategory (Choker, Statement, etc.)';
+    }
+  };
+
+  // Fetch store default currency from settings on load
+  useEffect(() => {
+    fetch('/api/admin/settings')
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data?.config) {
+          const currRow = data.config.find((c: { key: string }) => c.key === 'currency');
+          if (currRow?.value) {
+            const code = parseCurrencyCode(currRow.value);
+            setCurrencyCode(code);
+            setDefaultStoreCurrency(code);
+          }
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   // Custom Variant Options State
   const [optionName, setOptionName] = useState('Size');
@@ -140,6 +180,9 @@ export default function NewProductPage() {
 
     const finalProductType = productType === 'Other' ? customProductType.trim() || 'Jewelry' : productType;
     const tags = tagsInput.split(',').map((t) => t.trim().toLowerCase()).filter(Boolean);
+    if (subcategory.trim() && !tags.includes(subcategory.trim().toLowerCase())) {
+      tags.push(subcategory.trim().toLowerCase());
+    }
     if (!tags.includes(collectionHandle)) tags.push(collectionHandle);
 
     const variants: VariantInput[] = matrix
@@ -151,6 +194,7 @@ export default function NewProductPage() {
         barcode: data.barcode.trim() || undefined,
         price: Number(data.price) || Number(price) || 0,
         compareAtPrice: data.compareAtPrice ? Number(data.compareAtPrice) : undefined,
+        currencyCode,
         stock: Number(data.stock) || 0,
         lowStockThreshold: Number(data.lowStockThreshold) || 5,
         selectedOptions: cell.selectedOptions,
@@ -163,6 +207,7 @@ export default function NewProductPage() {
       vendor: vendor.trim() || 'Style Statement by Shakthi',
       price: Number(price),
       compareAtPrice: compareAtPrice ? Number(compareAtPrice) : undefined,
+      currencyCode,
       collectionHandle,
       tags,
       images: images.length > 0 ? images : ['/placeholder.svg'],
@@ -208,9 +253,9 @@ export default function NewProductPage() {
     availableForSale: Number(data.stock) > 0,
     quantityAvailable: Number(data.stock) || 0,
     selectedOptions: cell.selectedOptions,
-    price: { amount: Number(data.price) || Number(price) || 0, currencyCode: 'INR' },
+    price: { amount: Number(data.price) || Number(price) || 0, currencyCode },
     compareAtPrice: data.compareAtPrice
-      ? { amount: Number(data.compareAtPrice), currencyCode: 'INR' }
+      ? { amount: Number(data.compareAtPrice), currencyCode }
       : null,
     image: null,
     sku: data.sku || null,
@@ -253,13 +298,13 @@ export default function NewProductPage() {
       pageInfo: { hasNextPage: false, hasPreviousPage: false },
     },
     priceRange: {
-      minVariantPrice: { amount: Math.min(...previewVariants.map((v) => v.price.amount), Number(price) || 0), currencyCode: 'INR' },
-      maxVariantPrice: { amount: Math.max(...previewVariants.map((v) => v.price.amount), Number(price) || 0), currencyCode: 'INR' },
+      minVariantPrice: { amount: Math.min(...previewVariants.map((v) => v.price.amount), Number(price) || 0), currencyCode },
+      maxVariantPrice: { amount: Math.max(...previewVariants.map((v) => v.price.amount), Number(price) || 0), currencyCode },
     },
     compareAtPriceRange: compareAtPrice
       ? {
-          minVariantPrice: { amount: Number(compareAtPrice), currencyCode: 'INR' },
-          maxVariantPrice: { amount: Number(compareAtPrice), currencyCode: 'INR' },
+          minVariantPrice: { amount: Number(compareAtPrice), currencyCode },
+          maxVariantPrice: { amount: Number(compareAtPrice), currencyCode },
         }
       : null,
     seo: { title, description },
@@ -328,15 +373,15 @@ export default function NewProductPage() {
 
                   <div className="grid sm:grid-cols-2 gap-6">
                     <div className="space-y-2">
-                      <label htmlFor="product-type" className="label">Product Type / Category</label>
+                      <label htmlFor="product-type" className="label">Product Type / Category *</label>
                       <select
                         id="product-type"
                         value={productType}
                         onChange={(e) => setProductType(e.target.value)}
                         className="input"
                       >
-                        <option value="Ring">Ring</option>
                         <option value="Necklace">Necklace</option>
+                        <option value="Ring">Ring</option>
                         <option value="Earrings">Earrings</option>
                         <option value="Pendant">Pendant</option>
                         <option value="Bracelet">Bracelet</option>
@@ -345,7 +390,7 @@ export default function NewProductPage() {
                       </select>
                     </div>
 
-                    {productType === 'Other' && (
+                    {productType === 'Other' ? (
                       <div className="space-y-2">
                         <label htmlFor="custom-category" className="label">Custom Category Name</label>
                         <input
@@ -357,9 +402,35 @@ export default function NewProductPage() {
                           placeholder="e.g. Anklets, Brooches"
                         />
                       </div>
+                    ) : (
+                      <div className="space-y-2">
+                        <label htmlFor="subcategory" className="label">Subcategory</label>
+                        <input
+                          id="subcategory"
+                          type="text"
+                          value={subcategory}
+                          onChange={(e) => setSubcategory(e.target.value)}
+                          className="input"
+                          placeholder={getSubcategoryPlaceholder(productType)}
+                        />
+                      </div>
                     )}
 
-                    <div className="space-y-2">
+                    {productType === 'Other' && (
+                      <div className="space-y-2 sm:col-span-2">
+                        <label htmlFor="subcategory-other" className="label">Subcategory</label>
+                        <input
+                          id="subcategory-other"
+                          type="text"
+                          value={subcategory}
+                          onChange={(e) => setSubcategory(e.target.value)}
+                          className="input"
+                          placeholder="e.g. Choker, Statement, Handcrafted"
+                        />
+                      </div>
+                    )}
+
+                    <div className="space-y-2 sm:col-span-2">
                       <label htmlFor="vendor" className="label">Brand / Vendor</label>
                       <input
                         id="vendor"
@@ -416,23 +487,6 @@ export default function NewProductPage() {
                     </p>
                   </div>
 
-                  {/* Sample Presets Fallback */}
-                  <div className="pt-2">
-                    <p className="text-caption uppercase text-neutral-400 font-medium mb-2">Or Select Sample Presets</p>
-                    <div className="flex flex-wrap gap-2">
-                      {SAMPLE_IMAGE_PRESETS.map((preset) => (
-                        <button
-                          key={preset.label}
-                          type="button"
-                          onClick={() => handleAddPreset(preset.url)}
-                          className="px-3 py-1.5 bg-neutral-100 hover:bg-neutral-200 text-neutral-800 text-caption rounded font-medium transition-colors"
-                        >
-                          + {preset.label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
                   {/* Image Thumbnail Grid */}
                   {images.length > 0 && (
                     <div className="space-y-2 pt-3">
@@ -481,13 +535,40 @@ export default function NewProductPage() {
 
                 {/* 3. Pricing & Inventory */}
                 <div className="card p-6 space-y-5">
-                  <h2 className="font-heading text-heading-md text-neutral-950 border-b border-neutral-200 pb-3">
-                    3. Custom Pricing & Inventory
+                  <h2 className="font-heading text-heading-md text-neutral-950 border-b border-neutral-200 pb-3 flex items-center justify-between">
+                    <span>3. Custom Pricing & Inventory</span>
                   </h2>
+
+                  <div className="bg-neutral-50 border border-neutral-200 rounded-lg p-4 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <label htmlFor="product-currency" className="label text-neutral-950 font-semibold flex items-center gap-1.5">
+                        <Globe className="h-4 w-4 text-gold-600" />
+                        Currency & Country Selection
+                      </label>
+                      <span className="text-caption text-gold-600 font-medium">
+                        Store Default: {defaultStoreCurrency} ({getCurrencyOption(defaultStoreCurrency).symbol})
+                      </span>
+                    </div>
+                    <select
+                      id="product-currency"
+                      value={currencyCode}
+                      onChange={(e) => setCurrencyCode(e.target.value)}
+                      className="input font-medium bg-white cursor-pointer"
+                    >
+                      {SUPPORTED_CURRENCIES.map((c) => (
+                        <option key={c.code} value={c.code}>
+                          {c.label} ({c.symbol})
+                        </option>
+                      ))}
+                    </select>
+                    <p className="text-caption text-neutral-500">
+                      By default, this matches your store setting ({defaultStoreCurrency}). You can select a foreign currency for this product if needed.
+                    </p>
+                  </div>
 
                   <div className="grid sm:grid-cols-2 gap-6">
                     <div className="space-y-2">
-                      <label htmlFor="product-price" className="label">Price (₹ INR) *</label>
+                      <label htmlFor="product-price" className="label">Price ({getCurrencyOption(currencyCode).symbol} {currencyCode}) *</label>
                       <input
                         id="product-price"
                         type="number"
@@ -501,7 +582,7 @@ export default function NewProductPage() {
                     </div>
 
                     <div className="space-y-2">
-                      <label htmlFor="product-compare-price" className="label">Compare-At Discount Price (₹ INR)</label>
+                      <label htmlFor="product-compare-price" className="label">Compare-At Price ({getCurrencyOption(currencyCode).symbol} {currencyCode})</label>
                       <input
                         id="product-compare-price"
                         type="number"
@@ -553,8 +634,8 @@ export default function NewProductPage() {
                             <th className="py-2 pr-3 font-medium">Variant</th>
                             <th className="py-2 pr-3 font-medium">SKU</th>
                             <th className="py-2 pr-3 font-medium">Barcode</th>
-                            <th className="py-2 pr-3 font-medium">Price (₹)</th>
-                            <th className="py-2 pr-3 font-medium">Compare-At</th>
+                            <th className="py-2 pr-3 font-medium">Price ({getCurrencyOption(currencyCode).symbol})</th>
+                            <th className="py-2 pr-3 font-medium">Compare-At ({getCurrencyOption(currencyCode).symbol})</th>
                             <th className="py-2 pr-3 font-medium">Stock</th>
                             <th className="py-2 pr-3 font-medium">Low Stock</th>
                             <th className="py-2 font-medium">Enable</th>
@@ -634,7 +715,7 @@ export default function NewProductPage() {
                                     className="h-4 w-4 accent-gold-600"
                                   />
                                 </td>
-                              </tr>
+                               </tr>
                             );
                           })}
                         </tbody>
@@ -748,8 +829,9 @@ export default function NewProductPage() {
                   <ul className="text-body-sm text-neutral-700 space-y-1">
                     <li><strong className="text-neutral-950">Title:</strong> {title || 'Untitled'}</li>
                     <li><strong className="text-neutral-950">Category:</strong> {productType === 'Other' ? customProductType || 'Jewelry' : productType}</li>
-                    <li><strong className="text-neutral-950">Price:</strong> ₹{price ? Number(price).toLocaleString('en-IN') : '0'}</li>
-                    {compareAtPrice && <li><strong className="text-neutral-950">Sale Compare Price:</strong> ₹{Number(compareAtPrice).toLocaleString('en-IN')}</li>}
+                    <li><strong className="text-neutral-950">Currency:</strong> {currencyCode} ({getCurrencyOption(currencyCode).symbol}) — {getCurrencyOption(currencyCode).country || getCurrencyOption(currencyCode).name}</li>
+                    <li><strong className="text-neutral-950">Price:</strong> {formatMoney(Number(price) || 0, currencyCode)}</li>
+                    {compareAtPrice && <li><strong className="text-neutral-950">Sale Compare Price:</strong> {formatMoney(Number(compareAtPrice), currencyCode)}</li>}
                     <li><strong className="text-neutral-950">Collection:</strong> {collectionHandle}</li>
                     <li><strong className="text-neutral-950">Options:</strong> {optionsList.map((o) => `${o.name} (${o.values.join(', ')})`).join(' | ') || 'Default'}</li>
                     <li><strong className="text-neutral-950">Variants:</strong> {enabledCells.length} enabled · {previewTotalInventory} total units</li>

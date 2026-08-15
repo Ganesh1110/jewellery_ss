@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { revalidatePath } from 'next/cache';
 import { prisma } from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
+import { parseCurrencyCode } from '@/lib/currencies';
 import type { StoreConfigRow, StoreAlerts } from '@/types/admin';
 
 const CONFIG_KEYS = ['store_name', 'store_email', 'currency', 'free_shipping_threshold', 'return_window', 'hero_subtitle', 'hero_title', 'hero_description'];
@@ -12,7 +13,7 @@ async function readPayload() {
   const config: StoreConfigRow[] = [
     { key: 'store_name', label: 'Store Name', value: map.get('store_name') || 'Style Statement by Shakthi', hint: 'Shown in the storefront header and metadata' },
     { key: 'store_email', label: 'Store Email', value: map.get('store_email') || '', hint: 'Used for order notifications and contact form' },
-    { key: 'currency', label: 'Currency', value: map.get('currency') || 'INR (₹)', hint: 'Currency for pricing and inventory valuation' },
+    { key: 'currency', label: 'Currency', value: map.get('currency') || 'INR (₹) - India', hint: 'Currency for pricing and inventory valuation' },
     { key: 'free_shipping_threshold', label: 'Free Shipping Above', value: map.get('free_shipping_threshold') || '', hint: 'Complimentary shipping above this cart value' },
     { key: 'return_window', label: 'Return Window', value: map.get('return_window') || '14 days', hint: 'Return period shown on the PDP and checkout' },
     { key: 'hero_subtitle', label: 'Hero Subtitle', value: map.get('hero_subtitle') || 'Handcrafted in Mumbai', hint: 'Small text above the main headline' },
@@ -44,6 +45,14 @@ export async function PATCH(req: Request) {
           where: { key: 'shop.name' },
           update: { value: String(row.value) },
           create: { key: 'shop.name', value: String(row.value), label: 'Shop Name', hint: '' },
+        });
+      }
+      if (row.key === 'currency') {
+        const code = parseCurrencyCode(String(row.value));
+        await prisma.setting.upsert({
+          where: { key: 'shop.currencyCode' },
+          update: { value: code },
+          create: { key: 'shop.currencyCode', value: code, label: 'Currency Code', hint: '' },
         });
       }
     }

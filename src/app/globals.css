@@ -60,17 +60,30 @@
     @apply bg-neutral-950 text-cream-50;
   }
 
-  html.dark .bg-cream-50 {
+  html.dark .bg-cream-50,
+  html.dark [class*="bg-cream-50"] {
     background-color: #11100E !important;
   }
 
-  html.dark .bg-white {
+  html.dark .bg-white,
+  html.dark [class*="bg-white"] {
     background-color: #1A1815 !important;
     color: #FAF8F5;
   }
 
-  html.dark .bg-neutral-50 {
+  html.dark .bg-neutral-50,
+  html.dark [class*="bg-neutral-50"] {
     background-color: #211E1A !important;
+  }
+
+  html.dark .bg-canvas,
+  html.dark [class*="bg-canvas"] {
+    background-color: #11100E !important;
+  }
+
+  html.dark .bg-surface,
+  html.dark [class*="bg-surface"] {
+    background-color: #1A1815 !important;
   }
 
   html.dark .card,

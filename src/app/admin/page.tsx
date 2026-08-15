@@ -170,7 +170,7 @@ export default function AdminDashboardPage() {
                             </div>
                           </td>
                           <td className="px-5 py-3.5 font-semibold text-neutral-950">
-                            {formatMoney(price, 'INR')}
+                            {formatMoney(price, product.priceRange.minVariantPrice.currencyCode || 'INR')}
                           </td>
                           <td className="px-5 py-3.5 text-neutral-600">{product.productType}</td>
                           <td className="px-5 py-3.5">
@@ -209,6 +209,7 @@ export default function AdminDashboardPage() {
                 {customProducts.map((product) => {
                   const image = product.featuredImage?.url || '/placeholder.svg';
                   const price = product.priceRange.minVariantPrice.amount;
+                  const currency = product.priceRange.minVariantPrice.currencyCode || 'INR';
 
                   return (
                     <li key={product.id} className="card p-4">
@@ -220,7 +221,7 @@ export default function AdminDashboardPage() {
                           <p className="font-medium text-neutral-950 truncate">{product.title}</p>
                           <p className="text-caption text-neutral-400 truncate">/{product.handle}</p>
                           <div className="flex items-center gap-2 mt-2">
-                            <span className="font-semibold text-neutral-950">{formatMoney(price, 'INR')}</span>
+                            <span className="font-semibold text-neutral-950">{formatMoney(price, currency)}</span>
                             <span className="badge-gold">{product.productType}</span>
                           </div>
                           <p className="text-caption text-neutral-500 mt-1">
