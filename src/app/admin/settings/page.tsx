@@ -19,6 +19,9 @@ const DEFAULT_CONFIG: ConfigRow[] = [
   { key: 'currency', label: 'Currency', value: 'INR (₹)', hint: 'Currency for pricing and inventory valuation' },
   { key: 'free_shipping_threshold', label: 'Free Shipping Above', value: '₹15,000', hint: 'Complimentary shipping above this cart value' },
   { key: 'return_window', label: 'Return Window', value: '14 days', hint: 'Return period shown on the PDP and checkout' },
+  { key: 'hero_subtitle', label: 'Hero Subtitle', value: 'Handcrafted in Mumbai', hint: 'Small text above the main headline' },
+  { key: 'hero_title', label: 'Hero Title', value: 'Jewelry with intention, worn daily', hint: 'Main headline on the homepage. Use HTML tags like <i> or <em> for italics.' },
+  { key: 'hero_description', label: 'Hero Description', value: 'Quietly sculpted pieces in gold and gemstone, made to be worn every day and handed down for generations.', hint: 'Supporting text below the main headline' },
 ];
 
 const DEFAULT_ALERTS = { lowStock: true, newOrder: true };
@@ -88,19 +91,56 @@ export default function AdminSettingsPage() {
               <h2 className="font-heading text-heading-md text-neutral-950">General Store Details</h2>
             </div>
             <ul className="divide-y divide-neutral-950/10">
-              {config.map((row, idx) => (
-                <li key={row.key} className="py-4">
-                  <label className="label" htmlFor={`config-${row.key}`}>{row.label}</label>
-                  <input
-                    id={`config-${row.key}`}
-                    type="text"
-                    value={row.value}
-                    onChange={(e) => updateValue(idx, e.target.value)}
-                    className="input text-body font-medium mt-2"
-                  />
-                  <p className="text-caption text-neutral-500 mt-1.5">{row.hint}</p>
-                </li>
-              ))}
+              {config.filter(c => !c.key.startsWith('hero_')).map((row, idx) => {
+                const configIdx = config.findIndex(c => c.key === row.key);
+                return (
+                  <li key={row.key} className="py-4">
+                    <label className="label" htmlFor={`config-${row.key}`}>{row.label}</label>
+                    <input
+                      id={`config-${row.key}`}
+                      type="text"
+                      value={row.value}
+                      onChange={(e) => updateValue(configIdx, e.target.value)}
+                      className="input text-body font-medium mt-2"
+                    />
+                    <p className="text-caption text-neutral-500 mt-1.5">{row.hint}</p>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+
+          <div className="card p-6">
+            <div className="flex items-center gap-2 mb-4">
+              <Palette className="h-4 w-4 text-gold-600" />
+              <h2 className="font-heading text-heading-md text-neutral-950">Storefront Content</h2>
+            </div>
+            <ul className="divide-y divide-neutral-950/10">
+              {config.filter(c => c.key.startsWith('hero_')).map((row, idx) => {
+                const configIdx = config.findIndex(c => c.key === row.key);
+                return (
+                  <li key={row.key} className="py-4">
+                    <label className="label" htmlFor={`config-${row.key}`}>{row.label}</label>
+                    {row.key === 'hero_description' ? (
+                      <textarea
+                        id={`config-${row.key}`}
+                        value={row.value}
+                        onChange={(e) => updateValue(configIdx, e.target.value)}
+                        className="input text-body font-medium mt-2 min-h-[100px] resize-y"
+                      />
+                    ) : (
+                      <input
+                        id={`config-${row.key}`}
+                        type="text"
+                        value={row.value}
+                        onChange={(e) => updateValue(configIdx, e.target.value)}
+                        className="input text-body font-medium mt-2"
+                      />
+                    )}
+                    <p className="text-caption text-neutral-500 mt-1.5">{row.hint}</p>
+                  </li>
+                );
+              })}
             </ul>
           </div>
 

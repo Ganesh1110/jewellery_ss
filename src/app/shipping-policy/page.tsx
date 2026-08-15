@@ -1,12 +1,19 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
 import { PolicyPage } from '@/components/layout/PolicyPage';
+import { fetchShop } from '@/lib/shopify';
+
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 export const metadata: Metadata = {
   title: 'Shipping Policy',
 };
 
-export default function ShippingPolicyPage() {
+export default async function ShippingPolicyPage() {
+  const shop = await fetchShop();
+  const freeShipping = shop.freeShippingThreshold || '₹15,000';
+
   return (
     <PolicyPage title="Shipping Policy" lastUpdated="June 2024">
       <p>We ship handcrafted jewelry worldwide, with care and insurance included on every order.</p>
@@ -18,7 +25,7 @@ export default function ShippingPolicyPage() {
         <li><strong>International:</strong> 7–14 business days after dispatch, depending on destination and customs clearance.</li>
       </ul>
       <h2>Shipping Costs</h2>
-      <p>Complimentary worldwide shipping applies to orders over ₹15,000. Orders below this threshold are charged a flat rate calculated at checkout. Import duties and taxes, where applicable, are collected at checkout for select regions and clearly shown before you confirm your order.</p>
+      <p>Complimentary worldwide shipping applies to orders over {freeShipping}. Orders below this threshold are charged a flat rate calculated at checkout. Import duties and taxes, where applicable, are collected at checkout for select regions and clearly shown before you confirm your order.</p>
       <h2>Insurance &amp; Signature</h2>
       <p>Every delivery is fully insured and requires a signature upon receipt. If you are not available, our courier will attempt redelivery or hold the package for collection.</p>
       <h2>Questions</h2>

@@ -1,14 +1,20 @@
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { ProductDetailsClient } from '@/components/product/ProductDetailsClient';
-import { fetchProduct, fetchProductRecommendations } from '@/lib/shopify';
+import { fetchProduct, fetchProductRecommendations, fetchShop } from '@/lib/shopify';
+
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 interface ProductPageProps {
   params: Promise<{ handle: string }>;
 }
 
 async function getProductData(handle: string) {
-  const product = await fetchProduct(handle);
+  const [product, shop] = await Promise.all([
+    fetchProduct(handle),
+    fetchShop(),
+  ]);
 
   if (!product) return null;
 
@@ -17,6 +23,7 @@ async function getProductData(handle: string) {
   return {
     product,
     recommendations: recommendations.slice(0, 4),
+    shop,
   };
 }
 
@@ -68,5 +75,12 @@ export default async function ProductPage({ params }: ProductPageProps) {
     notFound();
   }
 
-  return <ProductDetailsClient product={data.product} recommendations={data.recommendations} />;
+  return (
+    <ProductDetailsClient
+      product={data.product}
+      recommendations={data.recommendations}
+      freeShippingThreshold={data.shop.freeShippingThreshold}
+      returnWindow={data.shop.returnWindow}
+    />
+  );
 }

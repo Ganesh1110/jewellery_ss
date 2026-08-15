@@ -10,7 +10,11 @@ import { formatMoney } from '@/lib/utils';
 import { checkoutOrder, type CheckoutOrderSuccess } from '@/lib/cart-api';
 import type { CartLine } from '@/types/shopify';
 
-export function CartDrawer() {
+interface CartDrawerProps {
+  freeShippingThreshold?: string;
+}
+
+export function CartDrawer({ freeShippingThreshold = '₹15,000' }: CartDrawerProps = {}) {
   const { cart, isCartOpen, closeCart, updateQuantity, removeLine, updateNote, isLoading } = useCart();
   const [isCheckingOut, setIsCheckingOut] = useState(false);
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
@@ -166,7 +170,7 @@ export function CartDrawer() {
               </div>
 
               {/* Free Shipping Progress */}
-              <FreeShippingProgress subtotal={subtotal} currencyCode={currencyCode} />
+              <FreeShippingProgress subtotal={subtotal} currencyCode={currencyCode} freeShippingThreshold={freeShippingThreshold} />
             </>
           )}
         </div>
@@ -328,13 +332,20 @@ function QuantitySelector({ quantity, onChange, line }: QuantitySelectorProps) {
   );
 }
 
+function parseThreshold(threshold?: string): number {
+  if (!threshold) return 15000;
+  const num = parseInt(threshold.replace(/[^0-9]/g, ''), 10);
+  return isNaN(num) || num <= 0 ? 15000 : num;
+}
+
 interface FreeShippingProgressProps {
   subtotal: number;
   currencyCode: string;
+  freeShippingThreshold?: string;
 }
 
-function FreeShippingProgress({ subtotal, currencyCode }: FreeShippingProgressProps) {
-  const FREE_SHIPPING_THRESHOLD = 15000; // ₹15,000
+function FreeShippingProgress({ subtotal, currencyCode, freeShippingThreshold = '₹15,000' }: FreeShippingProgressProps) {
+  const FREE_SHIPPING_THRESHOLD = parseThreshold(freeShippingThreshold);
   const progress = Math.min((subtotal / FREE_SHIPPING_THRESHOLD) * 100, 100);
   const remaining = Math.max(FREE_SHIPPING_THRESHOLD - subtotal, 0);
 
@@ -344,7 +355,7 @@ function FreeShippingProgress({ subtotal, currencyCode }: FreeShippingProgressPr
         <div className="flex items-center gap-2">
           <Truck className="h-4 w-4 text-neutral-400" aria-hidden="true" />
           <span className="text-body-sm font-medium text-neutral-700">
-            {progress >= 100 ? 'Complimentary shipping unlocked' : 'Complimentary shipping unlocked at ₹15,000'}
+            {progress >= 100 ? 'Complimentary shipping unlocked' : `Complimentary shipping unlocked at ${freeShippingThreshold}`}
           </span>
         </div>
         {progress < 100 && (

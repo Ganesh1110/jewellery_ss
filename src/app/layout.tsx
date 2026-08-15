@@ -93,6 +93,8 @@ export const metadata: Metadata = {
   manifest: '/site.webmanifest',
 };
 
+export const dynamic = 'force-dynamic';
+
 export default async function RootLayout({
   children,
 }: {
@@ -125,7 +127,7 @@ export default async function RootLayout({
         <ThemeProvider>
           <ToastProvider>
             <CartProvider>
-              <StorefrontLayoutWrapper menus={menus} policies={shop.policies} shopName={shop.name}>
+              <StorefrontLayoutWrapper menus={menus} policies={shop.policies} shopName={shop.name} freeShippingThreshold={shop.freeShippingThreshold} shopEmail={shop.email}>
                 {children}
               </StorefrontLayoutWrapper>
               <CartDrawer />

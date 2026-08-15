@@ -3,13 +3,20 @@ import Link from 'next/link';
 import type { ElementType } from 'react';
 import { Mail, Phone, MapPin, Clock } from 'lucide-react';
 import { ContactForm } from '@/components/contact/ContactForm';
+import { fetchShop } from '@/lib/shopify';
+
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 export const metadata: Metadata = {
   title: 'Contact',
   description: 'Get in touch with the Style Statement by Shakthi team. We are here to help with orders, sizing, care, and bespoke commissions.',
 };
 
-export default function ContactPage() {
+export default async function ContactPage() {
+  const shop = await fetchShop();
+  const email = shop.email || 'hello@sss.com';
+
   return (
     <div className="flex flex-col">
       <header className="section-sm bg-white border-b border-neutral-950/10">
@@ -33,7 +40,7 @@ export default function ContactPage() {
             {/* Contact details */}
             <div className="lg:col-span-2 space-y-8">
               <div className="space-y-5">
-                <ContactRow icon={Mail} label="Email" value="hello@sss.com" href="mailto:hello@sss.com" />
+                <ContactRow icon={Mail} label="Email" value={email} href={`mailto:${email}`} />
                 <ContactRow icon={Phone} label="Phone" value="+91 22 4000 0000" href="tel:+912240000000" />
                 <ContactRow icon={MapPin} label="Atelier" value="95 Mullin-Bazaar Road, Colaba, Mumbai, Maharashtra 400005" />
                 <ContactRow icon={Clock} label="Hours" value="Mon–Fri, 10am–6pm IST" />

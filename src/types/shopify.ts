@@ -238,6 +238,9 @@ export interface Shop {
     termsOfService: ShopPolicy | null;
     shippingPolicy: ShopPolicy | null;
   };
+  freeShippingThreshold?: string;
+  returnWindow?: string;
+  email?: string;
 }
 
 export interface Article {

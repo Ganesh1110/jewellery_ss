@@ -14,13 +14,14 @@ interface FooterProps {
     shippingPolicy: ShopPolicy | null;
   };
   shopName?: string;
+  shopEmail?: string;
 }
 
 const socialLinks = [
   { name: 'Instagram', href: 'https://instagram.com', ariaLabel: 'Follow us on Instagram' },
 ];
 
-export function Footer({ menus, policies, shopName = 'Style Statement by Shakthi' }: FooterProps) {
+export function Footer({ menus, policies, shopName = 'Style Statement by Shakthi', shopEmail = 'hello@sss.com' }: FooterProps) {
   const mainMenu = menus.find((m) => m.handle === 'main-menu' || m.handle === 'footer');
   const footerMenus = mainMenu?.items.filter((item) => item.items && item.items.length > 0) || [];
 
@@ -88,8 +89,8 @@ export function Footer({ menus, policies, shopName = 'Style Statement by Shakthi
                 Contact
               </h3>
               <address className="not-italic text-body-sm text-cream-50/55 space-y-2.5">
-                <a href="mailto:hello@sss.com" className="block hover:text-cream-50 transition-colors">
-                  hello@sss.com
+                <a href={`mailto:${shopEmail}`} className="block hover:text-cream-50 transition-colors">
+                  {shopEmail}
                 </a>
                 <a href="tel:+9122xxxxxxx" className="block hover:text-cream-50 transition-colors">
                   +91 22 XXXX XXXX

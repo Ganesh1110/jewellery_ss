@@ -6,6 +6,10 @@ import { HeroSlider } from '@/components/home/HeroSlider';
 import { Testimonials } from '@/components/home/Testimonials';
 import { OptimizedImage } from '@/components/ui/Image';
 import { fetchProducts, fetchCollections, fetchShop } from '@/lib/shopify';
+import { prisma } from '@/lib/prisma';
+
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 export const metadata: Metadata = {
   title: 'Curated Jewelry for the Modern Collector',
@@ -30,21 +34,31 @@ const localCollectionImages = [
 const brandStoryImage = '/images/Image6.jpeg';
 
 async function getHomepageData() {
-  const [featuredProducts, collections, shop] = await Promise.all([
+  const [featuredProducts, collections, shop, settingsRows] = await Promise.all([
     fetchProducts(4, undefined, 'BEST_SELLING'),
     fetchCollections(4),
     fetchShop(),
+    prisma.setting.findMany({
+      where: { key: { in: ['hero_subtitle', 'hero_title', 'hero_description'] } }
+    }),
   ]);
+
+  const settings = new Map(settingsRows.map(row => [row.key, row.value]));
 
   return {
     featuredProducts: featuredProducts.edges.map(({ node }) => node).slice(0, 4),
     collections: collections.edges.map(({ node }) => node).slice(0, 4),
     shop,
+    heroContent: {
+      subtitle: settings.get('hero_subtitle') || 'Handcrafted in Mumbai',
+      title: settings.get('hero_title') || 'Jewelry with intention, worn daily',
+      description: settings.get('hero_description') || 'Quietly sculpted pieces in gold and gemstone, made to be worn every day and handed down for generations.',
+    },
   };
 }
 
 export default async function HomePage() {
-  const { featuredProducts, collections, shop } = await getHomepageData();
+  const { featuredProducts, collections, shop, heroContent } = await getHomepageData();
 
   return (
     <div className="flex flex-col bg-cream-50">
@@ -52,14 +66,14 @@ export default async function HomePage() {
       <HeroSlider slides={heroSlides} className="min-h-[75svh] sm:min-h-[80svh] lg:min-h-[86svh]">
         <div className="max-w-3xl text-cream-50 mx-auto sm:mx-0">
           <span className="inline-block text-caption font-sans font-medium tracking-[0.22em] uppercase text-cream-50/80 mb-4 sm:mb-6">
-            Handcrafted in Mumbai
+            {heroContent.subtitle}
           </span>
-          <h1 className="font-heading font-light text-4xl sm:text-display-lg lg:text-display-xl tracking-tight text-cream-50 mb-4 sm:mb-6">
-            Jewelry with<br />
-            <span className="italic text-cream-50/90">intention, worn daily</span>
-          </h1>
+          <h1 
+            className="font-heading font-light text-4xl sm:text-display-lg lg:text-display-xl tracking-tight text-cream-50 mb-4 sm:mb-6"
+            dangerouslySetInnerHTML={{ __html: heroContent.title.replace('\n', '<br />') }}
+          />
           <p className="text-body-sm sm:text-body-lg text-cream-50/85 max-w-2xl mx-auto sm:mx-0 mb-8 sm:mb-10">
-            Quietly sculpted pieces in gold and gemstone, made to be worn every day and handed down for generations.
+            {heroContent.description}
           </p>
           <div className="flex flex-col sm:flex-row items-center sm:items-start justify-center sm:justify-start gap-3 sm:gap-4">
             <Link

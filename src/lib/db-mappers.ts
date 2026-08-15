@@ -184,11 +184,11 @@ export function articleRecordToArticle(a: DbArticle): Article {
 export function buildShop(settings: Setting[]): Shop {
   const get = (key: string, fallback = '') => settings.find((s) => s.key === key)?.value ?? fallback;
   return {
-    name: get('shop.name', 'Style Statement by Shakthi'),
+    name: get('store_name', get('shop.name', 'Style Statement by Shakthi')),
     description: get('shop.description', ''),
     brand: { logo: null, coverImage: null, shortDescription: get('shop.shortDescription', '') || null },
     primaryDomain: { url: process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000', host: (process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000').replace(/^https?:\/\//, '') },
-    currencyCode: get('shop.currencyCode', 'INR'),
+    currencyCode: get('currency', get('shop.currencyCode', 'INR')),
     countriesInShipping: ['IN', 'US', 'GB', 'AE', 'SG'],
     paymentSettings: { acceptedPaymentMethods: ['visa', 'master', 'american_express', 'paypal', 'unionpay'] },
     policies: {
@@ -197,6 +197,9 @@ export function buildShop(settings: Setting[]): Shop {
       termsOfService: { id: 'gid://db/Policy/terms', title: 'Terms of Service', body: '', url: '/terms-of-service' },
       shippingPolicy: { id: 'gid://db/Policy/shipping', title: 'Shipping Policy', body: '', url: '/shipping-policy' },
     },
+    freeShippingThreshold: get('free_shipping_threshold', '₹15,000'),
+    returnWindow: get('return_window', '14 days'),
+    email: get('store_email', 'hello@sss.com'),
   };
 }
 

@@ -17,9 +17,11 @@ interface StorefrontLayoutWrapperProps {
     shippingPolicy: ShopPolicy | null;
   };
   shopName: string;
+  freeShippingThreshold?: string;
+  shopEmail?: string;
 }
 
-export function StorefrontLayoutWrapper({ children, menus, policies, shopName }: StorefrontLayoutWrapperProps) {
+export function StorefrontLayoutWrapper({ children, menus, policies, shopName, freeShippingThreshold, shopEmail }: StorefrontLayoutWrapperProps) {
   const pathname = usePathname();
   const isAdminRoute = pathname?.startsWith('/admin');
 
@@ -35,12 +37,12 @@ export function StorefrontLayoutWrapper({ children, menus, policies, shopName }:
       >
         Skip to main content
       </a>
-      <Header />
+      <Header shopName={shopName} freeShippingThreshold={freeShippingThreshold} shopEmail={shopEmail} />
       <main id="main-content" className="min-h-screen">
         {children}
       </main>
-      <Footer menus={menus} policies={policies} shopName={shopName} />
-      <CartDrawer />
+      <Footer menus={menus} policies={policies} shopName={shopName} shopEmail={shopEmail} />
+      <CartDrawer freeShippingThreshold={freeShippingThreshold} />
       <CookieConsent />
     </>
   );

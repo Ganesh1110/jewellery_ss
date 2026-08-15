@@ -20,7 +20,13 @@ const navigation = [
   { name: 'Journal', href: '/journal' },
 ];
 
-export function Header() {
+interface HeaderProps {
+  shopName?: string;
+  freeShippingThreshold?: string;
+  shopEmail?: string;
+}
+
+export function Header({ shopName = 'Style Statement by Shakthi', freeShippingThreshold = '₹15,000', shopEmail = 'hello@sss.com' }: HeaderProps = {}) {
   const { totalQuantity, openCart } = useCart();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -54,7 +60,7 @@ export function Header() {
     >
       {/* Announcement Bar */}
       <div className="bg-neutral-950 text-cream-50 py-2.5 px-4 text-center text-caption uppercase tracking-[0.2em] font-medium">
-        Complimentary shipping on orders over ₹15,000
+        Complimentary shipping on orders over {freeShippingThreshold}
       </div>
 
       {/* Main Header */}
@@ -75,11 +81,10 @@ export function Header() {
             <Link
               href="/"
               className="font-heading tracking-tight text-neutral-950 hover:opacity-85 transition-opacity"
-              aria-label="Style Statement by Shakthi Home"
+              aria-label={`${shopName} Home`}
             >
               <span className="flex items-baseline gap-2">
-                <span className="font-heading text-heading-lg sm:text-display-sm font-semibold tracking-tight">Style Statement</span>
-                <span className="text-[10px] sm:text-meta uppercase tracking-[0.25em] text-neutral-500 font-sans">by Shakthi</span>
+                <span className="font-heading text-heading-lg sm:text-display-sm font-semibold tracking-tight">{shopName}</span>
               </span>
             </Link>
           </div>
@@ -231,7 +236,7 @@ export function Header() {
             <div className="mt-8 pt-6 border-t border-neutral-200 text-caption text-neutral-500 space-y-2">
               <p className="font-semibold text-neutral-900 uppercase tracking-wider text-[10px]">Client Concierge</p>
               <p>Mon–Fri: 10:00 AM – 6:00 PM IST</p>
-              <p className="text-gold-600 font-medium">+91 22 XXXX XXXX &bull; hello@sss.com</p>
+              <p className="text-gold-600 font-medium">+91 22 XXXX XXXX &bull; {shopEmail}</p>
             </div>
           </div>
         </div>,

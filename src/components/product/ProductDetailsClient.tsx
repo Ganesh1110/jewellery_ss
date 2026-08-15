@@ -13,9 +13,13 @@ import type { Product } from '@/types/shopify';
 export function ProductDetailsClient({
   product,
   recommendations,
+  freeShippingThreshold = '₹15,000',
+  returnWindow = '14 days',
 }: {
   product: Product;
   recommendations: Product[];
+  freeShippingThreshold?: string;
+  returnWindow?: string;
 }) {
   const { addToCart, isLoading: cartLoading } = useCart();
   const { showToast } = useToast();
@@ -196,11 +200,11 @@ export function ProductDetailsClient({
               <div className="space-y-3 text-body-sm text-neutral-600 pt-2">
                 <p className="flex items-center gap-3">
                   <Truck className="h-4 w-4 text-neutral-400" aria-hidden="true" />
-                  Complimentary shipping on orders over ₹15,000
+                  Complimentary shipping on orders over {freeShippingThreshold}
                 </p>
                 <p className="flex items-center gap-3">
                   <RotateCcw className="h-4 w-4 text-neutral-400" aria-hidden="true" />
-                  14-day complimentary returns
+                  {returnWindow.includes('day') || returnWindow.includes('month') ? `${returnWindow} complimentary returns` : `${returnWindow}-day complimentary returns`}
                 </p>
                 <p className="flex items-center gap-3">
                   <Shield className="h-4 w-4 text-neutral-400" aria-hidden="true" />
