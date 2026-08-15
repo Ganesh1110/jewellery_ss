@@ -8,6 +8,7 @@ import { CartDrawer } from '@/components/cart/CartDrawer';
 import { CookieConsent } from '@/components/ui/CookieConsent';
 import { CartProvider } from '@/context/CartContext';
 import { ToastProvider } from '@/context/ToastContext';
+import { WishlistProvider } from '@/context/WishlistContext';
 import { ThemeProvider } from '@/context/ThemeContext';
 import { fetchShop, fetchMenus } from '@/lib/shopify';
 import { StorefrontLayoutWrapper } from '@/components/layout/StorefrontLayoutWrapper';
@@ -126,13 +127,15 @@ export default async function RootLayout({
         )}
         <ThemeProvider>
           <ToastProvider>
-            <CartProvider>
-              <StorefrontLayoutWrapper menus={menus} policies={shop.policies} shopName={shop.name} freeShippingThreshold={shop.freeShippingThreshold} shopEmail={shop.email}>
-                {children}
-              </StorefrontLayoutWrapper>
-              <CartDrawer />
-              <CookieConsent />
-            </CartProvider>
+            <WishlistProvider>
+              <CartProvider>
+                <StorefrontLayoutWrapper menus={menus} policies={shop.policies} shopName={shop.name} freeShippingThreshold={shop.freeShippingThreshold} shopEmail={shop.email}>
+                  {children}
+                </StorefrontLayoutWrapper>
+                <CartDrawer />
+                <CookieConsent />
+              </CartProvider>
+            </WishlistProvider>
           </ToastProvider>
         </ThemeProvider>
       </body>

@@ -7,6 +7,7 @@ import { ProductGallery, VariantSelector, QuantitySelector, AddToCartButton } fr
 import { ProductGrid } from '@/components/product/ProductGrid';
 import { useCart } from '@/context/CartContext';
 import { useToast } from '@/context/ToastContext';
+import { useWishlist } from '@/context/WishlistContext';
 import { formatMoney, getSelectedVariant, getVariantAvailability, cn } from '@/lib/utils';
 import type { Product } from '@/types/shopify';
 
@@ -23,6 +24,8 @@ export function ProductDetailsClient({
 }) {
   const { addToCart, isLoading: cartLoading } = useCart();
   const { showToast } = useToast();
+  const { isInWishlist, toggleWishlist } = useWishlist();
+  const isSaved = isInWishlist(product.id);
   const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>({});
   const [quantity, setQuantity] = useState(1);
   const [addedToCart, setAddedToCart] = useState(false);
@@ -186,11 +189,42 @@ export function ProductDetailsClient({
 
               {/* Wishlist & Share */}
               <div className="flex items-center gap-6 pt-8 border-t border-neutral-950/10">
-                <button className="inline-flex items-center gap-2 text-body-sm font-medium text-neutral-700 hover:text-neutral-950 transition-colors" aria-label="Add to wishlist">
-                  <Heart className="h-4 w-4" aria-hidden="true" />
-                  Add to wishlist
+                <button
+                  type="button"
+                  onClick={() => toggleWishlist(product)}
+                  className={cn(
+                    'inline-flex items-center gap-2 text-body-sm font-medium transition-colors',
+                    isSaved ? 'text-red-600 font-semibold' : 'text-neutral-700 hover:text-neutral-950'
+                  )}
+                  aria-label={isSaved ? 'Remove from wishlist' : 'Add to wishlist'}
+                >
+                  <Heart className={cn('h-4 w-4', isSaved && 'fill-red-600 text-red-600')} aria-hidden="true" />
+                  {isSaved ? 'Saved to Wishlist' : 'Add to Wishlist'}
                 </button>
-                <button className="inline-flex items-center gap-2 text-body-sm font-medium text-neutral-700 hover:text-neutral-950 transition-colors" aria-label="Share product">
+                <button
+                  type="button"
+                  onClick={async () => {
+                    const shareData = {
+                      title: product.title,
+                      text: `Check out ${product.title} at Style Statement by Shakthi`,
+                      url: window.location.href,
+                    };
+                    if (typeof navigator !== 'undefined' && navigator.share) {
+                      try {
+                        await navigator.share(shareData);
+                      } catch {}
+                    } else {
+                      try {
+                        await navigator.clipboard.writeText(window.location.href);
+                        showToast('Product link copied to clipboard!', 'success');
+                      } catch {
+                        showToast('Could not copy link to clipboard', 'error');
+                      }
+                    }
+                  }}
+                  className="inline-flex items-center gap-2 text-body-sm font-medium text-neutral-700 hover:text-neutral-950 transition-colors"
+                  aria-label="Share product"
+                >
                   <Share2 className="h-4 w-4" aria-hidden="true" />
                   Share
                 </button>

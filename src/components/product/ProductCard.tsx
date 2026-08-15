@@ -3,11 +3,12 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { ProductImage } from '@/components/ui/Image';
-import { ShoppingBag } from 'lucide-react';
+import { ShoppingBag, Heart } from 'lucide-react';
 import { formatMoney } from '@/lib/utils';
 import type { Product, ProductVariant } from '@/types/shopify';
 import { useCart } from '@/context/CartContext';
 import { useToast } from '@/context/ToastContext';
+import { useWishlist } from '@/context/WishlistContext';
 
 interface ProductCardProps {
   product: Product;
@@ -19,7 +20,15 @@ interface ProductCardProps {
 export function ProductCard({ product, variant, priority = false, showQuickAdd = true }: ProductCardProps) {
   const { addToCart, isLoading: cartLoading } = useCart();
   const { showToast } = useToast();
+  const { isInWishlist, toggleWishlist } = useWishlist();
+  const isSaved = isInWishlist(product.id);
   const [quickAddLoading, setQuickAddLoading] = useState<string | null>(null);
+
+  const handleWishlistToggle = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    toggleWishlist(product);
+  };
 
   const primaryVariant = variant || product.variants.edges[0]?.node;
   const price = primaryVariant?.price.amount || product.priceRange.minVariantPrice.amount;
@@ -70,6 +79,16 @@ export function ProductCard({ product, variant, priority = false, showQuickAdd =
             Sale
           </span>
         )}
+
+        {/* Wishlist Toggle Heart */}
+        <button
+          type="button"
+          onClick={handleWishlistToggle}
+          className="absolute top-3 right-3 z-20 p-2 rounded-full bg-cream-50/90 hover:bg-white text-neutral-700 hover:text-red-600 transition-colors shadow-subtle"
+          aria-label={isSaved ? 'Remove from wishlist' : 'Add to wishlist'}
+        >
+          <Heart className={`h-4 w-4 ${isSaved ? 'fill-red-600 text-red-600' : ''}`} />
+        </button>
 
         {!available && (
           <div className="absolute inset-0 bg-cream-50/70 backdrop-blur-[2px] flex items-center justify-center z-10">

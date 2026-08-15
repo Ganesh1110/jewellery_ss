@@ -15,14 +15,6 @@ import { generateVariantMatrix } from '@/lib/variant-matrix';
 import { SUPPORTED_CURRENCIES, parseCurrencyCode, getCurrencyOption } from '@/lib/currencies';
 import { formatMoney } from '@/lib/utils';
 
-const SAMPLE_IMAGE_PRESETS = [
-  { label: 'Gold Ring 1', url: '/images/Image1.jpeg' },
-  { label: 'Pendant 2', url: '/images/Image2.jpeg' },
-  { label: 'Ornaments 3', url: '/images/Image5.jpeg' },
-  { label: 'Atelier Piece 4', url: '/images/Image6.jpeg' },
-  { label: 'Modelled 5', url: '/images/Image9.jpeg' },
-];
-
 export interface CellData {
   sku: string;
   barcode: string;
@@ -51,13 +43,13 @@ export default function NewProductPage() {
   const [customProductType, setCustomProductType] = useState('');
   const [subcategory, setSubcategory] = useState('');
   const [vendor, setVendor] = useState('Style Statement by Shakthi');
-  const [price, setPrice] = useState<number | ''>(12500);
-  const [compareAtPrice, setCompareAtPrice] = useState<number | ''>(15000);
+  const [price, setPrice] = useState<number | ''>('');
+  const [compareAtPrice, setCompareAtPrice] = useState<number | ''>('');
   const [currencyCode, setCurrencyCode] = useState<string>('INR');
   const [defaultStoreCurrency, setDefaultStoreCurrency] = useState<string>('INR');
   const [collectionHandle, setCollectionHandle] = useState('bestsellers');
-  const [tagsInput, setTagsInput] = useState('bestsellers, new-arrivals, handcrafted');
-  const [images, setImages] = useState<string[]>(['/images/Image1.jpeg']);
+  const [tagsInput, setTagsInput] = useState('');
+  const [images, setImages] = useState<string[]>([]);
   const [isDragOver, setIsDragOver] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [cellOverrides, setCellOverrides] = useState<Record<string, Partial<CellData>>>({});
