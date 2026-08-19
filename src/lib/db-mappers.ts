@@ -200,6 +200,10 @@ export function buildShop(settings: Setting[]): Shop {
     freeShippingThreshold: get('free_shipping_threshold', '₹15,000'),
     returnWindow: get('return_window', '14 days'),
     email: get('store_email', 'hello@sss.com'),
+    announcementText: get('announcement_text', 'Complimentary shipping on orders over ₹15,000'),
+    announcementMarquee: get('announcement_marquee', 'true') === 'true',
+    announcementEnabled: get('announcement_enabled', 'true') !== 'false',
+    whatsappNumber: get('whatsapp_number', '+919876543210'),
   };
 }
 
@@ -218,10 +222,9 @@ export function buildMenus(collections: DbCollection[]): Menu[] {
         {
           id: 'gid://db/MenuItem/explore',
           title: 'Explore',
-          url: '/journal',
+          url: '/about',
           resourceType: 'LINK',
           items: [
-            { id: 'gid://db/MenuItem/journal', title: 'Journal', url: '/journal', resourceType: 'LINK' },
             { id: 'gid://db/MenuItem/about', title: 'Our Story', url: '/about', resourceType: 'LINK' },
             { id: 'gid://db/MenuItem/contact', title: 'Contact', url: '/contact', resourceType: 'LINK' },
           ],

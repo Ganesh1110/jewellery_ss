@@ -660,14 +660,7 @@ export default function InventoryDashboardPage() {
                                   >
                                     <Layers className="h-3.5 w-3.5" /> Adjust
                                   </button>
-                                  <button
-                                    type="button"
-                                    onClick={() => setMovementDialog({ variant, product, type: 'DAMAGE' })}
-                                    className="inline-flex items-center gap-1.5 px-3 h-9 text-caption font-medium rounded-lg border border-red-300 text-red-700 hover:bg-red-50 transition-colors"
-                                    title="Write off damaged units"
-                                  >
-                                    <XCircle className="h-3.5 w-3.5" /> Damage
-                                  </button>
+                                  {/* Damage action hidden for now */}
                                   <button
                                     type="button"
                                     onClick={() => {

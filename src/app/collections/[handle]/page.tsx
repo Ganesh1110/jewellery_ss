@@ -14,30 +14,45 @@ interface CollectionPageProps {
 
 function sortProducts(products: Product[], sortKey?: string): Product[] {
   const list = [...products];
+  let sorted: Product[];
   switch (sortKey) {
     case 'TITLE_ASC':
-      return list.sort((a, b) => a.title.localeCompare(b.title));
+      sorted = list.sort((a, b) => a.title.localeCompare(b.title));
+      break;
     case 'TITLE_DESC':
-      return list.sort((a, b) => b.title.localeCompare(a.title));
+      sorted = list.sort((a, b) => b.title.localeCompare(a.title));
+      break;
     case 'PRICE_ASC':
-      return list.sort(
+      sorted = list.sort(
         (a, b) => a.priceRange.minVariantPrice.amount - b.priceRange.minVariantPrice.amount
       );
+      break;
     case 'PRICE_DESC':
-      return list.sort(
+      sorted = list.sort(
         (a, b) => b.priceRange.minVariantPrice.amount - a.priceRange.minVariantPrice.amount
       );
+      break;
     case 'CREATED_DESC':
-      return list.sort((a, b) => (b.publishedAt || '').localeCompare(a.publishedAt || ''));
+      sorted = list.sort((a, b) => (b.publishedAt || '').localeCompare(a.publishedAt || ''));
+      break;
     case 'BEST_SELLING':
     default:
-      return list;
+      sorted = list;
+      break;
   }
+
+  // Push sold out items (out of stock / unavailable) to the very end of the page
+  return sorted.sort((a, b) => {
+    const aInStock = a.availableForSale && (a.totalInventory ?? 0) > 0;
+    const bInStock = b.availableForSale && (b.totalInventory ?? 0) > 0;
+    if (aInStock === bInStock) return 0;
+    return aInStock ? -1 : 1;
+  });
 }
 
 async function getCollectionData(handle: string, searchParams: { page?: string; sort?: string; min?: string; max?: string; tag?: string }) {
   const page = parseInt(searchParams.page || '1');
-  const first = 24;
+  const first = 10;
   // Pass the sort key so virtual collections (all, bestsellers) sort at DB level.
   const sortKey = searchParams.sort;
   

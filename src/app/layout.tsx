@@ -129,7 +129,17 @@ export default async function RootLayout({
           <ToastProvider>
             <WishlistProvider>
               <CartProvider>
-                <StorefrontLayoutWrapper menus={menus} policies={shop.policies} shopName={shop.name} freeShippingThreshold={shop.freeShippingThreshold} shopEmail={shop.email}>
+                <StorefrontLayoutWrapper
+                  menus={menus}
+                  policies={shop.policies}
+                  shopName={shop.name}
+                  freeShippingThreshold={shop.freeShippingThreshold}
+                  shopEmail={shop.email}
+                  announcementText={shop.announcementText}
+                  announcementMarquee={shop.announcementMarquee}
+                  announcementEnabled={shop.announcementEnabled}
+                  whatsappNumber={shop.whatsappNumber}
+                >
                   {children}
                 </StorefrontLayoutWrapper>
                 <CartDrawer />

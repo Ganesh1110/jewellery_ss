@@ -5,7 +5,20 @@ import { getSession } from '@/lib/auth';
 import { parseCurrencyCode } from '@/lib/currencies';
 import type { StoreConfigRow, StoreAlerts } from '@/types/admin';
 
-const CONFIG_KEYS = ['store_name', 'store_email', 'currency', 'free_shipping_threshold', 'return_window', 'hero_subtitle', 'hero_title', 'hero_description'];
+const CONFIG_KEYS = [
+  'store_name',
+  'store_email',
+  'whatsapp_number',
+  'currency',
+  'free_shipping_threshold',
+  'return_window',
+  'announcement_text',
+  'announcement_marquee',
+  'announcement_enabled',
+  'hero_subtitle',
+  'hero_title',
+  'hero_description',
+];
 
 async function readPayload() {
   const rows = await prisma.setting.findMany({ where: { key: { in: [...CONFIG_KEYS, 'low_stock_alerts', 'new_order_alerts'] } } });
@@ -13,9 +26,13 @@ async function readPayload() {
   const config: StoreConfigRow[] = [
     { key: 'store_name', label: 'Store Name', value: map.get('store_name') || 'Style Statement by Shakthi', hint: 'Shown in the storefront header and metadata' },
     { key: 'store_email', label: 'Store Email', value: map.get('store_email') || '', hint: 'Used for order notifications and contact form' },
+    { key: 'whatsapp_number', label: 'WhatsApp Phone Number', value: map.get('whatsapp_number') || '+919876543210', hint: 'Phone number for WhatsApp concierge and product inquiry (with country code)' },
     { key: 'currency', label: 'Currency', value: map.get('currency') || 'INR (₹) - India', hint: 'Currency for pricing and inventory valuation' },
     { key: 'free_shipping_threshold', label: 'Free Shipping Above', value: map.get('free_shipping_threshold') || '', hint: 'Complimentary shipping above this cart value' },
     { key: 'return_window', label: 'Return Window', value: map.get('return_window') || '14 days', hint: 'Return period shown on the PDP and checkout' },
+    { key: 'announcement_text', label: 'Top Announcement Text', value: map.get('announcement_text') || 'Complimentary shipping on orders over ₹15,000', hint: 'Offer or announcement banner displayed at top of storefront' },
+    { key: 'announcement_marquee', label: 'Enable Marquee Animation (true/false)', value: map.get('announcement_marquee') || 'true', hint: 'Set to "true" for continuous scrolling marquee, or "false" for static text' },
+    { key: 'announcement_enabled', label: 'Enable Announcement Bar (true/false)', value: map.get('announcement_enabled') || 'true', hint: 'Set to "true" to show top bar, or "false" to hide' },
     { key: 'hero_subtitle', label: 'Hero Subtitle', value: map.get('hero_subtitle') || 'Handcrafted in Mumbai', hint: 'Small text above the main headline' },
     { key: 'hero_title', label: 'Hero Title', value: map.get('hero_title') || 'Jewelry with intention, worn daily', hint: 'Main headline on the homepage. Use HTML tags like <i> or <em> for italics.' },
     { key: 'hero_description', label: 'Hero Description', value: map.get('hero_description') || 'Quietly sculpted pieces in gold and gemstone, made to be worn every day and handed down for generations.', hint: 'Supporting text below the main headline' },

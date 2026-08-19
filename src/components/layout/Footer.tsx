@@ -115,22 +115,30 @@ export function Footer({ menus, policies, shopName = 'Style Statement by Shakthi
 
             {/* Policies */}
             <nav aria-label="Legal policies" className="flex flex-wrap items-center justify-center gap-6">
-              {[
-                { policy: policies.privacyPolicy, label: 'Privacy' },
-                { policy: policies.termsOfService, label: 'Terms' },
-                { policy: policies.refundPolicy, label: 'Returns' },
-                { policy: policies.shippingPolicy, label: 'Shipping' },
-              ].map(({ policy, label }) => (
-                policy && (
-                  <Link
-                    key={label}
-                    href={policy.url}
-                    className="text-body-sm text-cream-50/40 hover:text-cream-50 transition-colors"
-                  >
-                    {label}
-                  </Link>
-                )
-              ))}
+              <Link
+                href="/terms-of-service"
+                className="text-body-sm text-cream-50/50 hover:text-cream-50 transition-colors"
+              >
+                Terms &amp; Conditions
+              </Link>
+              <Link
+                href="/refund-policy"
+                className="text-body-sm text-cream-50/50 hover:text-cream-50 transition-colors"
+              >
+                Return Policy
+              </Link>
+              <Link
+                href="/privacy-policy"
+                className="text-body-sm text-cream-50/50 hover:text-cream-50 transition-colors"
+              >
+                Privacy Policy
+              </Link>
+              <Link
+                href="/shipping-policy"
+                className="text-body-sm text-cream-50/50 hover:text-cream-50 transition-colors"
+              >
+                Shipping Policy
+              </Link>
             </nav>
           </div>
         </div>

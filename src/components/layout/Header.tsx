@@ -20,22 +20,33 @@ const navigation = [
   { name: 'Collections', href: '/collections' },
   { name: 'New Arrivals', href: '/collections/new-arrivals' },
   { name: 'Bestsellers', href: '/collections/bestsellers' },
-  { name: 'Journal', href: '/journal' },
 ];
 
 interface HeaderProps {
   shopName?: string;
   freeShippingThreshold?: string;
   shopEmail?: string;
+  announcementText?: string;
+  announcementMarquee?: boolean;
+  announcementEnabled?: boolean;
 }
 
-export function Header({ shopName = 'Style Statement by Shakthi', freeShippingThreshold = '₹15,000', shopEmail = 'hello@sss.com' }: HeaderProps = {}) {
+export function Header({
+  shopName = 'Style Statement by Shakthi',
+  freeShippingThreshold = '₹15,000',
+  shopEmail = 'hello@sss.com',
+  announcementText,
+  announcementMarquee = true,
+  announcementEnabled = true,
+}: HeaderProps = {}) {
   const { totalQuantity, openCart } = useCart();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [megaMenuOpen, setMegaMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [mounted, setMounted] = useState(false);
+
+  const displayText = announcementText || `Complimentary shipping on orders over ${freeShippingThreshold}`;
 
   useEffect(() => {
     setMounted(true);
@@ -64,9 +75,26 @@ export function Header({ shopName = 'Style Statement by Shakthi', freeShippingTh
       role="banner"
     >
       {/* Announcement Bar */}
-      <div className="bg-neutral-950 text-cream-50 py-2.5 px-4 text-center text-caption uppercase tracking-[0.2em] font-medium">
-        Complimentary shipping on orders over {freeShippingThreshold}
-      </div>
+      {announcementEnabled && (
+        <div className="bg-neutral-950 text-cream-50 py-2.5 px-4 text-center text-caption uppercase tracking-[0.2em] font-medium overflow-hidden">
+          {announcementMarquee ? (
+            <div className="w-full overflow-hidden whitespace-nowrap">
+              <div className="inline-block animate-marquee whitespace-nowrap">
+                <span className="mx-8">{displayText}</span>
+                <span className="mx-8">&bull;</span>
+                <span className="mx-8">{displayText}</span>
+                <span className="mx-8">&bull;</span>
+                <span className="mx-8">{displayText}</span>
+                <span className="mx-8">&bull;</span>
+                <span className="mx-8">{displayText}</span>
+                <span className="mx-8">&bull;</span>
+              </div>
+            </div>
+          ) : (
+            <div>{displayText}</div>
+          )}
+        </div>
+      )}
 
       {/* Main Header */}
       <div className="relative max-w-container-2xl mx-auto px-4 sm:px-6 lg:px-8">

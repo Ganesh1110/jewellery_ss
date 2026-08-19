@@ -158,7 +158,7 @@ export function ProductDetailsClient({
                 />
               )}
 
-              {/* Quantity & Add to Cart */}
+              {/* Quantity & Add to Cart & WhatsApp Inquiry */}
               <div className="flex flex-col sm:flex-row gap-4 items-start pt-8 border-t border-neutral-950/10">
                 <QuantitySelector
                   value={quantity}
@@ -166,7 +166,7 @@ export function ProductDetailsClient({
                   max={selectedVariant?.quantityAvailable || 99}
                   disabled={availability.status === 'out_of_stock'}
                 />
-                <div className="flex-1 sm:w-auto">
+                <div className="flex-1 w-full sm:w-auto flex flex-col sm:flex-row gap-3">
                   <AddToCartButton
                     onClick={handleAddToCart}
                     loading={cartLoading}
@@ -184,23 +184,20 @@ export function ProductDetailsClient({
                       'Add to Bag'
                     )}
                   </AddToCartButton>
+
+                  <a
+                    href={`https://wa.me/919876543210?text=${encodeURIComponent(`Hi! I am interested in purchasing "${product.title}" (${window.location.href}). Please assist me.`)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn-secondary w-full sm:w-auto min-h-[52px] text-body font-medium flex items-center justify-center gap-2 border-emerald-600 text-emerald-700 hover:bg-emerald-50"
+                  >
+                    Enquire on WhatsApp
+                  </a>
                 </div>
               </div>
 
-              {/* Wishlist & Share */}
-              <div className="flex items-center gap-6 pt-8 border-t border-neutral-950/10">
-                <button
-                  type="button"
-                  onClick={() => toggleWishlist(product)}
-                  className={cn(
-                    'inline-flex items-center gap-2 text-body-sm font-medium transition-colors',
-                    isSaved ? 'text-red-600 font-semibold' : 'text-neutral-700 hover:text-neutral-950'
-                  )}
-                  aria-label={isSaved ? 'Remove from wishlist' : 'Add to wishlist'}
-                >
-                  <Heart className={cn('h-4 w-4', isSaved && 'fill-red-600 text-red-600')} aria-hidden="true" />
-                  {isSaved ? 'Saved to Wishlist' : 'Add to Wishlist'}
-                </button>
+              {/* Share Action (Wishlist hidden for now) */}
+              <div className="flex items-center gap-6 pt-6 border-t border-neutral-950/10">
                 <button
                   type="button"
                   onClick={async () => {
@@ -226,8 +223,48 @@ export function ProductDetailsClient({
                   aria-label="Share product"
                 >
                   <Share2 className="h-4 w-4" aria-hidden="true" />
-                  Share
+                  Share Piece
                 </button>
+              </div>
+
+              {/* Care & Handling Instructions Accordion (Aarvee Jewel Style) */}
+              <div className="border-t border-neutral-950/10 pt-6 space-y-4">
+                <details className="group border border-neutral-950/10 rounded-lg p-4 bg-cream-50/50 [&_summary::-webkit-details-marker]:hidden">
+                  <summary className="flex items-center justify-between font-heading text-body font-medium text-neutral-950 cursor-pointer select-none">
+                    <span className="flex items-center gap-2">
+                      <Shield className="h-4 w-4 text-gold-600" />
+                      Care & Handling Instructions
+                    </span>
+                    <span className="transition duration-300 group-open:-rotate-180">
+                      <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </span>
+                  </summary>
+                  <div className="mt-3 text-body-sm text-neutral-600 space-y-2 leading-relaxed pt-2 border-t border-neutral-950/5">
+                    <p>&bull; <strong>Avoid Contact with Liquids:</strong> Keep your jewelry away from water, perfumes, hairsprays, lotions, and harsh household chemicals.</p>
+                    <p>&bull; <strong>Storage:</strong> Store each piece individually in an airtight pouch or soft velvet box to prevent oxidation and scratches.</p>
+                    <p>&bull; <strong>Cleaning:</strong> Gently wipe with a dry, soft lint-free cloth after each wear to restore shine. Never soak gemstone pieces in harsh cleaning solutions.</p>
+                    <p>&bull; <strong>Wear Advice:</strong> Put your jewelry on as the final touch after dressing and applying makeup/fragrance, and take off before exercising or sleeping.</p>
+                  </div>
+                </details>
+
+                <details className="group border border-neutral-950/10 rounded-lg p-4 bg-cream-50/50 [&_summary::-webkit-details-marker]:hidden">
+                  <summary className="flex items-center justify-between font-heading text-body font-medium text-neutral-950 cursor-pointer select-none">
+                    <span className="flex items-center gap-2">
+                      <Truck className="h-4 w-4 text-gold-600" />
+                      Shipping & Delivery Details
+                    </span>
+                    <span className="transition duration-300 group-open:-rotate-180">
+                      <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </span>
+                  </summary>
+                  <div className="mt-3 text-body-sm text-neutral-600 space-y-2 leading-relaxed pt-2 border-t border-neutral-950/5">
+                    <p>Complimentary insured shipping on all orders over {freeShippingThreshold}. Delivered in signature tamper-proof luxury packaging within 3 to 7 business days.</p>
+                  </div>
+                </details>
               </div>
 
               {/* Service Note */}

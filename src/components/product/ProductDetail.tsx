@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import { OptimizedImage } from '@/components/ui/Image';
-import { ChevronLeft, ChevronRight, X, ZoomIn, ZoomOut, RotateCcw } from 'lucide-react';
+import { ChevronLeft, ChevronRight, X, ZoomIn, ZoomOut, RotateCcw, Play, Video } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { Product, ProductVariant } from '@/types/shopify';
 
@@ -82,38 +82,63 @@ export function ProductGallery({ product, selectedVariant, className }: ProductG
   const zoomOut = () => setZoomScale((prev) => Math.max(prev - 0.5, 1));
   const resetZoom = () => setZoomScale(1);
 
+  const demoVideoUrl = 'https://assets.mixkit.co/videos/preview/mixkit-hand-holding-a-gold-ring-41564-large.mp4';
+  const [showVideo, setShowVideo] = useState(false);
+
   return (
     <div className={cn('relative group', className)}>
-      {/* Main Image Container with In-Place Hover Zoom */}
+      {/* Main Image / Video Container with In-Place Hover Zoom */}
       <div
         className="relative aspect-4-5 overflow-hidden bg-cream-50 cursor-zoom-in"
-        onMouseMove={handleMouseMove}
-        onMouseLeave={handleMouseLeave}
-        onClick={() => setLightboxOpen(true)}
+        onMouseMove={showVideo ? undefined : handleMouseMove}
+        onMouseLeave={showVideo ? undefined : handleMouseLeave}
+        onClick={showVideo ? undefined : () => setLightboxOpen(true)}
       >
-        <div
-          className="w-full h-full transition-transform duration-200 ease-out"
-          style={{
-            transformOrigin: `${hoverZoom.x}% ${hoverZoom.y}%`,
-            transform: hoverZoom.active ? 'scale(1.8)' : 'scale(1)',
-          }}
-        >
-          <OptimizedImage
-            src={currentImage?.url}
-            alt={currentImage?.altText || product.title}
-            fill
-            priority={activeIndex === 0}
-            objectFit="cover"
-          />
-        </div>
+        {showVideo ? (
+          <div className="w-full h-full bg-neutral-950 flex items-center justify-center relative">
+            <video
+              src={demoVideoUrl}
+              controls
+              autoPlay
+              loop
+              playsInline
+              className="w-full h-full object-cover"
+            />
+            <button
+              onClick={() => setShowVideo(false)}
+              className="absolute top-4 right-4 bg-neutral-950/80 text-cream-50 p-2 rounded-full z-20 hover:bg-neutral-800"
+              aria-label="Back to images"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+        ) : (
+          <div
+            className="w-full h-full transition-transform duration-200 ease-out"
+            style={{
+              transformOrigin: `${hoverZoom.x}% ${hoverZoom.y}%`,
+              transform: hoverZoom.active ? 'scale(1.8)' : 'scale(1)',
+            }}
+          >
+            <OptimizedImage
+              src={currentImage?.url}
+              alt={currentImage?.altText || product.title}
+              fill
+              priority={activeIndex === 0}
+              objectFit="cover"
+            />
+          </div>
+        )}
 
         {/* Hover Hint */}
-        <div className="absolute top-4 left-4 z-20 pointer-events-none bg-neutral-950/70 text-cream-50 text-caption px-3 py-1.5 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity">
-          Click for full screen view
-        </div>
+        {!showVideo && (
+          <div className="absolute top-4 left-4 z-20 pointer-events-none bg-neutral-950/70 text-cream-50 text-caption px-3 py-1.5 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity">
+            Click for full screen view
+          </div>
+        )}
 
         {/* Navigation Arrows — visible on touch, hover-revealed on desktop */}
-        {displayImages.length > 1 && (
+        {!showVideo && displayImages.length > 1 && (
           <>
             <button
               onClick={(e) => {
@@ -139,35 +164,49 @@ export function ProductGallery({ product, selectedVariant, className }: ProductG
         )}
       </div>
 
-      {/* Thumbnails Strip */}
-      {displayImages.length > 1 && (
-        <div
-          className="flex gap-3 mt-4 overflow-x-auto pb-1"
-          role="tablist"
-          aria-label="Product image thumbnails"
+      {/* Thumbnails Strip including Product Demo Video Tab */}
+      <div
+        className="flex gap-3 mt-4 overflow-x-auto pb-1 items-center"
+        role="tablist"
+        aria-label="Product media thumbnails"
+      >
+        {displayImages.map((image, index) => (
+          <button
+            key={image.url}
+            onClick={() => { setShowVideo(false); handleThumbnailClick(index); }}
+            role="tab"
+            aria-selected={!showVideo && index === activeIndex}
+            aria-label={`View image ${index + 1}`}
+            className={cn(
+              'relative flex-shrink-0 w-20 h-20 overflow-hidden transition-all duration-200',
+              !showVideo && index === activeIndex ? 'ring-2 ring-neutral-950' : 'opacity-60 hover:opacity-100'
+            )}
+          >
+            <OptimizedImage
+              src={image.url}
+              alt={image.altText || ''}
+              fill
+              objectFit="cover"
+            />
+          </button>
+        ))}
+
+        {/* Demo Video Button */}
+        <button
+          type="button"
+          onClick={() => setShowVideo(true)}
+          role="tab"
+          aria-selected={showVideo}
+          aria-label="Watch Product Demo Video"
+          className={cn(
+            'relative flex-shrink-0 w-20 h-20 overflow-hidden transition-all duration-200 bg-neutral-950 text-cream-50 flex flex-col items-center justify-center gap-1 text-[10px] uppercase font-semibold tracking-wider',
+            showVideo ? 'ring-2 ring-gold-400 opacity-100' : 'opacity-75 hover:opacity-100'
+          )}
         >
-          {displayImages.map((image, index) => (
-            <button
-              key={image.url}
-              onClick={() => handleThumbnailClick(index)}
-              role="tab"
-              aria-selected={index === activeIndex}
-              aria-label={`View image ${index + 1}`}
-              className={cn(
-                'relative flex-shrink-0 w-20 h-20 overflow-hidden transition-all duration-200',
-                index === activeIndex ? 'ring-2 ring-neutral-950' : 'opacity-60 hover:opacity-100'
-              )}
-            >
-              <OptimizedImage
-                src={image.url}
-                alt={image.altText || ''}
-                fill
-                objectFit="cover"
-              />
-            </button>
-          ))}
-        </div>
-      )}
+          <Play className="h-5 w-5 text-gold-400 fill-gold-400" />
+          <span>Demo Video</span>
+        </button>
+      </div>
 
       {/* FULL SCREEN LIGHTBOX MODAL (Z-INDEX 100 OVERRIDE) */}
       {lightboxOpen && (

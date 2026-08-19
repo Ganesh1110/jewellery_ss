@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { X, Plus, Minus, Gift, Truck, CheckCircle2 } from 'lucide-react';
+import { X, Plus, Minus, Gift, Truck, CheckCircle2, Sparkles, MapPin, UserCheck, Lock } from 'lucide-react';
+import Link from 'next/link';
 import { useCart } from '@/context/CartContext';
 import { Button } from '@/components/ui/Button';
 import { Alert } from '@/components/ui/Alert';
@@ -19,6 +20,30 @@ export function CartDrawer({ freeShippingThreshold = '₹15,000' }: CartDrawerPr
   const [isCheckingOut, setIsCheckingOut] = useState(false);
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
   const [confirmation, setConfirmation] = useState<CheckoutOrderSuccess['order'] | null>(null);
+  const [customer, setCustomer] = useState<{ name: string; email: string } | null>(null);
+
+  // Address details state for guest & logged-in checkout
+  const [customerName, setCustomerName] = useState('');
+  const [customerEmail, setCustomerEmail] = useState('');
+  const [customerPhone, setCustomerPhone] = useState('');
+  const [addressLine, setAddressLine] = useState('');
+  const [city, setCity] = useState('');
+  const [state, setState] = useState('');
+  const [pincode, setPincode] = useState('');
+  const [createAccount, setCreateAccount] = useState(false);
+
+  useEffect(() => {
+    fetch('/api/auth/customer/me')
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data?.customer) {
+          setCustomer(data.customer);
+          if (data.customer.name) setCustomerName(data.customer.name);
+          if (data.customer.email) setCustomerEmail(data.customer.email);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   // Close on Escape key
   useEffect(() => {
@@ -51,7 +76,19 @@ export function CartDrawer({ freeShippingThreshold = '₹15,000' }: CartDrawerPr
     if (!cart) return;
     setIsCheckingOut(true);
     setCheckoutError(null);
-    const result = await checkoutOrder(cart.id);
+    const result = await checkoutOrder({
+      cartId: cart.id,
+      customerName,
+      customerEmail,
+      customerPhone,
+      address: {
+        addressLine,
+        city,
+        state,
+        pincode,
+      },
+      createAccount,
+    });
     if (result.ok) {
       setConfirmation(result.order);
     } else {
@@ -136,6 +173,28 @@ export function CartDrawer({ freeShippingThreshold = '₹15,000' }: CartDrawerPr
             </div>
           ) : (
             <>
+              {/* Login for Exclusive Offers Alert Banner (Requirement 14) */}
+              {!customer && (
+                <div className="mb-6 p-4 rounded-xl bg-gold-50 border border-gold-300 text-neutral-900 flex flex-col gap-2">
+                  <div className="flex items-center gap-2 font-heading text-body font-semibold text-gold-800">
+                    <Sparkles className="h-4 w-4 text-gold-700" />
+                    Login to unlock exclusive member offers!
+                  </div>
+                  <p className="text-caption text-neutral-700">
+                    Sign in to your account to get 10% off member rewards, special gifts, and faster checkout.
+                  </p>
+                  <div className="pt-1">
+                    <Link
+                      href="/account"
+                      onClick={closeCart}
+                      className="inline-flex items-center gap-1.5 text-caption font-semibold text-gold-800 hover:text-gold-900 underline underline-offset-4"
+                    >
+                      <Lock className="h-3.5 w-3.5" /> Login / Register Now &rarr;
+                    </Link>
+                  </div>
+                </div>
+              )}
+
               {/* Cart Items */}
               <ul className="space-y-8" role="list" aria-label="Cart items">
                 {lines.map((line) => (
@@ -148,6 +207,91 @@ export function CartDrawer({ freeShippingThreshold = '₹15,000' }: CartDrawerPr
                   />
                 ))}
               </ul>
+
+              {/* Shipping Address & Contact Form (Requirement 11 & 12) */}
+              <div className="mt-8 pt-6 border-t border-neutral-950/10 space-y-4">
+                <div className="flex items-center gap-2">
+                  <MapPin className="h-4 w-4 text-gold-600" />
+                  <h3 className="font-heading text-body font-semibold text-neutral-950">Shipping & Client Details</h3>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-body-sm">
+                  <div>
+                    <label className="label text-[10px]">Full Name</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Priya Sharma"
+                      value={customerName}
+                      onChange={(e) => setCustomerName(e.target.value)}
+                      className="input min-h-[42px] py-2 text-body-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="label text-[10px]">Email Address</label>
+                    <input
+                      type="email"
+                      placeholder="e.g. priya@example.com"
+                      value={customerEmail}
+                      onChange={(e) => setCustomerEmail(e.target.value)}
+                      className="input min-h-[42px] py-2 text-body-sm"
+                    />
+                  </div>
+                  <div className="sm:col-span-2">
+                    <label className="label text-[10px]">Phone Number</label>
+                    <input
+                      type="tel"
+                      placeholder="+91 98765 43210"
+                      value={customerPhone}
+                      onChange={(e) => setCustomerPhone(e.target.value)}
+                      className="input min-h-[42px] py-2 text-body-sm"
+                    />
+                  </div>
+                  <div className="sm:col-span-2">
+                    <label className="label text-[10px]">Delivery Street Address</label>
+                    <input
+                      type="text"
+                      placeholder="Flat, House No., Street, Area"
+                      value={addressLine}
+                      onChange={(e) => setAddressLine(e.target.value)}
+                      className="input min-h-[42px] py-2 text-body-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="label text-[10px]">City</label>
+                    <input
+                      type="text"
+                      placeholder="Mumbai"
+                      value={city}
+                      onChange={(e) => setCity(e.target.value)}
+                      className="input min-h-[42px] py-2 text-body-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="label text-[10px]">Pincode / ZIP</label>
+                    <input
+                      type="text"
+                      placeholder="400001"
+                      value={pincode}
+                      onChange={(e) => setPincode(e.target.value)}
+                      className="input min-h-[42px] py-2 text-body-sm"
+                    />
+                  </div>
+                </div>
+
+                {!customer && (
+                  <div className="flex items-center gap-2.5 pt-2">
+                    <input
+                      type="checkbox"
+                      id="create-account-checkbox"
+                      checked={createAccount}
+                      onChange={(e) => setCreateAccount(e.target.checked)}
+                      className="h-4 w-4 rounded border-neutral-300 text-neutral-950 focus:ring-neutral-950"
+                    />
+                    <label htmlFor="create-account-checkbox" className="text-caption font-medium text-neutral-800 cursor-pointer">
+                      Create an account with these details for faster future orders
+                    </label>
+                  </div>
+                )}
+              </div>
 
               {/* Gift Note */}
               <div className="mt-8 pt-6 border-t border-neutral-950/10">

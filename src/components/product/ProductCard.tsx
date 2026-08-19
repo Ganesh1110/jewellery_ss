@@ -80,15 +80,7 @@ export function ProductCard({ product, variant, priority = false, showQuickAdd =
           </span>
         )}
 
-        {/* Wishlist Toggle Heart */}
-        <button
-          type="button"
-          onClick={handleWishlistToggle}
-          className="absolute top-3 right-3 z-20 p-2 rounded-full bg-cream-50/90 hover:bg-white text-neutral-700 hover:text-red-600 transition-colors shadow-subtle"
-          aria-label={isSaved ? 'Remove from wishlist' : 'Add to wishlist'}
-        >
-          <Heart className={`h-4 w-4 ${isSaved ? 'fill-red-600 text-red-600' : ''}`} />
-        </button>
+        {/* Wishlist button hidden for now */}
 
         {!available && (
           <div className="absolute inset-0 bg-cream-50/70 backdrop-blur-[2px] flex items-center justify-center z-10">

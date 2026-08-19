@@ -48,17 +48,27 @@ function matchesQuery(p: Product, query: string): boolean {
   );
 }
 
+function sortInStockFirst(products: Product[]): Product[] {
+  return [...products].sort((a, b) => {
+    const aInStock = a.availableForSale && (a.totalInventory ?? 0) > 0;
+    const bInStock = b.availableForSale && (b.totalInventory ?? 0) > 0;
+    if (aInStock === bInStock) return 0;
+    return aInStock ? -1 : 1;
+  });
+}
+
 export async function fetchProducts(
-  first = 12,
+  first = 10,
   after?: string,
   sortKey?: string,
   reverse = false,
   query?: string
 ): Promise<ProductConnection> {
   const skip = parseAfter(after);
-  const rows = await prisma.product.findMany({ where: { deletedAt: null }, orderBy: sortOrder(sortKey, reverse), take: skip + first + 1, include: variantsInclude });
+  const rows = await prisma.product.findMany({ where: { deletedAt: null }, orderBy: sortOrder(sortKey, reverse), take: skip + first + 20, include: variantsInclude });
   let products = rows.map((p) => productRecordToProduct(p));
   if (query) products = products.filter((p) => matchesQuery(p, query));
+  products = sortInStockFirst(products);
   const hasNextPage = products.length > skip + first;
   products = products.slice(skip, skip + first);
 
@@ -81,7 +91,8 @@ export async function fetchProduct(handle: string): Promise<Product | null> {
 export async function fetchProductRecommendations(productId: string): Promise<Product[]> {
   const id = Number(productId.split('/').pop());
   const rows = await prisma.product.findMany({ where: { id: { not: id }, deletedAt: null }, orderBy: { createdAt: 'desc' }, take: 4, include: variantsInclude });
-  return rows.map((p) => productRecordToProduct(p));
+  const products = rows.map((p) => productRecordToProduct(p));
+  return sortInStockFirst(products);
 }
 
 export async function fetchCollections(first = 20, after?: string): Promise<CollectionConnection> {
@@ -95,13 +106,15 @@ export async function fetchCollections(first = 20, after?: string): Promise<Coll
   };
 }
 
-export async function fetchCollection(handle: string, first = 12, after?: string, sortKey?: string): Promise<Collection | null> {
+export async function fetchCollection(handle: string, first = 10, after?: string, sortKey?: string): Promise<Collection | null> {
   const skip = parseAfter(after);
 
   if (handle === 'all') {
-    const rows = await prisma.product.findMany({ where: { deletedAt: null }, orderBy: sortOrder(sortKey), skip, take: first + 1, include: variantsInclude });
-    const hasNextPage = rows.length > first;
-    const products = rows.slice(0, first).map((p) => productRecordToProduct(p));
+    const rows = await prisma.product.findMany({ where: { deletedAt: null }, orderBy: sortOrder(sortKey), take: skip + first + 20, include: variantsInclude });
+    let products = rows.map((p) => productRecordToProduct(p));
+    products = sortInStockFirst(products);
+    const hasNextPage = products.length > skip + first;
+    products = products.slice(skip, skip + first);
     return {
       id: 'gid://db/Collection/all',
       handle: 'all',
@@ -116,9 +129,11 @@ export async function fetchCollection(handle: string, first = 12, after?: string
   }
 
   if (handle === 'bestsellers') {
-    const rows = await prisma.product.findMany({ where: { compareAtPrice: { not: null }, deletedAt: null }, orderBy: sortOrder(sortKey), skip, take: first + 1, include: variantsInclude });
-    const hasNextPage = rows.length > first;
-    const products = rows.slice(0, first).map((p) => productRecordToProduct(p));
+    const rows = await prisma.product.findMany({ where: { compareAtPrice: { not: null }, deletedAt: null }, orderBy: sortOrder(sortKey), take: skip + first + 20, include: variantsInclude });
+    let products = rows.map((p) => productRecordToProduct(p));
+    products = sortInStockFirst(products);
+    const hasNextPage = products.length > skip + first;
+    products = products.slice(skip, skip + first);
     return {
       id: 'gid://db/Collection/bestsellers',
       handle: 'bestsellers',
@@ -138,11 +153,11 @@ export async function fetchCollection(handle: string, first = 12, after?: string
   });
   if (!collection) return null;
 
-  const allProducts = collection.items.map((item) => item.product);
+  let allProducts = collection.items.map((item) => item.product).map((p) => productRecordToProduct(p));
+  allProducts = sortInStockFirst(allProducts);
   const paginated = allProducts.slice(skip, skip + first);
   const hasNextPage = allProducts.length > skip + first;
-  const products = paginated.map((p) => productRecordToProduct(p));
-  return collectionRecordToCollection(collection, products);
+  return collectionRecordToCollection(collection, paginated);
 }
 
 export async function fetchMenu(handle: string): Promise<Menu | null> {

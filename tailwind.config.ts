@@ -33,7 +33,7 @@ const config: Config = {
           700: '#423B33',
           800: '#2B2621',
           900: '#1A1815',
-          950: '#11100E',
+          950: '#1e3932',
         },
         cream: {
           50: '#FAF8F5',
@@ -176,9 +176,14 @@ const config: Config = {
         'scale-in': 'scaleIn 0.25s ease-out',
         'slide-in-left': 'slideInLeft 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
         'slide-in-right': 'slideInRight 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+        marquee: 'marquee 22s linear infinite',
       },
 
       keyframes: {
+        marquee: {
+          '0%': { transform: 'translateX(0%)' },
+          '100%': { transform: 'translateX(-50%)' },
+        },
         fadeIn: {
           '0%': { opacity: '0' },
           '100%': { opacity: '1' },

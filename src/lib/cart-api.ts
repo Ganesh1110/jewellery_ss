@@ -57,11 +57,22 @@ export interface CheckoutOrderError {
 }
 export type CheckoutOrderResult = CheckoutOrderSuccess | CheckoutOrderError;
 
-export async function checkoutOrder(cartGid: string): Promise<CheckoutOrderResult> {
+export interface CheckoutInput {
+  cartId: string;
+  customerName?: string;
+  customerEmail?: string;
+  customerPhone?: string;
+  address?: { addressLine?: string; city?: string; state?: string; pincode?: string };
+  createAccount?: boolean;
+  password?: string;
+}
+
+export async function checkoutOrder(input: string | CheckoutInput): Promise<CheckoutOrderResult> {
+  const payload = typeof input === 'string' ? { cartId: input } : input;
   const res = await fetch('/api/checkout', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ cartId: cartGid }),
+    body: JSON.stringify(payload),
   });
 
   if (!res.ok) {

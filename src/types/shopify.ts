@@ -241,6 +241,10 @@ export interface Shop {
   freeShippingThreshold?: string;
   returnWindow?: string;
   email?: string;
+  announcementText?: string;
+  announcementMarquee?: boolean;
+  announcementEnabled?: boolean;
+  whatsappNumber?: string;
 }
 
 export interface Article {

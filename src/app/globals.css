@@ -62,7 +62,7 @@
 
   html.dark .bg-cream-50,
   html.dark [class*="bg-cream-50"] {
-    background-color: #11100E !important;
+    background-color: #1e3932 !important;
   }
 
   html.dark .bg-white,
@@ -78,7 +78,7 @@
 
   html.dark .bg-canvas,
   html.dark [class*="bg-canvas"] {
-    background-color: #11100E !important;
+    background-color: #1e3932 !important;
   }
 
   html.dark .bg-surface,
