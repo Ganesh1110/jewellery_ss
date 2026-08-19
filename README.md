@@ -8,22 +8,25 @@ A full-stack, luxury e-commerce platform and administrative store console built 
 
 ### 🛍️ Storefront (Customer Experience)
 - **Next.js 14 App Router** — React Server Components (RSC), file-based routing, streaming SSR, and edge optimizations.
-- **Dynamic Catalog & Collections** — Cursor-paginated grids, sorting (Price, Title, Newest), and smart collections (`/collections/all`, `/collections/bestsellers`, `/collections/new-arrivals`).
-- **Product Detail Pages (PDP)** — Multi-variant option selector (Material, Size, Length, Finish), real-time pricing and compare-at prices, live inventory stock indicators, GIA certification specs, and product recommendations.
-- **Variant-Aware Cart Drawer** — Persistent, database-backed shopping cart. Add/update/remove line items by variant ID, set custom order notes, and compute cart subtotal in real time.
-- **Direct COD Checkout & Handoff** — Automated order placement with Cash on Delivery (COD), inventory deduction, automatic out-of-stock availability updates, and order confirmation summary.
-- **Editorial Journal / Blog** — Articles on diamond buying (4Cs), gold jewelry care, Akoya pearl provenance, and layering guides with rich content.
-- **Store Policies & Brand Pages** — Static and dynamic policy pages (Privacy, Terms of Service, Shipping Policy, Refund Policy, About Atelier, Contact).
+- **Brand Palette Theme (`#1e3932`)** — Deep emerald green signature brand theme across dark surfaces, header accents, and buttons.
+- **Top Announcement Marquee Bar** — Admin-configurable top announcement banner with continuous scrolling ticker animation mode (`announcement_text`, `announcement_marquee`, `announcement_enabled`).
+- **WhatsApp Concierge & Inquiries** — Floating WhatsApp concierge button and direct "Enquire on WhatsApp" action on Product Detail Pages with pre-filled product details.
+- **Dynamic Catalog & Collections** — 10 products per page pagination, sorting (Price, Title, Newest), and smart collections (`/collections/all`, `/collections/bestsellers`, `/collections/new-arrivals`).
+- **Sold Out Items Placed Last** — Automated product sorting that pushes out-of-stock / sold-out items (`availableForSale === false` or `totalInventory === 0`) to the very end of catalog grids.
+- **Product Detail Pages (PDP)** — Multi-variant option selector (Material, Size, Length, Finish), real-time pricing and compare-at prices, live inventory stock indicators, GIA certification specs, product demo video player, and collapsible **Care & Handling Instructions** accordion (liquid contact precautions, storage, and cleaning guide).
+- **Guest Checkout & Address Capture** — Unauthenticated guest browsing and checkout with full address entry fields (Name, Email, Phone, Street Address, City, State, Pincode) and an optional checkbox to auto-create a Customer account during checkout.
+- **Variant-Aware Cart Drawer** — Database-backed shopping cart with live subtotal calculation, gift note input, free shipping progress bar, and a prominent **Login Offer Alert Banner** encouraging guest users to log in for exclusive member rewards.
+- **Store Policies & Brand Pages** — Direct footer links to legal and store policy pages (Privacy Policy, Terms & Conditions, Shipping Policy, Return Policy, About Atelier, Contact).
 - **SEO & Performance** — Metadata API, automated `sitemap.xml` and `robots.txt` routes, security headers, optimized Next.js image pipeline, and responsive Tailwind styling.
 
 ### 🛡️ Admin Console (`/admin`)
 - **Authentication & Security** — Passcode protection, bcrypt-hashed credentials, DB-backed session management (`Session` table) with 7-day token cookies and Next.js middleware route guarding.
 - **Product Catalog Management** — Publish and edit products with custom handles, descriptions, vendors, categories, tags, images, price ranges, compare-at prices, and custom option sets.
 - **Variant Matrix Generator** — Automatically generate option combinations (e.g. Length × Finish) with automated SKU/barcode uniqueness validation.
-- **Stock Control & Inventory Center (`/admin/inventory`)** — Real-time metrics (Total In Stock, Low Stock Warning, Out of Stock, Inventory Valuation). Perform restocks, manual stock adjustments, or write off damaged inventory with movement audit logs (`InventoryMovement`).
+- **Stock Control & Inventory Center (`/admin/inventory`)** — Real-time metrics (Total In Stock, Low Stock Warning, Out of Stock, Inventory Valuation). Perform restocks or manual stock adjustments with audit logs (`InventoryMovement`). Note: Damage write-off is hidden in current console.
 - **Product & Variant Archiving / Restoration** — Archive items or specific variants from the active catalog. Restore single variants or entire products back to active inventory with a single click.
-- **Order Management Console (`/admin/orders`)** — Search and filter orders by status (`All`, `Processing`, `Shipped`, `Fulfilled`) or customer query. Interactive **Order Management Modal** for inspecting customer details, line items, and changing fulfillment status with real-time DB persistence.
-- **Store Settings (`/admin/settings`)** — Manage general store details (Name, Email, Currency, Free Shipping threshold, Return Window), notification alert switches, and theme preference.
+- **Order Management Console (`/admin/orders`)** — Search and filter orders by status (`All`, `Processing`, `Shipped`, `Fulfilled`) or customer query. Interactive **Order Management Modal** for inspecting customer details, line items, address, and changing fulfillment status with real-time DB persistence.
+- **Store Settings (`/admin/settings`)** — Manage store details (Name, Email, WhatsApp Phone Number, Currency, Free Shipping threshold, Return Window), Top Announcement text & Marquee toggle, notification alert switches, and theme preference.
 
 ### 🎨 Theme & UI Alert System
 - **Theme Engine (Light, Dark, System)** — Reactive `ThemeContext` supporting Light, Dark, and OS System preference (`prefers-color-scheme`) with `localStorage` persistence and custom dark mode surface palettes.
@@ -97,7 +100,7 @@ npm run db:migrate
 
 ### 4. Seed Initial Data
 
-Populate default admin credentials, collections, products, variants, journal articles, and store settings:
+Populate default admin credentials, collections, products, variants, and store settings:
 
 ```bash
 npm run db:seed
@@ -122,18 +125,18 @@ Open [http://localhost:3000](http://localhost:3000) for the storefront or [http:
 | Model | Description |
 | :--- | :--- |
 | `User` | Admin store owner account with email and bcrypt `passwordHash`. |
+| `Customer` | Registered storefront customer account for faster checkout. |
 | `Session` | Database-backed admin login session tokens with 7-day expiration. |
-| `Setting` | Key-value store configuration settings (Store Name, Email, Currency, Shipping Threshold, Return Window, Alert Toggles). |
+| `Setting` | Key-value store configuration settings (Store Name, Email, WhatsApp Number, Currency, Shipping Threshold, Return Window, Announcement Text, Announcement Marquee, Alert Toggles). |
 | `Collection` | Categorized product groupings (handle, title, description, image, SEO metadata). |
 | `CollectionItem` | Join model mapping products to collections with position ordering. |
 | `Product` | Main product catalog record (handle, title, description, vendor, type, tags, price, compareAtPrice, images, options, inventory summary). |
 | `ProductVariant` | Individual product SKU variant (title, price, compareAtPrice, stock, lowStockThreshold, selectedOptions, SKU, barcode, archived status). |
-| `InventoryMovement` | Inventory audit trail tracking restocks, manual stock adjustments, and damage write-offs. |
-| `Order` | Placed customer orders (order number, status, customer details, address, subtotal, shipping, total, payment method). |
+| `InventoryMovement` | Inventory audit trail tracking restocks and manual stock adjustments. |
+| `Order` | Placed customer orders (order number, status, customer name, email, phone, shipping address JSON, subtotal, shipping, total, payment method). |
 | `OrderItem` | Snapshot of purchased line items inside an order. |
 | `Cart` | Customer shopping cart identified by a unique session token. |
 | `CartItem` | Line item in a cart linked to a specific `ProductVariant` and `Product`. |
-| `Blog` / `Article` | Editorial journal articles and content. |
 
 ---
 
@@ -143,6 +146,7 @@ Open [http://localhost:3000](http://localhost:3000) for the storefront or [http:
 - `POST /api/auth/login` — Authenticate admin credentials and issue session token cookie.
 - `POST /api/auth/logout` — Invalidate admin session cookie.
 - `GET /api/auth/me` — Return current active admin session user.
+- `GET /api/auth/customer/me` — Return current logged-in customer user.
 
 ### Storefront & Cart
 - `GET /api/cart` — Retrieve active cart by token.
@@ -151,7 +155,7 @@ Open [http://localhost:3000](http://localhost:3000) for the storefront or [http:
 - `PATCH /api/cart/items` — Update line item quantity.
 - `DELETE /api/cart/items` — Remove a line item from cart.
 - `POST /api/cart/note` — Set cart order note.
-- `POST /api/checkout` — Place an order (COD), deduct stock, and update variant availability.
+- `POST /api/checkout` — Place an order with guest/customer address details, option to create account, deduct stock, and update variant availability.
 
 ### Admin Operations
 - `GET /api/admin/products` — List active or archived products.
@@ -161,11 +165,11 @@ Open [http://localhost:3000](http://localhost:3000) for the storefront or [http:
 - `PATCH /api/admin/products/[id]/restore` — Restore an archived product and all of its variants.
 - `PATCH /api/admin/variants/[id]` — Update variant SKU, barcode, price, stock, or threshold.
 - `PATCH /api/admin/variants/[id]/restore` — Restore a single variant (and un-archive parent product if archived).
-- `POST /api/admin/inventory/movements` — Record a restock, stock adjustment, or damage write-off.
+- `POST /api/admin/inventory/movements` — Record a restock or stock adjustment.
 - `GET /api/admin/orders` — List customer orders.
 - `PATCH /api/admin/orders/[id]` — Update order status (`Processing`, `Shipped`, `Fulfilled`).
 - `GET /api/admin/settings` — Read store configuration settings.
-- `PATCH /api/admin/settings` — Save updated store configurations and notification switches.
+- `PATCH /api/admin/settings` — Save updated store configurations, marquee text/settings, and notification switches.
 
 ---
 
@@ -199,7 +203,6 @@ Open [http://localhost:3000](http://localhost:3000) for the storefront or [http:
 │   │   ├── page.tsx                   # Storefront Homepage
 │   │   ├── products/[handle]/         # Product Detail Page (PDP)
 │   │   ├── collections/               # Collections Index & Detail Pages
-│   │   ├── journal/                   # Journal / Blog pages
 │   │   ├── checkout/                  # Checkout & Confirmation
 │   │   ├── admin/                     # Store Console Admin Portal
 │   │   │   ├── page.tsx               # Admin Dashboard
@@ -212,9 +215,9 @@ Open [http://localhost:3000](http://localhost:3000) for the storefront or [http:
 │   │   ├── layout.tsx                 # Root Layout with Theme & Toast Providers
 │   │   └── globals.css                # Global CSS & Tailwind Dark Theme Overrides
 │   ├── components/                    # Reusable React Components
-│   │   ├── cart/                      # Cart Drawer & Line Item controls
-│   │   ├── layout/                    # Storefront Header, Footer, Mobile Navigation
-│   │   ├── product/                   # ProductCard, ProductGrid, VariantSelector
+│   │   ├── cart/                      # Cart Drawer, Guest Address & Line Item controls
+│   │   ├── layout/                    # Storefront Header, Footer, Marquee Banner
+│   │   ├── product/                   # ProductCard, ProductGrid, ProductGallery (Demo Video), Care Instructions
 │   │   └── ui/                        # Alert, Button, ConfirmModal, Input, Image
 │   ├── context/                       # Global Context Providers (Cart, Toast, Theme)
 │   ├── lib/                           # Domain Services & Utilities
