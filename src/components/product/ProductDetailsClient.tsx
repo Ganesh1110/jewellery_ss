@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
-import { Heart, Share2, Truck, RotateCcw, Shield, Check } from 'lucide-react';
+import { Heart, Share2, Truck, RotateCcw, Shield, Check, MapPin, Search } from 'lucide-react';
 import { ProductGallery, VariantSelector, QuantitySelector, AddToCartButton } from '@/components/product/ProductDetail';
 import { ProductGrid } from '@/components/product/ProductGrid';
 import { useCart } from '@/context/CartContext';
@@ -29,6 +29,34 @@ export function ProductDetailsClient({
   const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>({});
   const [quantity, setQuantity] = useState(1);
   const [addedToCart, setAddedToCart] = useState(false);
+  const [pincode, setPincode] = useState('');
+  const [pincodeLoading, setPincodeLoading] = useState(false);
+  const [pincodeResult, setPincodeResult] = useState<{
+    pincode?: string;
+    serviceable: boolean;
+    couriers?: string[];
+    estimatedDays?: string;
+    message?: string;
+  } | null>(null);
+
+  const handleCheckPincode = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!/^\d{6}$/.test(pincode.trim())) {
+      showToast('Please enter a valid 6-digit Pincode', 'error');
+      return;
+    }
+    setPincodeLoading(true);
+    setPincodeResult(null);
+    try {
+      const res = await fetch(`/api/shipping/serviceability?pincode=${encodeURIComponent(pincode.trim())}`);
+      const data = await res.json();
+      setPincodeResult(data);
+    } catch {
+      showToast('Could not check pincode serviceability', 'error');
+    } finally {
+      setPincodeLoading(false);
+    }
+  };
 
   // Initialize selected options with first available variant
   useEffect(() => {
@@ -281,6 +309,57 @@ export function ProductDetailsClient({
                   <Shield className="h-4 w-4 text-neutral-400" aria-hidden="true" />
                   Gemstones certified by IGI · GIA
                 </p>
+              </div>
+
+              {/* Pincode Serviceability Check Widget (DTDC & Professional Courier) */}
+              <div className="border-t border-neutral-950/10 pt-6 mt-6">
+                <div className="flex items-center gap-2 mb-2">
+                  <MapPin className="h-4 w-4 text-gold-600" />
+                  <span className="text-body-sm font-medium text-neutral-950">Check Delivery Pincode Availability</span>
+                </div>
+                <form onSubmit={handleCheckPincode} className="flex gap-2 max-w-sm">
+                  <input
+                    type="text"
+                    maxLength={6}
+                    placeholder="Enter 6-digit Pincode (e.g. 400001)"
+                    value={pincode}
+                    onChange={(e) => setPincode(e.target.value.replace(/[^0-9]/g, ''))}
+                    className="input min-h-[44px] py-2 text-body-sm flex-1"
+                  />
+                  <button
+                    type="submit"
+                    disabled={pincodeLoading || pincode.length !== 6}
+                    className="btn-primary min-h-[44px] px-4 text-caption font-medium uppercase tracking-wider disabled:opacity-40"
+                  >
+                    {pincodeLoading ? 'Checking...' : 'Check'}
+                  </button>
+                </form>
+
+                {pincodeResult && (
+                  <div className="mt-3 p-3.5 rounded-lg border bg-cream-50/80 text-body-sm animate-fade-in space-y-2">
+                    {pincodeResult.serviceable ? (
+                      <>
+                        <div className="p-2.5 rounded-md bg-white border border-emerald-200 text-emerald-900 space-y-0.5">
+                          <p className="font-semibold text-caption uppercase tracking-wider flex items-center gap-1.5 text-emerald-800">
+                            <Check className="h-4 w-4 text-emerald-600" /> Standard Delivery (3–5 Days)
+                          </p>
+                          <p className="text-caption text-neutral-600">Complimentary insured delivery in tamper-proof luxury box.</p>
+                        </div>
+
+                        <div className="p-2.5 rounded-md bg-white border border-gold-300 text-gold-950 space-y-0.5">
+                          <p className="font-semibold text-caption uppercase tracking-wider flex items-center gap-1.5 text-gold-800">
+                            ⚡ Express Air Delivery (1–2 Days)
+                          </p>
+                          <p className="text-caption text-neutral-600">Priority air dispatch. <em>Additional shipping charges will be added at checkout.</em></p>
+                        </div>
+                      </>
+                    ) : (
+                      <p className="text-amber-800 font-medium">
+                        {pincodeResult.message || `Delivery currently unavailable for pincode ${pincodeResult.pincode}.`}
+                      </p>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           </div>

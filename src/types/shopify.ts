@@ -245,6 +245,8 @@ export interface Shop {
   announcementMarquee?: boolean;
   announcementEnabled?: boolean;
   whatsappNumber?: string;
+  originPincode?: string;
+  pincodeCheckEnabled?: boolean;
 }
 
 export interface Article {

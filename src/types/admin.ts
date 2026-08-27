@@ -78,11 +78,20 @@ export interface StoredOrderItem {
   variantTitle: string | null;
 }
 
+export interface AddressDetails {
+  addressLine?: string;
+  city?: string;
+  state?: string;
+  pincode?: string;
+}
+
 export interface StoredOrder {
   id: number;
   orderNumber: string;
   name: string;
   email: string;
+  phone?: string;
+  address?: AddressDetails | null;
   createdAt: string;
   total: number;
   currencyCode: string;

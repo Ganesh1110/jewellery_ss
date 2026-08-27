@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, ShoppingBag, PackageOpen, Search, CheckCircle2, X, Truck, Clock, Check } from 'lucide-react';
+import { ArrowLeft, ShoppingBag, PackageOpen, Search, CheckCircle2, X, Truck, Clock, Check, MapPin } from 'lucide-react';
 import { formatMoney } from '@/lib/utils';
 import { OptimizedImage } from '@/components/ui/Image';
 import type { StoredOrder } from '@/types/admin';
@@ -17,6 +17,18 @@ const STATUS_STYLES: Record<string, string> = {
 
 const AVAILABLE_STATUSES = ['Processing', 'Shipped', 'Fulfilled'] as const;
 
+function extractOrderPincode(order: StoredOrder | null): string {
+  if (!order) return '400001';
+  if (order.address?.pincode && /^\d{6}$/.test(order.address.pincode.trim())) {
+    return order.address.pincode.trim();
+  }
+  if (typeof order.address === 'string') {
+    const m = (order.address as string).match(/\b\d{6}\b/);
+    if (m) return m[0];
+  }
+  return '400001';
+}
+
 export default function AdminOrdersPage() {
   const { showToast } = useToast();
   const [orders, setOrders] = useState<StoredOrder[]>([]);
@@ -24,6 +36,32 @@ export default function AdminOrdersPage() {
   const [statusFilter, setStatusFilter] = useState<string>('All');
   const [selectedOrder, setSelectedOrder] = useState<StoredOrder | null>(null);
   const [updatingStatus, setUpdatingStatus] = useState(false);
+  const [inspectPincode, setInspectPincode] = useState<string>('400001');
+  const [courierInfo, setCourierInfo] = useState<{
+    serviceable: boolean;
+    couriers?: string[];
+    estimatedDays?: string;
+    message?: string;
+    pincode?: string;
+  } | null>(null);
+
+  const fetchCourierInfo = (pin: string) => {
+    if (!/^\d{6}$/.test(pin)) return;
+    fetch(`/api/shipping/serviceability?pincode=${encodeURIComponent(pin)}`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => setCourierInfo(data))
+      .catch(() => setCourierInfo(null));
+  };
+
+  useEffect(() => {
+    if (selectedOrder) {
+      const pin = extractOrderPincode(selectedOrder);
+      setInspectPincode(pin);
+      fetchCourierInfo(pin);
+    } else {
+      setCourierInfo(null);
+    }
+  }, [selectedOrder]);
 
   useEffect(() => {
     fetch('/api/admin/orders')
@@ -165,8 +203,14 @@ export default function AdminOrdersPage() {
 
                   <div className="flex items-center justify-between pt-4 border-t border-neutral-950/10">
                     <div>
-                      <p className="text-caption text-neutral-500">{order.name}</p>
-                      <p className="text-body-sm font-semibold text-neutral-950">{formatMoney(order.total, order.currencyCode as 'INR' | 'USD')}</p>
+                      <p className="text-caption font-medium text-neutral-900">{order.name}</p>
+                      {order.address?.city && (
+                        <p className="text-[11px] text-neutral-500 flex items-center gap-1">
+                          <MapPin className="h-3 w-3 text-gold-600" />
+                          <span>{order.address.city} ({order.address.pincode})</span>
+                        </p>
+                      )}
+                      <p className="text-body-sm font-semibold text-neutral-950 mt-0.5">{formatMoney(order.total, order.currencyCode as 'INR' | 'USD')}</p>
                     </div>
                     <button
                       type="button"
@@ -218,13 +262,104 @@ export default function AdminOrdersPage() {
               </p>
             </div>
 
-            {/* Customer Details */}
-            <div className="card p-4 bg-cream-50/80 border-neutral-200 space-y-2">
-              <span className="overline text-gold-600 block">Customer Information</span>
-              <div className="text-body-sm space-y-0.5">
-                <p className="font-medium text-neutral-950">{selectedOrder.name}</p>
-                {selectedOrder.email && <p className="text-neutral-600">{selectedOrder.email}</p>}
+            {/* Customer Contact & Delivery Address */}
+            <div className="card p-4 bg-cream-50/80 border-neutral-200 space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="overline text-gold-600 block">Customer & Shipping Address</span>
+                {selectedOrder.phone && (
+                  <span className="text-caption font-medium text-neutral-700 bg-white px-2 py-0.5 rounded border border-neutral-200">
+                    📞 {selectedOrder.phone}
+                  </span>
+                )}
               </div>
+              <div className="text-body-sm space-y-1">
+                <p className="font-semibold text-neutral-950">{selectedOrder.name}</p>
+                {selectedOrder.email && <p className="text-neutral-600">{selectedOrder.email}</p>}
+                {selectedOrder.address ? (
+                  <div className="pt-2 text-caption text-neutral-700 space-y-0.5 border-t border-neutral-200/60">
+                    <p className="font-medium text-neutral-900">{selectedOrder.address.addressLine}</p>
+                    <p>{selectedOrder.address.city}, {selectedOrder.address.state} — <strong className="text-neutral-950 font-semibold">{selectedOrder.address.pincode}</strong></p>
+                  </div>
+                ) : (
+                  <p className="text-caption text-neutral-400 italic pt-1">No detailed address captured (Walk-in or standard checkout)</p>
+                )}
+              </div>
+            </div>
+
+            {/* Courier Serviceability & Logistics Inspection (DTDC & Professional Courier) */}
+            <div className="card p-4 bg-white border-gold-200/80 space-y-3 shadow-sm">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-neutral-950 font-heading text-body-sm font-semibold">
+                  <Truck className="h-4 w-4 text-gold-600" />
+                  <span>Courier Availability & Dispatch Status</span>
+                </div>
+                <span className="text-caption font-semibold px-2 py-0.5 bg-gold-100 text-gold-900 rounded border border-gold-300">
+                  PIN: {inspectPincode}
+                </span>
+              </div>
+
+              {/* Pincode Test Input for Admin */}
+              <div className="flex items-center gap-2 pt-1">
+                <label className="text-caption font-medium text-neutral-600 whitespace-nowrap">Verify Pincode:</label>
+                <input
+                  type="text"
+                  maxLength={6}
+                  value={inspectPincode}
+                  onChange={(e) => {
+                    const val = e.target.value.replace(/[^0-9]/g, '');
+                    setInspectPincode(val);
+                    if (val.length === 6) fetchCourierInfo(val);
+                  }}
+                  className="input min-h-[36px] py-1 px-2.5 text-caption font-mono w-28 text-center"
+                  placeholder="400001"
+                />
+                <button
+                  type="button"
+                  onClick={() => fetchCourierInfo(inspectPincode)}
+                  disabled={inspectPincode.length !== 6}
+                  className="btn-secondary min-h-[36px] px-3 text-caption py-1 font-medium disabled:opacity-40"
+                >
+                  Verify
+                </button>
+              </div>
+
+              {courierInfo ? (
+                <div className="space-y-2.5 text-body-sm pt-1">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-caption">
+                    <div className={`p-3 rounded-lg border flex items-center justify-between transition-colors ${courierInfo.couriers?.some((c) => c.includes('DTDC')) ? 'bg-emerald-50 border-emerald-300 text-emerald-950 font-medium' : 'bg-red-50 border-red-200 text-red-800'}`}>
+                      <div className="flex items-center gap-1.5">
+                        <Truck className="h-4 w-4 text-emerald-600" />
+                        <span>DTDC Express</span>
+                      </div>
+                      <span className="font-semibold text-emerald-800">
+                        {courierInfo.couriers?.some((c) => c.includes('DTDC')) ? '✅ Available' : '❌ Unavailable'}
+                      </span>
+                    </div>
+
+                    <div className={`p-3 rounded-lg border flex items-center justify-between transition-colors ${courierInfo.couriers?.some((c) => c.includes('Professional')) ? 'bg-emerald-50 border-emerald-300 text-emerald-950 font-medium' : 'bg-red-50 border-red-200 text-red-800'}`}>
+                      <div className="flex items-center gap-1.5">
+                        <Truck className="h-4 w-4 text-emerald-600" />
+                        <span>Professional Courier</span>
+                      </div>
+                      <span className="font-semibold text-emerald-800">
+                        {courierInfo.couriers?.some((c) => c.includes('Professional')) ? '✅ Available' : '❌ Unavailable'}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between text-caption text-neutral-700 pt-1 border-t border-neutral-100">
+                    <span className="flex items-center gap-1.5">
+                      <Clock className="h-3.5 w-3.5 text-neutral-400" />
+                      Estimated Transit: <strong>{courierInfo.estimatedDays || '3-5 Business Days'}</strong>
+                    </span>
+                    <span className="text-emerald-700 font-medium">Ready for Dispatch</span>
+                  </div>
+                </div>
+              ) : (
+                <p className="text-caption text-neutral-500 italic">
+                  Checking courier serviceability for PIN {inspectPincode}...
+                </p>
+              )}
             </div>
 
             {/* Line Items */}

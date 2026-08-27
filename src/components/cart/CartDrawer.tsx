@@ -31,6 +31,19 @@ export function CartDrawer({ freeShippingThreshold = '₹15,000' }: CartDrawerPr
   const [state, setState] = useState('');
   const [pincode, setPincode] = useState('');
   const [createAccount, setCreateAccount] = useState(false);
+  const [deliverySpeed, setDeliverySpeed] = useState<'standard' | 'express'>('standard');
+  const [pincodeStatus, setPincodeStatus] = useState<{ serviceable: boolean; couriers?: string[]; message?: string } | null>(null);
+
+  useEffect(() => {
+    if (/^\d{6}$/.test(pincode)) {
+      fetch(`/api/shipping/serviceability?pincode=${encodeURIComponent(pincode)}`)
+        .then((res) => res.json())
+        .then((data) => setPincodeStatus(data))
+        .catch(() => setPincodeStatus(null));
+    } else {
+      setPincodeStatus(null);
+    }
+  }, [pincode]);
 
   useEffect(() => {
     fetch('/api/auth/customer/me')
@@ -270,10 +283,58 @@ export function CartDrawer({ freeShippingThreshold = '₹15,000' }: CartDrawerPr
                     <input
                       type="text"
                       placeholder="400001"
+                      maxLength={6}
                       value={pincode}
-                      onChange={(e) => setPincode(e.target.value)}
+                      onChange={(e) => setPincode(e.target.value.replace(/[^0-9]/g, ''))}
                       className="input min-h-[42px] py-2 text-body-sm"
                     />
+                    {pincodeStatus && !pincodeStatus.serviceable && (
+                      <p className="text-[11px] mt-1 font-medium text-amber-700">
+                        ⚠ Delivery currently unavailable for this pincode
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Preferred Delivery Speed Options */}
+                <div className="pt-2 space-y-2">
+                  <label className="label text-[10px] uppercase font-semibold text-neutral-600 block">Preferred Shipping Method</label>
+                  <div className="grid grid-cols-1 gap-2 text-body-sm">
+                    <label className={`p-3 rounded-lg border flex items-start gap-3 cursor-pointer transition-colors ${deliverySpeed === 'standard' ? 'border-neutral-950 bg-cream-50/80 ring-1 ring-neutral-950' : 'border-neutral-200 bg-white hover:bg-neutral-50'}`}>
+                      <input
+                        type="radio"
+                        name="deliverySpeed"
+                        value="standard"
+                        checked={deliverySpeed === 'standard'}
+                        onChange={() => setDeliverySpeed('standard')}
+                        className="mt-0.5 h-4 w-4 text-neutral-950 border-neutral-300 focus:ring-neutral-950"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex justify-between items-center">
+                          <span className="font-semibold text-neutral-950 text-caption uppercase tracking-wider">Standard Delivery</span>
+                          <span className="text-caption font-semibold text-emerald-700">Complimentary</span>
+                        </div>
+                        <p className="text-[11px] text-neutral-500 mt-0.5">Estimated delivery within 3–5 business days.</p>
+                      </div>
+                    </label>
+
+                    <label className={`p-3 rounded-lg border flex items-start gap-3 cursor-pointer transition-colors ${deliverySpeed === 'express' ? 'border-gold-500 bg-gold-50/60 ring-1 ring-gold-500' : 'border-neutral-200 bg-white hover:bg-neutral-50'}`}>
+                      <input
+                        type="radio"
+                        name="deliverySpeed"
+                        value="express"
+                        checked={deliverySpeed === 'express'}
+                        onChange={() => setDeliverySpeed('express')}
+                        className="mt-0.5 h-4 w-4 text-gold-600 border-neutral-300 focus:ring-gold-500"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex justify-between items-center">
+                          <span className="font-semibold text-gold-950 text-caption uppercase tracking-wider flex items-center gap-1">⚡ Express Priority Delivery</span>
+                          <span className="text-caption font-semibold text-gold-800">Additional Charge</span>
+                        </div>
+                        <p className="text-[11px] text-neutral-600 mt-0.5">Fastest 1–2 business day dispatch. <em>Note: Additional shipping charges will be added at checkout/dispatch.</em></p>
+                      </div>
+                    </label>
                   </div>
                 </div>
 

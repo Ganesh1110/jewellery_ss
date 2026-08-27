@@ -204,6 +204,8 @@ export function buildShop(settings: Setting[]): Shop {
     announcementMarquee: get('announcement_marquee', 'true') === 'true',
     announcementEnabled: get('announcement_enabled', 'true') !== 'false',
     whatsappNumber: get('whatsapp_number', '+919876543210'),
+    originPincode: get('origin_pincode', '400001'),
+    pincodeCheckEnabled: get('pincode_check_enabled', 'true') !== 'false',
   };
 }
 

@@ -11,6 +11,8 @@ export async function GET() {
     orderNumber: o.orderNumber,
     name: o.customerName,
     email: o.customerEmail,
+    phone: o.customerPhone || undefined,
+    address: (o.address as unknown as StoredOrder['address']) || null,
     createdAt: o.createdAt.toISOString(),
     total: Number(o.total),
     currencyCode: o.currencyCode,
