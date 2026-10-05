@@ -276,9 +276,20 @@ export default function AdminOrdersPage() {
                 <p className="font-semibold text-neutral-950">{selectedOrder.name}</p>
                 {selectedOrder.email && <p className="text-neutral-600">{selectedOrder.email}</p>}
                 {selectedOrder.address ? (
-                  <div className="pt-2 text-caption text-neutral-700 space-y-0.5 border-t border-neutral-200/60">
+                  <div className="pt-2 text-caption text-neutral-700 space-y-1.5 border-t border-neutral-200/60">
                     <p className="font-medium text-neutral-900">{selectedOrder.address.addressLine}</p>
                     <p>{selectedOrder.address.city}, {selectedOrder.address.state} — <strong className="text-neutral-950 font-semibold">{selectedOrder.address.pincode}</strong></p>
+                    {selectedOrder.address.deliverySpeed && (
+                      <div className="pt-1">
+                        <span className={`inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded border ${
+                          selectedOrder.address.deliverySpeed === 'express'
+                            ? 'bg-gold-50 text-gold-900 border-gold-300'
+                            : 'bg-neutral-100 text-neutral-700 border-neutral-200'
+                        }`}>
+                          {selectedOrder.address.deliverySpeed === 'express' ? '⚡ Express Priority Dispatch' : 'Standard Delivery'}
+                        </span>
+                      </div>
+                    )}
                   </div>
                 ) : (
                   <p className="text-caption text-neutral-400 italic pt-1">No detailed address captured (Walk-in or standard checkout)</p>

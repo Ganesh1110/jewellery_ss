@@ -10,7 +10,8 @@ export async function POST(req: Request) {
     customerName?: string;
     customerEmail?: string;
     customerPhone?: string;
-    address?: { addressLine?: string; city?: string; state?: string; pincode?: string };
+    deliverySpeed?: string;
+    address?: { addressLine?: string; city?: string; state?: string; pincode?: string; deliverySpeed?: string };
     createAccount?: boolean;
     password?: string;
   };
@@ -29,7 +30,10 @@ export async function POST(req: Request) {
   const name = body.customerName?.trim() || 'Guest Customer';
   const email = body.customerEmail?.trim() || '';
   const phone = body.customerPhone?.trim() || '';
-  const addressJson = body.address || null;
+  const speed = body.deliverySpeed || body.address?.deliverySpeed || 'standard';
+  const addressJson = body.address
+    ? { ...body.address, deliverySpeed: speed }
+    : { deliverySpeed: speed };
 
   try {
     const order = await prisma.$transaction(async (tx) => {
@@ -43,7 +47,7 @@ export async function POST(req: Request) {
           customerName: name,
           customerEmail: email,
           customerPhone: phone,
-          address: addressJson ? (addressJson as unknown as Prisma.InputJsonValue) : Prisma.JsonNull,
+          address: addressJson as unknown as Prisma.InputJsonValue,
           subtotal,
           total: subtotal,
           currencyCode: currency,

@@ -1,27 +1,36 @@
 import { MetadataRoute } from 'next';
 import { fetchProducts, fetchCollections } from '@/lib/shopify';
 
+export const dynamic = 'force-dynamic';
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
 
-  const [products, collections] = await Promise.all([
-    fetchProducts(1000),
-    fetchCollections(100),
-  ]);
+  let productUrls: MetadataRoute.Sitemap = [];
+  let collectionUrls: MetadataRoute.Sitemap = [];
 
-  const productUrls = products.edges.map(({ node }) => ({
-    url: `${baseUrl}/products/${node.handle}`,
-    lastModified: new Date(node.updatedAt),
-    changeFrequency: 'weekly' as const,
-    priority: 0.8,
-  }));
+  try {
+    const [products, collections] = await Promise.all([
+      fetchProducts(1000),
+      fetchCollections(100),
+    ]);
 
-  const collectionUrls = collections.edges.map(({ node }) => ({
-    url: `${baseUrl}/collections/${node.handle}`,
-    lastModified: new Date(node.updatedAt),
-    changeFrequency: 'daily' as const,
-    priority: 0.7,
-  }));
+    productUrls = products.edges.map(({ node }) => ({
+      url: `${baseUrl}/products/${node.handle}`,
+      lastModified: new Date(node.updatedAt),
+      changeFrequency: 'weekly' as const,
+      priority: 0.8,
+    }));
+
+    collectionUrls = collections.edges.map(({ node }) => ({
+      url: `${baseUrl}/collections/${node.handle}`,
+      lastModified: new Date(node.updatedAt),
+      changeFrequency: 'daily' as const,
+      priority: 0.7,
+    }));
+  } catch (err) {
+    console.warn('Could not fetch products/collections for sitemap:', err);
+  }
 
   const staticUrls = [
     { url: baseUrl, lastModified: new Date(), changeFrequency: 'daily' as const, priority: 1 },

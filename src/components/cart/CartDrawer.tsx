@@ -87,6 +87,10 @@ export function CartDrawer({ freeShippingThreshold = '₹15,000' }: CartDrawerPr
 
   const handleCheckout = async () => {
     if (!cart) return;
+    if (pincodeStatus && !pincodeStatus.serviceable) {
+      setCheckoutError(pincodeStatus.message || 'Delivery is currently unavailable for this pincode.');
+      return;
+    }
     setIsCheckingOut(true);
     setCheckoutError(null);
     const result = await checkoutOrder({
@@ -94,11 +98,13 @@ export function CartDrawer({ freeShippingThreshold = '₹15,000' }: CartDrawerPr
       customerName,
       customerEmail,
       customerPhone,
+      deliverySpeed,
       address: {
         addressLine,
         city,
         state,
         pincode,
+        deliverySpeed,
       },
       createAccount,
     });
@@ -279,6 +285,16 @@ export function CartDrawer({ freeShippingThreshold = '₹15,000' }: CartDrawerPr
                     />
                   </div>
                   <div>
+                    <label className="label text-[10px]">State / Region</label>
+                    <input
+                      type="text"
+                      placeholder="Maharashtra"
+                      value={state}
+                      onChange={(e) => setState(e.target.value)}
+                      className="input min-h-[42px] py-2 text-body-sm"
+                    />
+                  </div>
+                  <div className="sm:col-span-2">
                     <label className="label text-[10px]">Pincode / ZIP</label>
                     <input
                       type="text"
@@ -403,7 +419,7 @@ export function CartDrawer({ freeShippingThreshold = '₹15,000' }: CartDrawerPr
               variant="gold"
               className="w-full"
               size="lg"
-              disabled={isLoading || isCheckingOut}
+              disabled={isLoading || isCheckingOut || (pincodeStatus !== null && !pincodeStatus.serviceable)}
               loading={isLoading || isCheckingOut}
             >
               Proceed to Checkout

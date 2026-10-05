@@ -62,7 +62,8 @@ export interface CheckoutInput {
   customerName?: string;
   customerEmail?: string;
   customerPhone?: string;
-  address?: { addressLine?: string; city?: string; state?: string; pincode?: string };
+  deliverySpeed?: 'standard' | 'express' | string;
+  address?: { addressLine?: string; city?: string; state?: string; pincode?: string; deliverySpeed?: string };
   createAccount?: boolean;
   password?: string;
 }

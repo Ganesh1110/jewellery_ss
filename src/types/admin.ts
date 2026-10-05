@@ -83,6 +83,7 @@ export interface AddressDetails {
   city?: string;
   state?: string;
   pincode?: string;
+  deliverySpeed?: 'standard' | 'express' | string;
 }
 
 export interface StoredOrder {
