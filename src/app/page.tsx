@@ -34,27 +34,50 @@ const localCollectionImages = [
 const brandStoryImage = '/images/Image6.jpeg';
 
 async function getHomepageData() {
-  const [featuredProducts, collections, shop, settingsRows] = await Promise.all([
-    fetchProducts(4, undefined, 'BEST_SELLING'),
-    fetchCollections(4),
-    fetchShop(),
-    prisma.setting.findMany({
-      where: { key: { in: ['hero_subtitle', 'hero_title', 'hero_description'] } }
-    }),
-  ]);
+  try {
+    let settingsRows: Array<{ key: string; value: string }> = [];
+    try {
+      settingsRows = await prisma.setting.findMany({
+        where: { key: { in: ['hero_subtitle', 'hero_title', 'hero_description'] } },
+      });
+    } catch {
+      // Database not reachable
+    }
 
-  const settings = new Map(settingsRows.map(row => [row.key, row.value]));
+    const [featuredProducts, collections, shop] = await Promise.all([
+      fetchProducts(4, undefined, 'BEST_SELLING'),
+      fetchCollections(4),
+      fetchShop(),
+    ]);
 
-  return {
-    featuredProducts: featuredProducts.edges.map(({ node }) => node).slice(0, 4),
-    collections: collections.edges.map(({ node }) => node).slice(0, 4),
-    shop,
-    heroContent: {
-      subtitle: settings.get('hero_subtitle') || 'Handcrafted in Mumbai',
-      title: settings.get('hero_title') || 'Jewelry with intention, worn daily',
-      description: settings.get('hero_description') || 'Quietly sculpted pieces in gold and gemstone, made to be worn every day and handed down for generations.',
-    },
-  };
+    const settings = new Map(settingsRows.map((row) => [row.key, row.value]));
+
+    return {
+      featuredProducts: featuredProducts.edges.map(({ node }) => node).slice(0, 4),
+      collections: collections.edges.map(({ node }) => node).slice(0, 4),
+      shop,
+      heroContent: {
+        subtitle: settings.get('hero_subtitle') || 'Handcrafted in Mumbai',
+        title: settings.get('hero_title') || 'Jewelry with intention, worn daily',
+        description:
+          settings.get('hero_description') ||
+          'Quietly sculpted pieces in gold and gemstone, made to be worn every day and handed down for generations.',
+      },
+    };
+  } catch (err) {
+    console.error('Error in getHomepageData:', err);
+    return {
+      featuredProducts: [],
+      collections: [],
+      shop: await fetchShop(),
+      heroContent: {
+        subtitle: 'Handcrafted in Mumbai',
+        title: 'Jewelry with intention, worn daily',
+        description:
+          'Quietly sculpted pieces in gold and gemstone, made to be worn every day and handed down for generations.',
+      },
+    };
+  }
 }
 
 export default async function HomePage() {

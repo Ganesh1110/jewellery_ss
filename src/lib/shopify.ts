@@ -64,115 +64,157 @@ export async function fetchProducts(
   reverse = false,
   query?: string
 ): Promise<ProductConnection> {
-  const skip = parseAfter(after);
-  const rows = await prisma.product.findMany({ where: { deletedAt: null }, orderBy: sortOrder(sortKey, reverse), take: skip + first + 20, include: variantsInclude });
-  let products = rows.map((p) => productRecordToProduct(p));
-  if (query) products = products.filter((p) => matchesQuery(p, query));
-  products = sortInStockFirst(products);
-  const hasNextPage = products.length > skip + first;
-  products = products.slice(skip, skip + first);
+  try {
+    const skip = parseAfter(after);
+    const rows = await prisma.product.findMany({ where: { deletedAt: null }, orderBy: sortOrder(sortKey, reverse), take: skip + first + 20, include: variantsInclude });
+    let products = rows.map((p) => productRecordToProduct(p));
+    if (query) products = products.filter((p) => matchesQuery(p, query));
+    products = sortInStockFirst(products);
+    const hasNextPage = products.length > skip + first;
+    products = products.slice(skip, skip + first);
 
-  return {
-    edges: products.slice(0, first).map((node) => ({ node, cursor: node.id })),
-    pageInfo: {
-      hasNextPage,
-      hasPreviousPage: skip > 0,
-      startCursor: products.length > 0 ? products[0].id : null,
-      endCursor: products.length > 0 ? products[products.length - 1].id : null,
-    },
-  };
+    return {
+      edges: products.slice(0, first).map((node) => ({ node, cursor: node.id })),
+      pageInfo: {
+        hasNextPage,
+        hasPreviousPage: skip > 0,
+        startCursor: products.length > 0 ? products[0].id : null,
+        endCursor: products.length > 0 ? products[products.length - 1].id : null,
+      },
+    };
+  } catch (err) {
+    console.error('Error in fetchProducts:', err);
+    return {
+      edges: [],
+      pageInfo: { hasNextPage: false, hasPreviousPage: false, startCursor: null, endCursor: null },
+    };
+  }
 }
 
 export async function fetchProduct(handle: string): Promise<Product | null> {
-  const row = await prisma.product.findUnique({ where: { handle }, include: variantsInclude });
-  return row ? productRecordToProduct(row) : null;
+  try {
+    const row = await prisma.product.findUnique({ where: { handle }, include: variantsInclude });
+    return row ? productRecordToProduct(row) : null;
+  } catch (err) {
+    console.error(`Error in fetchProduct(${handle}):`, err);
+    return null;
+  }
 }
 
 export async function fetchProductRecommendations(productId: string): Promise<Product[]> {
-  const id = Number(productId.split('/').pop());
-  const rows = await prisma.product.findMany({ where: { id: { not: id }, deletedAt: null }, orderBy: { createdAt: 'desc' }, take: 4, include: variantsInclude });
-  const products = rows.map((p) => productRecordToProduct(p));
-  return sortInStockFirst(products);
+  try {
+    const id = Number(productId.split('/').pop());
+    const rows = await prisma.product.findMany({ where: { id: { not: id }, deletedAt: null }, orderBy: { createdAt: 'desc' }, take: 4, include: variantsInclude });
+    const products = rows.map((p) => productRecordToProduct(p));
+    return sortInStockFirst(products);
+  } catch (err) {
+    console.error('Error in fetchProductRecommendations:', err);
+    return [];
+  }
 }
 
 export async function fetchCollections(first = 20, after?: string): Promise<CollectionConnection> {
-  const skip = parseAfter(after);
-  const rows = await prisma.collection.findMany({ orderBy: { title: 'asc' }, skip, take: first + 1 });
-  const hasNextPage = rows.length > first;
-  const pageRows = rows.slice(0, first);
-  return {
-    edges: pageRows.map((node) => ({ node: collectionRecordToCollection(node, []), cursor: node.id.toString() })),
-    pageInfo: { hasNextPage, hasPreviousPage: skip > 0 },
-  };
+  try {
+    const skip = parseAfter(after);
+    const rows = await prisma.collection.findMany({ orderBy: { title: 'asc' }, skip, take: first + 1 });
+    const hasNextPage = rows.length > first;
+    const pageRows = rows.slice(0, first);
+    return {
+      edges: pageRows.map((node) => ({ node: collectionRecordToCollection(node, []), cursor: node.id.toString() })),
+      pageInfo: { hasNextPage, hasPreviousPage: skip > 0 },
+    };
+  } catch (err) {
+    console.error('Error in fetchCollections:', err);
+    return { edges: [], pageInfo: { hasNextPage: false, hasPreviousPage: false } };
+  }
 }
 
 export async function fetchCollection(handle: string, first = 10, after?: string, sortKey?: string): Promise<Collection | null> {
-  const skip = parseAfter(after);
+  try {
+    const skip = parseAfter(after);
 
-  if (handle === 'all') {
-    const rows = await prisma.product.findMany({ where: { deletedAt: null }, orderBy: sortOrder(sortKey), take: skip + first + 20, include: variantsInclude });
-    let products = rows.map((p) => productRecordToProduct(p));
-    products = sortInStockFirst(products);
-    const hasNextPage = products.length > skip + first;
-    products = products.slice(skip, skip + first);
-    return {
-      id: 'gid://db/Collection/all',
-      handle: 'all',
-      title: 'All Jewelry',
-      description: 'Every piece in our collection.',
-      descriptionHtml: '',
-      image: null,
-      seo: { title: 'All Jewelry', description: 'Every piece in our collection.' },
-      updatedAt: new Date().toISOString(),
-      products: { edges: products.map((node) => ({ node, cursor: node.id })), pageInfo: { hasNextPage, hasPreviousPage: skip > 0, startCursor: null, endCursor: null } },
-    };
+    if (handle === 'all') {
+      const rows = await prisma.product.findMany({ where: { deletedAt: null }, orderBy: sortOrder(sortKey), take: skip + first + 20, include: variantsInclude });
+      let products = rows.map((p) => productRecordToProduct(p));
+      products = sortInStockFirst(products);
+      const hasNextPage = products.length > skip + first;
+      products = products.slice(skip, skip + first);
+      return {
+        id: 'gid://db/Collection/all',
+        handle: 'all',
+        title: 'All Jewelry',
+        description: 'Every piece in our collection.',
+        descriptionHtml: '',
+        image: null,
+        seo: { title: 'All Jewelry', description: 'Every piece in our collection.' },
+        updatedAt: new Date().toISOString(),
+        products: { edges: products.map((node) => ({ node, cursor: node.id })), pageInfo: { hasNextPage, hasPreviousPage: skip > 0, startCursor: null, endCursor: null } },
+      };
+    }
+
+    if (handle === 'bestsellers') {
+      const rows = await prisma.product.findMany({ where: { compareAtPrice: { not: null }, deletedAt: null }, orderBy: sortOrder(sortKey), take: skip + first + 20, include: variantsInclude });
+      let products = rows.map((p) => productRecordToProduct(p));
+      products = sortInStockFirst(products);
+      const hasNextPage = products.length > skip + first;
+      products = products.slice(skip, skip + first);
+      return {
+        id: 'gid://db/Collection/bestsellers',
+        handle: 'bestsellers',
+        title: 'Bestsellers',
+        description: 'The pieces our collectors love most.',
+        descriptionHtml: '',
+        image: null,
+        seo: { title: 'Bestsellers', description: 'The pieces our collectors love most.' },
+        updatedAt: new Date().toISOString(),
+        products: { edges: products.map((node) => ({ node, cursor: node.id })), pageInfo: { hasNextPage, hasPreviousPage: skip > 0, startCursor: null, endCursor: null } },
+      };
+    }
+
+    const collection = await prisma.collection.findUnique({
+      where: { handle },
+      include: { items: { include: { product: { include: variantsInclude } }, orderBy: { position: 'asc' } } },
+    });
+    if (!collection) return null;
+
+    let allProducts = collection.items.map((item) => item.product).map((p) => productRecordToProduct(p));
+    allProducts = sortInStockFirst(allProducts);
+    const paginated = allProducts.slice(skip, skip + first);
+    return collectionRecordToCollection(collection, paginated);
+  } catch (err) {
+    console.error(`Error in fetchCollection(${handle}):`, err);
+    return null;
   }
-
-  if (handle === 'bestsellers') {
-    const rows = await prisma.product.findMany({ where: { compareAtPrice: { not: null }, deletedAt: null }, orderBy: sortOrder(sortKey), take: skip + first + 20, include: variantsInclude });
-    let products = rows.map((p) => productRecordToProduct(p));
-    products = sortInStockFirst(products);
-    const hasNextPage = products.length > skip + first;
-    products = products.slice(skip, skip + first);
-    return {
-      id: 'gid://db/Collection/bestsellers',
-      handle: 'bestsellers',
-      title: 'Bestsellers',
-      description: 'The pieces our collectors love most.',
-      descriptionHtml: '',
-      image: null,
-      seo: { title: 'Bestsellers', description: 'The pieces our collectors love most.' },
-      updatedAt: new Date().toISOString(),
-      products: { edges: products.map((node) => ({ node, cursor: node.id })), pageInfo: { hasNextPage, hasPreviousPage: skip > 0, startCursor: null, endCursor: null } },
-    };
-  }
-
-  const collection = await prisma.collection.findUnique({
-    where: { handle },
-    include: { items: { include: { product: { include: variantsInclude } }, orderBy: { position: 'asc' } } },
-  });
-  if (!collection) return null;
-
-  let allProducts = collection.items.map((item) => item.product).map((p) => productRecordToProduct(p));
-  allProducts = sortInStockFirst(allProducts);
-  const paginated = allProducts.slice(skip, skip + first);
-  const hasNextPage = allProducts.length > skip + first;
-  return collectionRecordToCollection(collection, paginated);
 }
 
 export async function fetchMenu(handle: string): Promise<Menu | null> {
-  const collections = await prisma.collection.findMany({ orderBy: { title: 'asc' } });
-  return buildMenus(collections).find((m) => m.handle === handle) || null;
+  try {
+    const collections = await prisma.collection.findMany({ orderBy: { title: 'asc' } });
+    return buildMenus(collections).find((m) => m.handle === handle) || null;
+  } catch (err) {
+    console.error(`Error in fetchMenu(${handle}):`, err);
+    return buildMenus([]).find((m) => m.handle === handle) || null;
+  }
 }
 
 export async function fetchMenus(): Promise<Menu[]> {
-  const collections = await prisma.collection.findMany({ orderBy: { title: 'asc' } });
-  return buildMenus(collections);
+  try {
+    const collections = await prisma.collection.findMany({ orderBy: { title: 'asc' } });
+    return buildMenus(collections);
+  } catch (err) {
+    console.error('Error in fetchMenus:', err);
+    return buildMenus([]);
+  }
 }
 
 export async function fetchShop(): Promise<Shop> {
-  const settings = await prisma.setting.findMany();
-  return buildShop(settings);
+  try {
+    const settings = await prisma.setting.findMany();
+    return buildShop(settings);
+  } catch (err) {
+    console.error('Error in fetchShop:', err);
+    return buildShop([]);
+  }
 }
 
 export async function fetchBlogs(first = 10): Promise<Array<{ id: string; handle: string; title: string }>> {
