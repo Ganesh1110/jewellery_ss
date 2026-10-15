@@ -1,8 +1,18 @@
 import { NextResponse } from 'next/server';
 import { createCustomer, CUSTOMER_SESSION_COOKIE } from '@/lib/customer-auth';
+import { rateLimit, getClientIp } from '@/lib/rate-limit';
 
 export async function POST(req: Request) {
   try {
+    const ip = getClientIp(req);
+    const limiter = await rateLimit(`cust-signup:${ip}`, { limit: 5, windowSeconds: 600 });
+    if (!limiter.success) {
+      return NextResponse.json(
+        { error: 'Too many account creation attempts. Please try again later.' },
+        { status: 429, headers: { 'Retry-After': '600' } }
+      );
+    }
+
     const { name, email, password } = await req.json();
     if (!name || !email || !password) {
       return NextResponse.json({ error: 'Name, email, and password are required' }, { status: 400 });

@@ -3,7 +3,7 @@
 import { useState, useRef, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, CheckCircle2, Upload, Plus, Trash2, Eye, Star, Layers, Sparkles, AlertCircle, Globe } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, Upload, Plus, Trash2, Eye, Star, Layers, Sparkles, AlertCircle, Globe, Loader2 } from 'lucide-react';
 import type { CustomProductInput, VariantInput } from '@/types/admin';
 import { ProductCard } from '@/components/product/ProductCard';
 import { OptimizedImage } from '@/components/ui/Image';
@@ -97,21 +97,37 @@ export default function NewProductPage() {
   ]);
 
   // Handle Image File Uploads (PC / Mobile Camera / Photos)
-  const handleFileUpload = (files: FileList | null) => {
+  const [uploadingImages, setUploadingImages] = useState(false);
+
+  const handleFileUpload = async (files: FileList | null) => {
     if (!files || files.length === 0) return;
+    const validFiles = Array.from(files).filter((file) => file.type.startsWith('image/'));
+    if (validFiles.length === 0) {
+      showToast('Please select valid image files (JPG, PNG, WEBP, etc.)', 'error');
+      return;
+    }
 
-    Array.from(files).forEach((file) => {
-      if (!file.type.startsWith('image/')) return;
+    setUploadingImages(true);
+    const formData = new FormData();
+    validFiles.forEach((file) => formData.append('files', file));
 
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const result = e.target?.result as string;
-        if (result) {
-          setImages((prev) => [...prev, result]);
-        }
-      };
-      reader.readAsDataURL(file);
-    });
+    try {
+      const res = await fetch('/api/admin/uploads', {
+        method: 'POST',
+        body: formData,
+      });
+      const data = await res.json();
+      if (!res.ok || !data.urls) {
+        throw new Error(data.error || 'Failed to upload images');
+      }
+      setImages((prev) => [...prev, ...data.urls]);
+      showToast(`Uploaded ${data.urls.length} image${data.urls.length > 1 ? 's' : ''}`, 'success');
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Error uploading images', 'error');
+    } finally {
+      setUploadingImages(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
   };
 
   const handleDrop = (e: React.DragEvent) => {
@@ -461,21 +477,29 @@ export default function NewProductPage() {
                     onDragOver={(e) => { e.preventDefault(); setIsDragOver(true); }}
                     onDragLeave={() => setIsDragOver(false)}
                     onDrop={handleDrop}
-                    onClick={() => fileInputRef.current?.click()}
-                    className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-all duration-200 ${
+                    onClick={() => !uploadingImages && fileInputRef.current?.click()}
+                    className={`border-2 border-dashed rounded-lg p-8 text-center transition-all duration-200 ${
+                      uploadingImages ? 'opacity-70 cursor-wait bg-neutral-50' : 'cursor-pointer'
+                    } ${
                       isDragOver
                         ? 'border-gold-500 bg-gold-50/50 scale-[0.99]'
                         : 'border-neutral-300 hover:border-gold-500 hover:bg-neutral-50/80'
                     }`}
                   >
                     <div className="w-14 h-14 rounded-full bg-gold-100 text-gold-700 flex items-center justify-center mx-auto mb-3">
-                      <Upload className="h-7 w-7" />
+                      {uploadingImages ? (
+                        <Loader2 className="h-7 w-7 animate-spin text-gold-700" />
+                      ) : (
+                        <Upload className="h-7 w-7" />
+                      )}
                     </div>
                     <p className="font-heading text-heading-sm font-semibold text-neutral-950 mb-1">
-                      Click to Upload Images from PC / Mobile Camera
+                      {uploadingImages ? 'Uploading & Optimizing Images...' : 'Click to Upload Images from PC / Mobile Camera'}
                     </p>
                     <p className="text-caption text-neutral-500 max-w-xs mx-auto">
-                      Supports JPG, PNG, WEBP files directly from your smartphone photo gallery or computer.
+                      {uploadingImages
+                        ? 'Saving images to media storage and preparing high-res gallery previews...'
+                        : 'Supports JPG, PNG, WEBP files directly from your smartphone photo gallery or computer.'}
                     </p>
                   </div>
 

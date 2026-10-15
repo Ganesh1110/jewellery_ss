@@ -1,0 +1,16 @@
+node_modules
+.next
+.git
+.github
+.env*.local
+.env
+.vercel
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+tests
+playwright-report
+test-results
+README.md
+.DS_Store

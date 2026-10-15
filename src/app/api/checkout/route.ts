@@ -3,8 +3,18 @@ import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { gidToId } from '@/lib/db-mappers';
 import { applyMovement, InsufficientStockError } from '@/lib/inventory';
+import { rateLimit, getClientIp } from '@/lib/rate-limit';
 
 export async function POST(req: Request) {
+  const ip = getClientIp(req);
+  const limiter = await rateLimit(`checkout:${ip}`, { limit: 15, windowSeconds: 600 });
+  if (!limiter.success) {
+    return NextResponse.json(
+      { error: 'Too many checkout attempts. Please try again in a few moments.' },
+      { status: 429, headers: { 'Retry-After': '600' } }
+    );
+  }
+
   const body = await req.json().catch(() => ({})) as {
     cartId?: string;
     customerName?: string;

@@ -1,7 +1,14 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { rateLimit, getClientIp } from '@/lib/rate-limit';
 
 export async function GET(req: Request) {
+  const ip = getClientIp(req);
+  const limiter = await rateLimit(`pincode:${ip}`, { limit: 30, windowSeconds: 60 });
+  if (!limiter.success) {
+    return NextResponse.json({ error: 'Too many requests. Please slow down.' }, { status: 429 });
+  }
+
   const { searchParams } = new URL(req.url);
   const pincode = searchParams.get('pincode')?.trim();
 
@@ -71,14 +78,21 @@ export async function GET(req: Request) {
     const estimatedDays = isSameZone ? '1-2 Business Days' : '3-5 Business Days';
 
     if (isServiceable) {
-      return NextResponse.json({
-        pincode,
-        serviceable: true,
-        originPincode,
-        couriers: availableCouriers,
-        estimatedDays,
-        message: `Delivery available to ${pincode} via ${availableCouriers.join(' & ')}.`,
-      });
+      return NextResponse.json(
+        {
+          pincode,
+          serviceable: true,
+          originPincode,
+          couriers: availableCouriers,
+          estimatedDays,
+          message: `Delivery available to ${pincode} via ${availableCouriers.join(' & ')}.`,
+        },
+        {
+          headers: {
+            'Cache-Control': 'public, max-age=3600, s-maxage=86400, stale-while-revalidate=43200',
+          },
+        }
+      );
     }
 
     return NextResponse.json({
